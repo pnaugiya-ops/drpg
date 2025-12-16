@@ -1,0 +1,405 @@
+import React, { useState, useEffect } from 'react';
+import { User, Activity, LogOut, Stethoscope, HelpCircle, Share2, MessageCircle, FileText, LayoutDashboard, Pill, CheckCircle2, Calendar, UserCircle, Utensils, Dumbbell } from 'lucide-react';
+import { MOCK_PATIENT, MOCK_DOCTOR, CLINIC_SERVICES, SOCIAL_POSTS, PATIENT_REPORTS, UPCOMING_APPOINTMENTS, VITAL_TRENDS } from './constants';
+import { Role, SocialPost, User as UserType, Report, Appointment, VitalStat } from './types';
+import { PatientDashboard } from './components/PatientDashboard';
+import { DoctorDashboard } from './components/DoctorDashboard';
+import { ChatInterface } from './components/ChatInterface';
+import { ReportViewer } from './components/ReportViewer';
+import { SymptomChecker } from './components/SymptomChecker';
+import { FAQSection } from './components/FAQSection';
+import { SocialMediaFeed } from './components/SocialMediaFeed';
+import { Pharmacy } from './components/Pharmacy';
+import { AppointmentBooking } from './components/AppointmentBooking';
+import { PatientProfile } from './components/PatientProfile';
+import { DietChart } from './components/DietChart';
+import { ExerciseGuide } from './components/ExerciseGuide';
+import { Button } from './components/Button';
+import { BiometricVerify } from './components/AuthScreens';
+import { ShareApp } from './components/ShareApp';
+
+// Extended view types
+type View = 'dashboard' | 'chat' | 'reports' | 'symptom-checker' | 'faq' | 'social' | 'pharmacy' | 'booking' | 'profile' | 'diet' | 'exercises';
+// Simplified Auth Stage
+type AuthStage = 'selection' | 'biometric';
+
+// Helper to load data from LocalStorage or fall back to constants
+const loadFromStorage = <T,>(key: string, fallback: T): T => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (e) {
+    console.warn(Failed to load ${key} from storage, e);
+    return fallback;
+  }
+};
+
+const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [currentView, setCurrentView] = useState<View>('dashboard');
+  
+  // Auth State
+  const [authStage, setAuthStage] = useState<AuthStage>('selection');
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
+  // Share Modal State
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  // Report Filter State
+  const [reportFilter, setReportFilter] = useState<string>('All');
+
+  // --- PERSISTENT STATE ---
+  // We initialize state by checking LocalStorage first, otherwise use MOCK data
+  
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>(() => 
+    loadFromStorage('socialPosts', SOCIAL_POSTS)
+  );
+  
+  const [patientReports, setPatientReports] = useState<Report[]>(() => 
+    loadFromStorage('patientReports', PATIENT_REPORTS)
+  );
+  
+  const [appointments, setAppointments] = useState<Appointment[]>(() => 
+    loadFromStorage('appointments', UPCOMING_APPOINTMENTS)
+  );
+  
+  const [vitalStats, setVitalStats] = useState<VitalStat[]>(() => 
+    loadFromStorage('vitalStats', VITAL_TRENDS)
+  );
+
+  // --- SAVE EFFECTS ---
+  // Whenever these change, save them back to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('socialPosts', JSON.stringify(socialPosts));
+  }, [socialPosts]);
+
+  useEffect(() => {
+    localStorage.setItem('patientReports', JSON.stringify(patientReports));
+  }, [patientReports]);
+
+  useEffect(() => {
+    localStorage.setItem('appointments', JSON.stringify(appointments));
+  }, [appointments]);
+
+  useEffect(() => {
+    localStorage.setItem('vitalStats', JSON.stringify(vitalStats));
+  }, [vitalStats]);
+
+
+  // --- Auth Handlers ---
+  const handleRoleSelect = (role: Role) => {
+    setSelectedRole(role);
+    setAuthStage('biometric');
+  };
+
+  const handleBiometricSuccess = () => {
+      if (selectedRole === 'patient') {
+          setCurrentUser(MOCK_PATIENT);
+      } else {
+          setCurrentUser(MOCK_DOCTOR);
+      }
+      setCurrentView('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCurrentView('dashboard');
+    setAuthStage('selection');
+    setSelectedRole(null);
+  };
+
+  // --- App Data Handlers ---
+  const handleAddPost = (post: SocialPost) => {
+    setSocialPosts(prev => [post, ...prev]);
+  };
+
+  const handleUpdateProfile = (updatedUser: UserType) => {
+    setCurrentUser(updatedUser);
+  };
+
+  const handleAddReport = (report: Report) => {
+    setPatientReports(prev => [report, ...prev]);
+  };
+
+  const handleAddAppointment = (apt: Appointment) => {
+    setAppointments(prev => [...prev, apt]);
+  };
+
+  const handleAddVital = (vital: VitalStat) => {
+    setVitalStats(prev => [...prev, vital]);
+  };
+
+  const handleNavigate = (view: View, param?: string) => {
+    if (view === 'reports') {
+        setReportFilter(param || 'All');
+    } else {
+        // Reset filter if navigating elsewhere, or keep it if we want persistence
+        setReportFilter('All');
+    }
+    setCurrentView(view);
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 bg-[url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=2070')] bg-cover bg-center font-sans">
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-md" />
+        <div className="relative w-full max-w-5xl shadow-2xl rounded-3xl overflow-hidden">
+            
+            <div className="grid md:grid-cols-2 bg-white min-h-[600px]">
+                
+                {/* Left Side: Auth Screens */}
+                <div className="p-8 md:p-12 flex flex-col justify-center bg-white relative z-10">
+                    <div className="mb-10">
+                         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl shadow-lg shadow-rose-200 mb-6 text-white transform rotate-3">
+                            <Activity className="w-8 h-8" />
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Bhavya Labs & Clinic</h1>
+                        <p className="text-gray-500 font-medium">Dr. Priyanka Gupta's Patient Portal</p>
+                    </div>
+
+                    {authStage === 'selection' && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                             <p className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-4">Select User Type</p>
+                             
+                             <button
+                                onClick={() => handleRoleSelect('patient')}
+                                className="w-full p-4 bg-white border border-gray-100 hover:border-rose-200 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-rose-100 transition-all group flex items-center justify-between relative overflow-hidden"
+                             >
+                                <div className="absolute inset-0 bg-gradient-to-r from-rose-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                                        <User className="w-6 h-6" />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block font-bold text-gray-900 text-lg">Patient Login</span>
+                                        <span className="text-xs text-gray-500">Access reports & appointments</span>
+                                    </div>
+                                </div>
+                                <UserCircle className="w-5 h-5 text-gray-300 group-hover:text-rose-500 relative z-10" />
+                             </button>
+
+                             <button
+                                onClick={() => handleRoleSelect('doctor')}
+                                className="w-full p-4 bg-white border border-gray-100 hover:border-teal-200 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-teal-100 transition-all group flex items-center justify-between relative overflow-hidden"
+                             >
+                                <div className="absolute inset-0 bg-gradient-to-r from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                                        <Stethoscope className="w-6 h-6" />
+                                    </div>
+                                    <div className="text-left">
+                                        <span className="block font-bold text-gray-900 text-lg">Doctor Login</span>
+                                        <span className="text-xs text-gray-500">Authorized personnel only</span>
+                                    </div>
+                                </div>
+                                <Activity className="w-5 h-5 text-gray-300 group-hover:text-teal-500 relative z-10" />
+                             </button>
+                        </div>
+                    )}
+
+                    {authStage === 'biometric' && selectedRole && (
+                        <BiometricVerify 
+                            role={selectedRole}
+                            onSuccess={handleBiometricSuccess} 
+                            onBack={() => setAuthStage('selection')}
+                        />
+                    )}
+                    
+                    <div className="mt-12 text-xs text-center text-gray-400">
+                        Secure connection via 256-bit SSL encryption.
+                    </div>
+                </div>
+
+                {/* Right Side: Info/Branding */}
+                <div className="hidden md:flex flex-col justify-center p-12 bg-gradient-to-br from-rose-500 via-pink-600 to-rose-700 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 mix-blend-overlay" />
+                    <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl -ml-20 -mb-20 mix-blend-overlay" />
+                    
+                    <div className="relative z-10">
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-8">
+                            <h2 className="text-2xl font-bold mb-4">Complete Women's Healthcare</h2>
+                            <p className="text-rose-100 leading-relaxed">
+                                Experience compassionate, world-class care designed for every stage of a woman's life. From routine checkups to complex surgeries, we are here for you.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {CLINIC_SERVICES.slice(0, 3).map((service) => (
+                                <div key={service.id} className="flex items-center gap-4 bg-black/10 p-3 rounded-xl border border-white/5 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0">
+                                        <CheckCircle2 className="w-5 h-5 text-rose-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm">{service.title}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="absolute bottom-6 right-8 text-right opacity-80">
+                         <div className="text-5xl font-bold text-white/20">2024</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    );
+  }
+
+  const NavItem = ({ view, icon: Icon, label }: { view: View, icon: any, label: string }) => {
+    const isActive = currentView === view;
+    return (
+        <button
+            onClick={() => handleNavigate(view)}
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+                isActive
+                ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md shadow-rose-200' 
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+        >
+            <Icon className={w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-rose-500'}} />
+            <span className={text-sm font-medium ${isActive ? 'text-white' : 'group-hover:text-gray-900'}}>{label}</span>
+        </button>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans relative">
+      <ShareApp 
+        isOpen={showShareModal} 
+        onClose={() => setShowShareModal(false)} 
+        role={currentUser.role}
+      />
+
+      {/* Sidebar Navigation */}
+      <nav className="bg-white border-b md:border-b-0 md:border-r border-gray-200 w-full md:w-72 md:min-h-screen flex-shrink-0 flex md:flex-col justify-between p-4 sticky top-0 z-20 h-auto shadow-sm md:shadow-none">
+        <div>
+            <div className="flex items-center gap-3 mb-8 pl-2 pt-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-rose-200">
+                    B
+                </div>
+                <div>
+                    <span className="block font-bold text-gray-900 text-lg leading-none">Bhavya</span>
+                    <span className="block text-xs text-rose-500 font-semibold tracking-wide uppercase mt-1">Labs & Clinic</span>
+                </div>
+            </div>
+
+            {/* Desktop User Profile Snippet */}
+            <div className="hidden md:flex flex-col items-center text-center p-5 bg-gradient-to-b from-gray-50 to-white rounded-2xl mb-8 border border-gray-100">
+                <div className="relative">
+                    <img src={currentUser.avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full border-4 border-white shadow-md mb-3" />
+                    <div className="absolute bottom-3 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <h3 className="font-bold text-gray-900">{currentUser.name}</h3>
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full mt-1 capitalize">{currentUser.role}</span>
+                {currentUser.role === 'patient' && (
+                    <button 
+                        onClick={() => handleNavigate('profile')}
+                        className="text-xs text-rose-600 font-semibold mt-3 hover:underline"
+                    >
+                        Edit Profile
+                    </button>
+                )}
+            </div>
+
+            {/* Navigation Links */}
+            <div className="hidden md:flex flex-col gap-2">
+                <NavItem view="dashboard" icon={LayoutDashboard} label="Dashboard" />
+                {currentUser.role === 'patient' && (
+                    <>
+                        <div className="text-xs font-bold text-gray-400 uppercase mt-6 mb-3 pl-4 tracking-wider">Health</div>
+                        <NavItem view="booking" icon={Calendar} label="Appointments" />
+                        <NavItem view="diet" icon={Utensils} label="Diet Chart" />
+                        <NavItem view="exercises" icon={Dumbbell} label="Exercises" />
+                        <NavItem view="chat" icon={MessageCircle} label="AI Assistant" />
+                        <NavItem view="symptom-checker" icon={Stethoscope} label="Symptom Checker" />
+                        <NavItem view="pharmacy" icon={Pill} label="Pharmacy" />
+                        
+                        <div className="text-xs font-bold text-gray-400 uppercase mt-6 mb-3 pl-4 tracking-wider">Records</div>
+                        <NavItem view="reports" icon={FileText} label="Documents" />
+                        <NavItem view="profile" icon={UserCircle} label="My Profile" />
+                        
+                        <div className="text-xs font-bold text-gray-400 uppercase mt-6 mb-3 pl-4 tracking-wider">Social</div>
+                        <NavItem view="social" icon={Share2} label="Community Feed" />
+                        <NavItem view="faq" icon={HelpCircle} label="Help & FAQs" />
+
+                        {/* WhatsApp Support Button */}
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                            <button
+                                onClick={() => window.open('https://wa.me/919676712517', '_blank')}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-green-600 hover:bg-green-50 group border border-green-100 bg-green-50/50"
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                                <span className="text-sm font-bold">WhatsApp Support</span>
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
+            
+            {/* Mobile Navigation (Scrollable Row) */}
+            <div className="md:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <Button 
+                    variant={currentView === 'dashboard' ? 'primary' : 'outline'} 
+                    size="sm"
+                    onClick={() => handleNavigate('dashboard')}
+                    className="whitespace-nowrap"
+                >
+                    Dashboard
+                </Button>
+                {currentUser.role === 'patient' && (
+                    <>
+                        <Button variant={currentView === 'booking' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('booking')} className="whitespace-nowrap">Book</Button>
+                        <Button variant={currentView === 'diet' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('diet')} className="whitespace-nowrap">Diet</Button>
+                        <Button variant={currentView === 'exercises' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('exercises')} className="whitespace-nowrap">Exercises</Button>
+                        <Button variant={currentView === 'chat' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('chat')} className="whitespace-nowrap">AI Chat</Button>
+                        <Button variant={currentView === 'reports' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('reports')} className="whitespace-nowrap">Reports</Button>
+                        <Button variant={currentView === 'profile' ? 'primary' : 'outline'} size="sm" onClick={() => handleNavigate('profile')} className="whitespace-nowrap">Profile</Button>
+                    </>
+                )}
+            </div>
+        </div>
+
+        <div className="hidden md:block pt-4 border-t border-gray-100 space-y-2">
+            <button 
+                onClick={() => setShowShareModal(true)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            >
+                <Share2 className="w-5 h-5" />
+                <span className="text-sm font-medium">Share App</span>
+            </button>
+            <button 
+                onClick={handleLogout} 
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+            >
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium">Sign Out</span>
+            </button>
+        </div>
+        
+        {/* Mobile Log Out */}
+        <button onClick={handleLogout} className="md:hidden absolute top-5 right-4 text-gray-400 p-2">
+            <LogOut className="w-5 h-5" />
+        </button>
+      </nav>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+        {currentUser.role === 'doctor' ? (
+          <DoctorDashboard 
+            onAddPost={handleAddPost} 
+            appointments={appointments}
+            onAddAppointment={handleAddAppointment}
+            onShare={() => setShowShareModal(true)}
+          />
+        ) : (
+          <div className="animate-in fade-in duration-300">
+            {currentView === 'dashboard' && (
+              <PatientDashboard user={currentUser} reports={patientReports} appointments={appointments} onNavigate={handleNavigate} />
+            )}
+            {currentView === 'profile' && (
+              <PatientProfile user={currentUser} onUpdate={handleUpdateProfile} onBack={() => handleNavigate('dashboard')} />
+            )}
+            {currentView === 'diet' && (
+              <DietChart on

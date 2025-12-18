@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Calendar, FileText, Activity, MessageCircle, Clock, Stethoscope, Pill, Plus, CheckCircle2, Utensils, Calculator, HeartPulse, RefreshCw, Sparkles, Users, Video, Share2, Baby, Star, Scissors } from 'lucide-react';
 import { Appointment, Report, User, SocialPost } from '../types';
 import { Button } from './CoreUI';
-import { generateDailyTip } from '../services/geminiService.ts';
+import { generateDailyTip } from '../services/geminiService.';
 
 export const PatientDashboard: React.FC<{ user: User; reports: Report[]; appointments: Appointment[]; posts: SocialPost[]; onNavigate: (v: any) => void; }> = ({ user, reports, appointments, posts, onNavigate }) => {
   const myAppointments = appointments.filter(a => a.patientId === user.id);

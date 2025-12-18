@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { FileText, Plus, Pill, Calendar, Activity, Download, ArrowLeft, Clock, ShieldCheck, AlertTriangle, Phone, Brain, Utensils, Thermometer, BedDouble, Scissors } from 'lucide-react';
 import { Button } from './CoreUI';
 import { Report, VitalStat } from '../types';
-import { analyzeReportImage } from '../services/geminiService.ts';
+import { analyzeReportImage } from '../services/geminiService';
 
 export const ReportViewer: React.FC<{ reports: Report[], onBack: ()=>void, onAddReport: (r: Report)=>void, vitalStats: VitalStat[], onAddVital: (v: VitalStat)=>void }> = ({ reports, onBack, onAddReport, onAddVital }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);

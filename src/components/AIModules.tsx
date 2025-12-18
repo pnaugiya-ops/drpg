@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, Stethoscope, Loader2, ArrowLeft, RefreshCw, HelpCircle, ChevronDown, AlertTriangle } from 'lucide-react';
-import { sendMessageToGemini, resetSymptomSession } from '../services/geminiService.ts';
+import { sendMessageToGemini, resetSymptomSession } from '../services/geminiService';
 import { ChatMessage } from '../types';
 import { FAQS } from '../constants';
 

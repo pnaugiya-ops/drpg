@@ -1,0 +1,4 @@
+export { FAQS } from "./faq";
+
+
+

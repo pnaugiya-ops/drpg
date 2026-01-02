@@ -95,6 +95,7 @@ else:
                 new_data = pd.DataFrame([{
                     "Name": st.session_state.patient_name,
                     "Weeks": f"{weeks}w {days}d",
+                    "EDD": edd.strftime('%Y-%m-%d'),
                     "BP": bp,
                     "Weight": wt,
                     "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")

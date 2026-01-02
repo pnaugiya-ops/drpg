@@ -5,22 +5,35 @@ from datetime import datetime
 
 st.set_page_config(page_title="GynaeCare Portal")
 
-# Connect
+# 1. Connect using the Secrets we set up
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-st.title("🏥 Patient Portal Test")
+st.title("🏥 Patient Portal")
 
+# 2. Simple Inputs
 name = st.text_input("Patient Name")
 bp = st.text_input("Blood Pressure")
 
 if st.button("Submit Data"):
     if name:
-        # Create a tiny table with the new info
+        # 3. Get the existing data from your sheet
+        # This is the "Handshake"
+        try:
+            existing_data = conn.read()
+        except:
+            # If the sheet is totally empty, create a starting point
+            existing_data = pd.DataFrame(columns=["Name", "BP", "Time"])
+        
+        # 4. Prepare the new row
         new_row = pd.DataFrame([{"Name": name, "BP": bp, "Time": str(datetime.now())}])
         
-        # This line forces the app to WRITE to the sheet
-        conn.create(data=new_row)
+        # 5. Combine them
+        updated_df = pd.concat([existing_data, new_row], ignore_index=True)
         
-        st.success(f"Sent to Google Sheet! Check your sheet now, Dr.")
+        # 6. Push back to Google Sheets
+        conn.update(data=updated_df)
+        
+        st.balloons()
+        st.success("Success! The data is now in your Google Sheet.")
     else:
-        st.error("Enter a name first.")
+        st.error("Please enter a name.")

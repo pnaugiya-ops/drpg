@@ -1,41 +1,26 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import datetime
 
 st.set_page_config(page_title="GynaeCare Portal")
-
-# 1. Connect using the URL in your Secrets
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 st.title("🏥 Patient Portal")
-
 name = st.text_input("Patient Name")
 bp = st.text_input("Blood Pressure")
 
 if st.button("Submit Data"):
-    if name:
+    if name and bp:
         try:
-            # 2. Read what's currently in the sheet
-            existing_data = conn.read()
+            # Only sending what the patient types
+            new_row = pd.DataFrame([{"Name": name, "BP": bp}])
             
-            # 3. Create the new row
-            new_row = pd.DataFrame([{
-                "Name": name, 
-                "BP": bp, 
-                "Time": datetime.now().strftime("%Y-%m-%d %H:%M")
-            }])
-            
-            # 4. Add the new row to the bottom of the list
-            updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-            
-            # 5. Push the whole list back to the Google Sheet
-            conn.update(data=updated_df)
+            # Sending it to Google
+            conn.update(data=new_row)
             
             st.balloons()
-            st.success("Success! The data is now in your Google Sheet.")
-        
+            st.success("It worked! Check your Google Sheet now.")
         except Exception as e:
-            st.error("Connection Error. Check if your Google Sheet is set to 'Anyone with link can EDIT'.")
+            st.error(f"Technical Error: {e}")
     else:
-        st.error("Please enter a name.")
+        st.error("Please fill in both Name and BP.")

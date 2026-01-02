@@ -1,38 +1,58 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
-st.set_page_config(page_title="GynaeCare Portal")
+st.set_page_config(page_title="GynaeCare Portal", page_icon="🤰")
 
-# THE FIX: Tell the connection to use the Service Account specifically
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-st.title("🏥 Patient Portal")
+st.title("🏥 GynaeCare Patient Portal")
+
+# Patient Info
 name = st.text_input("Patient Name")
-bp = st.text_input("Blood Pressure")
+is_pregnant = st.radio("Are you currently pregnant?", ("No", "Yes"))
+
+# Pregnancy Logic
+edd_str = ""
+gestation_str = ""
+
+if is_pregnant == "Yes":
+    lmp_date = st.date_input("Select your LMP (Last Menstrual Period)", value=datetime.now())
+    
+    # 1. Calculate EDD (Naegele's Rule: LMP + 280 days)
+    edd = lmp_date + timedelta(days=280)
+    edd_str = edd.strftime("%d %B %Y")
+    
+    # 2. Calculate Gestational Age
+    today = datetime.now().date()
+    diff = today - lmp_date
+    weeks = diff.days // 7
+    days = diff.days % 7
+    gestation_str = f"{weeks} Weeks, {days} Days"
+    
+    # Display results to patient
+    st.success(f"🗓️ **Estimated Due Date:** {edd_str}")
+    st.info(f"🤰 **Current Gestational Age:** {gestation_str}")
+
+# Other Vitals
+bp = st.text_input("Blood Pressure (e.g. 120/80)")
 
 if st.button("Submit Data"):
-    if name and bp:
+    if name:
         try:
-            # 1. Read existing data
-            # The 'ttl=0' forces it to look at the sheet live every time
             existing_data = conn.read(ttl=0)
-            
-            # 2. Create new row
             new_row = pd.DataFrame([{
-                "Name": name, 
-                "BP": bp, 
-                "Time": datetime.now().strftime("%Y-%m-%d %H:%M")
+                "Name": name,
+                "Pregnant": is_pregnant,
+                "EDD": edd_str,
+                "Gestation": gestation_str,
+                "BP": bp,
+                "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
             }])
-            
-            # 3. Combine and Update
             updated_df = pd.concat([existing_data, new_row], ignore_index=True)
             conn.update(data=updated_df)
-            
             st.balloons()
-            st.success("Successfully saved to your private clinical sheet!")
+            st.write("Data saved successfully!")
         except Exception as e:
-            st.error(f"Technical Error: {e}")
-    else:
-        st.error("Please fill in both Name and BP.")
+            st.error(f"Error: {e}")

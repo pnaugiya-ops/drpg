@@ -3,89 +3,108 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, timedelta
 
+# --- 1. CONFIG & CONNECTION ---
 st.set_page_config(page_title="GynaeCare Clinical Portal", page_icon="🤰")
-
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-st.title("🏥 GynaeCare Patient Portal")
-st.markdown("---")
+# Initialize Session (The "App Memory")
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
 
-# 1. Basic Information
-name = st.text_input("Patient Name")
-is_pregnant = st.radio("Are you currently pregnant?", ("No", "Yes"))
-
-if is_pregnant == "Yes":
-    lmp_date = st.date_input("Last Menstrual Period (LMP)", value=datetime.now())
+# --- 2. ENTRANCE SCREEN (The Form) ---
+if not st.session_state.logged_in:
+    st.title("🏥 GynaeCare Patient Portal")
+    st.write("Please enter your details to access your clinical dashboard.")
     
-    # CALCULATIONS
-    edd = lmp_date + timedelta(days=280)
+    with st.container(border=True):
+        name = st.text_input("Patient Full Name")
+        lmp_date = st.date_input("Last Menstrual Period (LMP)", value=datetime.now() - timedelta(days=30))
+        
+        if st.button("Access Dashboard"):
+            if name:
+                st.session_state.logged_in = True
+                st.session_state.patient_name = name
+                st.session_state.lmp = lmp_date
+                st.rerun()
+            else:
+                st.error("Name is required.")
+
+# --- 3. THE APP INTERIOR (The Assembly) ---
+else:
+    # --- Sidebar Setup ---
+    st.sidebar.title(f"Dr's Portal: {st.session_state.patient_name}")
+    page = st.sidebar.radio("Navigation", ["Dashboard", "Medical Tracker", "Diet & FAQ"])
+    
+    # Core Pregnancy Calculations (Used across all pages)
+    lmp = st.session_state.lmp
+    edd = lmp + timedelta(days=280)
     today = datetime.now().date()
-    diff = today - lmp_date
-    weeks = diff.days // 7
-    days = diff.days % 7
-    
-    st.subheader(f"Progress: {weeks} Weeks, {days} Days")
-    st.info(f"📅 **Estimated Due Date:** {edd.strftime('%d %B %Y')}")
+    weeks = (today - lmp).days // 7
+    days = (today - lmp).days % 7
 
-    # 2. SMART TRACKING LOGIC
-    st.markdown("### 📋 Clinical Guidance for your Stage")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**💉 Upcoming Vaccinations**")
-        if weeks < 27:
-            st.write("- Routine Flu Shot (Anytime)")
-        elif 27 <= weeks <= 36:
-            st.warning("- **Tdap Vaccine Due Now** (Best between 27-36 weeks)")
-        else:
-            st.write("- Check if Tdap was completed")
+    # PAGE: DASHBOARD
+    if page == "Dashboard":
+        st.header("🤰 Your Pregnancy Progress")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Weeks Completed", f"{weeks}w {days}d")
+        with col2:
+            st.metric("Due Date", edd.strftime("%d %b %Y"))
+        
+        # Progress visualization
+        progress = min(weeks / 40, 1.0)
+        st.progress(progress)
+        st.caption(f"You are approximately {int(progress*100)}% through your pregnancy.")
 
-    with col2:
-        st.write("**🧪 Required Blood Tests**")
+    # PAGE: MEDICAL TRACKER
+    elif page == "Medical Tracker":
+        st.header("🧪 Clinical Milestones")
+        
+        # Smart Alert Logic
+        if 24 <= weeks <= 28:
+            st.warning("⚠️ **Sugar Test (OGTT) Window:** Please schedule this week.")
+        
+        st.markdown("### Upcoming Schedule")
+        t_data = {
+            "Timeline": ["11-13 Weeks", "18-22 Weeks", "24-28 Weeks", "27-36 Weeks"],
+            "Task": ["NT Scan / Double Marker", "Anomaly Scan (TIFFA)", "Diabetes Screening (OGTT)", "Tdap Vaccination"],
+            "Status": ["Incomplete" if weeks < 11 else "Pending" for _ in range(4)]
+        }
+        st.table(pd.DataFrame(t_data))
+
+    # PAGE: DIET & FAQ
+    elif page == "Diet & FAQ":
+        st.header("🍏 Nutritional Guidance")
         if weeks < 13:
-            st.write("- First Trimester Screening (NT Scan)")
-            st.write("- CBC, Blood Group, HIV/VDRL")
-        elif 13 <= weeks < 24:
-            st.write("- Anatomy Scan (TIFFA)")
-        elif 24 <= weeks < 28:
-            st.error("- **OGTT Due** (Sugar Test)")
+            st.info("**Trimester 1:** Focus on Folic Acid & Protein. Small frequent meals for nausea.")
+        elif 13 <= weeks < 27:
+            st.info("**Trimester 2:** Iron & Calcium intake is critical now. Hydration is key.")
         else:
-            st.write("- Repeat Hemoglobin & Growth Scan")
+            st.info("**Trimester 3:** High energy needs. Monitor fetal kicks and salt intake.")
 
-    # 3. DIET & FAQ
-    with st.expander("🍏 Your Diet Chart"):
-        if weeks < 13:
-            st.write("**1st Trimester:** Focus on Folic Acid (Spinach, Beans). Small frequent meals to manage nausea.")
-        else:
-            st.write("**2nd & 3rd Trimester:** Increase Protein (Eggs, Dal) and Iron. 300 extra calories daily.")
+    # Vitals Logging (Always available at bottom)
+    st.markdown("---")
+    with st.expander("📝 Log Vitals for Clinic"):
+        bp = st.text_input("Blood Pressure")
+        wt = st.number_input("Weight (kg)", step=0.1)
+        if st.button("Save Entry"):
+            try:
+                # Read, Append, Update
+                df = conn.read(ttl=0)
+                new_data = pd.DataFrame([{
+                    "Name": st.session_state.patient_name,
+                    "Weeks": f"{weeks}w {days}d",
+                    "BP": bp,
+                    "Weight": wt,
+                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                }])
+                updated_df = pd.concat([df, new_data], ignore_index=True)
+                conn.update(data=updated_df)
+                st.success("Successfully recorded in your medical file!")
+            except Exception as e:
+                st.error(f"Sync error: {e}")
 
-    with st.expander("❓ Common FAQs"):
-        st.write("**Q: Is spotting normal?**")
-        st.write("A: Mild spotting can happen, but always inform the doctor immediately.")
-        st.write("**Q: Which side should I sleep on?**")
-        st.write("A: Sleeping on your left side is best for blood flow to the baby.")
-
-# 4. Save to Google Sheets
-st.markdown("---")
-bp = st.text_input("Blood Pressure (e.g., 120/80)")
-weight = st.number_input("Current Weight (kg)", min_value=0.0)
-
-if st.button("Submit to Clinic"):
-    if name:
-        try:
-            existing_data = conn.read(ttl=0)
-            new_row = pd.DataFrame([{
-                "Name": name,
-                "Weeks": weeks if is_pregnant == "Yes" else "N/A",
-                "EDD": edd.strftime('%Y-%m-%d') if is_pregnant == "Yes" else "N/A",
-                "BP": bp,
-                "Weight": weight,
-                "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
-            }])
-            updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-            conn.update(data=updated_df)
-            st.balloons()
-            st.success("Record saved. See you at your next appointment!")
-        except Exception as e:
-            st.error(f"Save Error: {e}")
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()

@@ -16,24 +16,23 @@ bp = st.text_input("Blood Pressure")
 
 if st.button("Submit Data"):
     if name:
-        # 3. Get the existing data from your sheet
-        # This is the "Handshake"
         try:
+            # 3. Read what's already there
             existing_data = conn.read()
-        except:
-            # If the sheet is totally empty, create a starting point
-            existing_data = pd.DataFrame(columns=["Name", "BP", "Time"])
+            
+            # 4. Create the new row
+            new_row = pd.DataFrame([{"Name": name, "BP": bp, "Time": str(datetime.now())}])
+            
+            # 5. Add the new row to the old data
+            updated_df = pd.concat([existing_data, new_row], ignore_index=True)
+            
+            # 6. Save it back to Google
+            conn.update(data=updated_df)
+            
+            st.balloons()
+            st.success("Success! The data is now in your Google Sheet.")
         
-        # 4. Prepare the new row
-        new_row = pd.DataFrame([{"Name": name, "BP": bp, "Time": str(datetime.now())}])
-        
-        # 5. Combine them
-        updated_df = pd.concat([existing_data, new_row], ignore_index=True)
-        
-        # 6. Push back to Google Sheets
-        conn.update(data=updated_df)
-        
-        st.balloons()
-        st.success("Success! The data is now in your Google Sheet.")
+        except Exception as e:
+            st.error("Connection Error. Please ensure your Google Sheet has 'Anyone with link can Edit' permission.")
     else:
         st.error("Please enter a name.")

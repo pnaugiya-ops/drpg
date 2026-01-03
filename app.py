@@ -4,7 +4,6 @@ import pandas as pd
 from datetime import datetime
 import re
 import base64
-from PIL import Image
 import io
 
 # --- 1. SETTINGS & STYLING ---
@@ -70,84 +69,34 @@ else:
         t_adm = st.tabs(["Patient Records & Uploads", "Schedule Management"])
         
         with t_adm[0]:
-            st.subheader("All Submissions")
-            # Display records with an option to view images
-            for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
-                with st.expander(f"📋 {row['Timestamp']} - {row['Name']} ({row['Type']})"):
-                    st.write(f"**Details:** {row.get('Details', 'N/A')}")
-                    if 'Attachment' in row and str(row['Attachment']) != "nan" and row['Attachment'] != "":
-                        st.write("**Prescription/Report Image:**")
-                        display_base64_img(row['Attachment'])
-                    else:
-                        st.info("No image attached.")
+            st.subheader("All Patient Submissions")
+            if not df.empty:
+                for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
+                    # Skip blocking/admin rows in the record list
+                    if row['Name'] == "ADMIN": continue
+                    
+                    with st.expander(f"📋 {row['Timestamp']} - {row['Name']} ({row['Type']})"):
+                        st.write(f"**Details:** {row.get('Details', 'N/A')}")
+                        if 'Attachment' in row and str(row['Attachment']) != "nan" and row['Attachment'] != "":
+                            st.write("**Attached File:**")
+                            display_base64_img(row['Attachment'])
+                        else:
+                            st.info("No file attached to this entry.")
+            else:
+                st.info("No patient records found.")
 
         with t_adm[1]:
             c1, c2 = st.columns(2)
             with c1:
-                b_dt = st.date_input("Block Clinic Date", min_value=datetime.now().date())
+                st.write("### Block a Date")
+                b_dt = st.date_input("Select Date", min_value=datetime.now().date())
                 if st.button("Confirm Block"):
                     new = pd.DataFrame([{"Name":"ADMIN", "Type":"BLOCK", "Date":str(b_dt), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
-            with c2:
-                for i, r in df[df['Type'] == 'BLOCK'].iterrows():
-                    if st.button(f"❌ Unblock {r['Date']}", key=f"un_{i}"):
-                        conn.update(data=df.drop(i)); st.rerun()
-
-    else:
-        st.sidebar.title("Bhavya Clinics")
-        menu = st.sidebar.radio("Menu", ["Dashboard", "Vaccines", "Labs & Uploads", "Vitals", "Library", "Booking"])
-
-        if menu == "Dashboard":
-            st.title(f"Welcome, {st.session_state.patient_name}")
-            st.markdown(f"<div class='status-box'><b>Current Profile:</b> {st.session_state.status}</div>", unsafe_allow_html=True)
-            if st.session_state.status == "Pregnant":
-                lmp = st.date_input("LMP Date")
-                wks = (datetime.now().date() - lmp).days // 7
-                st.metric("Pregnancy Progress", f"{wks} Weeks")
-                
-
-[Image of the stages of fetal development by week]
-
-
-        elif menu == "Vaccines":
-            st.title("💉 Vaccination Guide")
-            if st.session_state.status == "Pregnant":
-                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 Weeks.<br><b>Influenza:</b> Anytime.</div>", unsafe_allow_html=True)
-                
-            else:
-                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses at 0, 1, 6 months. Prevents cervical cancer.</div>", unsafe_allow_html=True)
-                
-
-        elif menu == "Labs & Uploads":
-            st.title("🧪 Upload Reports / Prescriptions")
-            with st.form("l_upload"):
-                hb = st.number_input("Enter Hb% (Optional)", 5.0, 18.0, 11.0)
-                note = st.text_input("Short Note (e.g., 'Last Month Prescription')")
-                file = st.file_uploader("Upload Image (JPG/PNG)", type=['jpg', 'jpeg', 'png'])
-                if st.form_submit_button("Submit to Doctor"):
-                    b64_img = img_to_base64(file)
-                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"LAB_UPLOAD", "Details":f"Hb: {hb} | Note: {note}", "Attachment": b64_img, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success("Successfully uploaded! Dr. Priyanka can now see this.")
-
-        elif menu == "Vitals":
-            st.title("📊 Vitals Tracking")
-            with st.form("v"):
-                wt = st.number_input("Weight (kg)", 30.0, 150.0, 60.0)
-                if st.form_submit_button("Record"):
-                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"VIT", "Details":f"Wt: {wt}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
-
-        elif menu == "Booking":
-            st.header("📅 Book Appointment")
-            dt = st.date_input("Date", min_value=datetime.now().date())
-            bl = df[df['Type'] == 'BLOCK']['Date'].values
-            if str(dt) in bl: st.error("Dr. Priyanka Gupta is unavailable on this date.")
-            else:
-                if st.button("Confirm Appointment Slot"):
-                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"APP", "Date":str(dt), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Confirmed!")
-
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+                    st.rerun()
+            with c2:
+                st.write("### Currently Blocked")
+                blocked_dates = df[df['Type'] == 'BLOCK']
+                if not blocked_dates.empty:
+                    for i, r in blocked_dates.iterrows():
+                        if st.button(f"❌ Unblock {r['Date']}", key=f"un_{i}")

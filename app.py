@@ -15,22 +15,36 @@ if 'logged_in' not in st.session_state:
     st.session_state.role = "Patient"
 
 # --- 2. LOGIN SCREEN ---
+# --- 2. LOGIN SCREEN ---
 if not st.session_state.logged_in:
     st.title("🏥 GynaeCare Digital Clinic")
+    
+    # Clinical Contact Header (Always Visible)
+    with st.container(border=True):
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown("📞 **Emergency Contact:** +91 9676712517")
+        with col_b:
+            st.markdown(f"📧 **Email:** pnaugiya@gmail.com")
+
     tab1, tab2 = st.tabs(["Patient Portal", "Doctor Login"])
     
     with tab1:
         with st.form("patient_login"):
+            st.subheader("Patient Access")
             name = st.text_input("Full Name")
-            status = st.radio("Status", ["Pregnant", "Non-Pregnant / PCOS"])
-            if st.form_submit_button("Enter Portal"):
+            status = st.radio("Current Status", ["Pregnant", "Non-Pregnant / PCOS"])
+            if st.form_submit_button("Enter My Portal"):
                 if name:
                     st.session_state.logged_in, st.session_state.patient_name = True, name
                     st.session_state.status, st.session_state.role = status, "Patient"
                     st.rerun()
+                else:
+                    st.warning("Please enter your name.")
 
     with tab2:
         with st.form("dr_login"):
+            st.subheader("Clinical Staff Only")
             pw = st.text_input("Enter Clinic Password", type="password")
             if st.form_submit_button("Login as Doctor"):
                 if pw == DR_PASSWORD:
@@ -39,7 +53,6 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("Incorrect Password")
-
 # --- 3. MAIN INTERFACE ---
 else:
     st.sidebar.title(f"Logged in: {st.session_state.patient_name}")

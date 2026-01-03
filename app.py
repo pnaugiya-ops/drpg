@@ -87,24 +87,39 @@ else:
             st.dataframe(df.sort_values(by='Timestamp', ascending=False))
             
         with adm_menu[1]:
-            st.subheader("Block Dates (Vacation/Emergency)")
-            block_date = st.date_input("Select Date to Block", min_value=datetime.now().date())
-            block_reason = st.text_input("Reason (Optional)", "Doctor Unavailable")
-            if st.button("Block This Date"):
-                new_row = pd.DataFrame([{"Name": "ADMIN", "Type": "BLOCKED_DATE", "Date": str(block_date), "Details": block_reason, "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                conn.update(data=pd.concat([df, new_row], ignore_index=True))
-                st.success(f"Date {block_date} is now blocked for appointments.")
-                st.rerun()
+            st.subheader("🗓️ Block/Unblock Clinic Schedule")
+            col_bl, col_un = st.columns(2)
             
-            st.write("**Currently Blocked Dates:**")
-            blocked_list = df[df['Type'] == 'BLOCKED_DATE']
-            st.table(blocked_list[['Date', 'Details']])
+            with col_bl:
+                st.write("**Block a New Date**")
+                block_date = st.date_input("Date to Block", min_value=datetime.now().date())
+                block_reason = st.text_input("Reason", "Doctor Unavailable")
+                if st.button("Block Date"):
+                    new_row = pd.DataFrame([{"Name": "ADMIN", "Type": "BLOCKED_DATE", "Date": str(block_date), "Details": block_reason, "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new_row], ignore_index=True))
+                    st.success(f"Blocked {block_date}")
+                    st.rerun()
+            
+            with col_un:
+                st.write("**Currently Blocked Dates**")
+                blocked_df = df[df['Type'] == 'BLOCKED_DATE'].copy()
+                if not blocked_df.empty:
+                    for index, row in blocked_df.iterrows():
+                        c1, c2 = st.columns([3, 1])
+                        c1.write(f"🚫 {row['Date']} ({row['Details']})")
+                        if c2.button("❌ Unblock", key=f"unblock_{index}"):
+                            # Drop the specific row and update sheet
+                            updated_df = df.drop(index)
+                            conn.update(data=updated_df)
+                            st.success(f"Unblocked {row['Date']}")
+                            st.rerun()
+                else:
+                    st.info("No dates are currently blocked.")
 
     else:
         st.sidebar.markdown(f"**BHAVYA CLINICS**\n\nDr. Priyanka Gupta\nMS (Obs & Gynae)")
         menu = st.sidebar.radio("Navigation", ["Dashboard", "AI Assistant", "Lab Trend Tracker", "Follicular Monitoring", "Vitals & BMI", "Medical Library", "Book Appointment"])
 
-        # --- APPOINTMENT (WITH BLOCK CHECK) ---
         if menu == "Book Appointment":
             st.header("📅 Book 15-Min Slot")
             dt = st.date_input("Select Date", min_value=datetime.now().date())
@@ -112,7 +127,7 @@ else:
             # Check if date is blocked
             blocked_dates = df[df['Type'] == 'BLOCKED_DATE']['Date'].values
             if str(dt) in blocked_dates:
-                st.error("⚠️ Dr. Priyanka Gupta is not available on this date due to clinical commitments or emergency. Please select another date.")
+                st.error("⚠️ Dr. Priyanka Gupta is not available on this date. Please select another date.")
             else:
                 def slots():
                     s = []
@@ -125,12 +140,12 @@ else:
                 if st.button("Confirm Appointment"):
                     new_row = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"APPOINTMENT", "Date":str(dt), "Time":tm, "Details": reason, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new_row], ignore_index=True))
-                    st.success("Your appointment is confirmed!")
+                    st.success("Confirmed!")
 
-        # --- (REST OF THE NAVIGATION CODE CONTINUES HERE - AI, LABS, ETC.) ---
+        # --- OTHER MENUS (SAME AS PREVIOUS MASTER CODE) ---
         elif menu == "AI Assistant":
             st.title("🤖 AI FAQ Assistant")
-            user_q = st.text_input("Ask about symptoms, diet, or procedures:")
+            user_q = st.text_input("Ask a question:")
             if user_q:
                 ans = get_ai_response(user_q)
                 st.markdown(f"<div class='chat-bubble'><b>You:</b> {user_q}</div>", unsafe_allow_html=True)
@@ -143,11 +158,10 @@ else:
                 hb = c1.number_input("Hb %", 5.0, 18.0, 11.0)
                 tsh = c2.number_input("TSH", 0.0, 50.0, 2.5)
                 sugar = c3.number_input("Blood Sugar", 50.0, 500.0, 100.0)
-                if st.form_submit_button("Save Lab Data"):
+                if st.form_submit_button("Save"):
                     new_row = pd.DataFrame([{"Name": st.session_state.patient_name, "Type": "LAB", "Details": f"Hb: {hb} | TSH: {tsh} | Sugar: {sugar}", "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new_row], ignore_index=True))
                     st.rerun()
-            
             user_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'LAB')].copy()
             if not user_data.empty:
                 user_data['Hb'] = user_data['Details'].apply(lambda x: extract_val(x, "Hb"))
@@ -157,28 +171,18 @@ else:
                 st.line_chart(user_data.set_index('Date')[['Hb', 'TSH', 'Sugar']])
 
         elif menu == "Follicular Monitoring":
-            st.title("🥚 Follicular Study Tracker")
+            st.title("🥚 Follicular Study")
             with st.form("fol_f"):
                 c1, c2, c3 = st.columns(3)
-                day = c1.number_input("Cycle Day", 1, 30, 9)
-                rt = c2.number_input("Right Ovary (mm)", 0.0, 30.0, 10.0)
-                lt = c3.number_input("Left Ovary (mm)", 0.0, 30.0, 10.0)
+                day = c1.number_input("Day", 1, 30, 9)
+                rt = c2.number_input("Right (mm)", 0.0, 30.0, 10.0)
+                lt = c3.number_input("Left (mm)", 0.0, 30.0, 10.0)
                 if st.form_submit_button("Record Scan"):
                     new_row = pd.DataFrame([{"Name": st.session_state.patient_name, "Type": "FOL", "Details": f"Day: {day} | Right: {rt} | Left: {lt}", "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new_row], ignore_index=True))
                     st.rerun()
             fol_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'FOL')].copy()
-            if not fol_data.empty:
-                st.dataframe(fol_data[['Timestamp', 'Details']])
-
-        elif menu == "Medical Library":
-            st.title("📚 Bhavya Procedure Guide")
-            with st.expander("🔬 Diagnostics"):
-                st.write("**Pap Smear:** Cervical cancer screening.")
-                st.write("**Endometrial Biopsy:** Checking uterine lining.")
-            with st.expander("🏥 Surgery"):
-                st.write("**D&C & MTP:** Safe pregnancy management.")
-                st.write("**Laparoscopy:** Keyhole surgery for infertility/cysts.")
+            if not fol_data.empty: st.dataframe(fol_data[['Timestamp', 'Details']])
 
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False

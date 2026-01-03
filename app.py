@@ -13,7 +13,7 @@ st.markdown("""
     .dr-header { background-color: #003366; color: white; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 20px; border-bottom: 5px solid #ff4b6b; }
     .stButton>button { border-radius: 10px; background-color: #ff4b6b; color: white; font-weight: bold; width: 100%; }
     .vax-card { background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
-    .emergency-btn { background-color: #ff4b6b; color: white; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: block; text-decoration: none; }
+    .emergency-btn { background-color: #ff4b6b; color: white; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; display: block; text-decoration: none; border: 2px solid white; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -25,11 +25,15 @@ if 'logged_in' not in st.session_state:
 
 # --- HELPERS ---
 def img_to_b64(file):
-    return base64.b64encode(file.read()).decode() if file else ""
+    try:
+        return base64.b64encode(file.read()).decode() if file else ""
+    except: return ""
 
 def show_b64_img(b64_str):
     if b64_str:
-        st.image(io.BytesIO(base64.b64decode(b64_str)), use_container_width=True)
+        try:
+            st.image(io.BytesIO(base64.b64decode(b64_str)), use_container_width=True)
+        except: st.error("Image corrupted.")
 
 # --- 2. LOGIN ---
 if not st.session_state.logged_in:
@@ -55,51 +59,61 @@ else:
     
     if st.session_state.role == "Doctor":
         st.title("👨‍⚕️ Admin: Dr. Priyanka Gupta")
-        t_adm = st.tabs(["Patient Records", "Schedule"])
+        t_adm = st.tabs(["Patient Records & Uploads", "Clinic Schedule"])
         with t_adm[0]:
             if not df.empty:
                 for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
                     if row['Name'] == "ADMIN": continue
                     with st.expander(f"📋 {row['Timestamp']} - {row['Name']} ({row['Type']})"):
-                        st.write(f"**Details:** {row.get('Details', 'N/A')}")
+                        st.write(f"**Details/Note:** {row.get('Details', 'N/A')}")
                         if 'Attachment' in row and str(row['Attachment']) not in ["nan", ""]:
                             show_b64_img(row['Attachment'])
-            else: st.info("No records.")
+            else: st.info("No records available.")
         with t_adm[1]:
             b_dt = st.date_input("Block Date", min_value=datetime.now().date())
             if st.button("Confirm Block"):
                 new = pd.DataFrame([{"Name":"ADMIN", "Type":"BLOCK", "Date":str(b_dt), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                 conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
+            st.divider()
             for i, r in df[df['Type'] == 'BLOCK'].iterrows():
                 if st.button(f"❌ Unblock {r['Date']}", key=f"un_{i}"):
                     conn.update(data=df.drop(i)); st.rerun()
 
     else:
         st.sidebar.markdown("<a href='tel:9676712517' class='emergency-btn'>🚨 EMERGENCY CALL</a>", unsafe_allow_html=True)
-        menu = st.sidebar.radio("Menu", ["Dashboard", "Vaccines", "Upload Reports", "Vitals", "Booking"])
+        menu = st.sidebar.radio("Menu", ["Dashboard", "Vaccinations", "Upload Reports", "Log Vitals", "Booking"])
 
         if menu == "Dashboard":
             st.title(f"Hello, {st.session_state.patient_name}")
             if st.session_state.status == "Pregnant":
-                lmp = st.date_input("LMP Date")
+                lmp = st.date_input("Select LMP Date")
                 wks = (datetime.now().date() - lmp).days // 7
                 st.metric("Pregnancy Progress", f"{wks} Weeks")
-                
-
-[Image of fetal development stages by week]
-
-            else: st.info("Welcome to your dashboard. Log your health data below.")
-
-        elif menu == "Vaccines":
-            st.title("💉 Vaccination Guide")
-            if st.session_state.status == "Pregnant":
-                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 Weeks.<br><b>Influenza:</b> Anytime.</div>", unsafe_allow_html=True)
-                
+                st.write("### Your Baby's Development Journey")
+                # Diagram for development goes here in visual guidance
             else:
-                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses (0, 1, 6 months). Prevents Cervical Cancer.</div>", unsafe_allow_html=True)
-                
+                st.info("Welcome to the wellness portal. Track your recovery and health markers here.")
+
+        elif menu == "Vaccinations":
+            st.title("💉 Recommended Schedule")
+            if st.session_state.status == "Pregnant":
+                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> On confirmation.<br><b>T-Dap:</b> 27-36 Weeks.<br><b>Influenza:</b> Anytime.</div>", unsafe_allow_html=True)
+            else:
+                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses (0, 1, 6 months). Vital for Cervical Cancer prevention.</div>", unsafe_allow_html=True)
 
         elif menu == "Upload Reports":
-            st.title("🧪 Upload Prescriptions")
-            with st.form("u"):
-                file = st.file_uploader("Image (
+            st.title("🧪 Share Prescriptions/Reports")
+            with st.form("u_form"):
+                file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
+                note = st.text_input("Enter a short note for the doctor")
+                if st.form_submit_button("Submit"):
+                    b64 = img_to_b64(file)
+                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"UPLOAD", "Details":note, "Attachment":b64, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Uploaded!")
+
+        elif menu == "Log Vitals":
+            with st.form("v_form"):
+                wt = st.number_input("Weight (kg)", 30, 150, 60)
+                bp = st.text_input("Blood Pressure", "120/80")
+                if st.form_submit_button("Save Vitals"):
+                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"VIT", "Details":f

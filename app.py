@@ -21,6 +21,7 @@ st.markdown("""
     .status-box { padding: 15px; border-radius: 10px; background-color: #e6f0ff; border-left: 6px solid #003366; margin-bottom: 20px; color: #003366; }
     .chat-bubble-user { padding: 12px; border-radius: 15px 15px 0px 15px; margin-bottom: 10px; background-color: #f0f2f6; border: 1px solid #ddd; text-align: right; }
     .chat-bubble-ai { padding: 12px; border-radius: 15px 15px 15px 0px; margin-bottom: 10px; background-color: #e6f0ff; border: 1px solid #b3d1ff; text-align: left; color: #003366; }
+    .vax-card { background-color: white; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -46,7 +47,8 @@ def get_ai_response(query):
         "sugar": "For Fasting Blood Sugar, do not eat/drink anything except water for 8-10 hours before your test.",
         "diet": "Focus on high protein (paneer, eggs, pulses) and 3-4 Liters of water. Avoid outside oily food.",
         "thyroid": "Always take Thyroid meds on an empty stomach, 30 mins before tea. It is vital for baby's brain development.",
-        "scan": "NT/NB Scan (11-13 weeks) checks for chromosomal health. TIFFA Scan (18-20 weeks) checks baby's organs."
+        "vaccine": "Vaccines are safe and essential. HPV prevents cervical cancer. T-Dap and Influenza during pregnancy protect both mother and baby.",
+        "hpv": "HPV vaccination is best taken between ages 9-26 but can be taken up to 45. It requires 2 or 3 doses depending on age."
     }
     for key in responses:
         if key in query: return responses[key]
@@ -88,81 +90,4 @@ else:
                 for i, r in df[df['Type'] == 'BLOCK'].iterrows():
                     if st.button(f"❌ Unblock {r['Date']}", key=f"un_{i}"):
                         conn.update(data=df.drop(i)); st.rerun()
-    else:
-        st.sidebar.title("Bhavya Clinics")
-        menu = st.sidebar.radio("Menu", ["Dashboard", "AI Assistant", "Lab Trends", "Vitals & BMI", "Medical Library", "Book Appointment"])
-
-        if menu == "Dashboard":
-            st.title(f"Hello, {st.session_state.patient_name}")
-            st.markdown(f"<div class='status-box'><b>Current Status:</b> {st.session_state.status}</div>", unsafe_allow_html=True)
-            if st.session_state.status == "Pregnant":
-                lmp = st.date_input("Select LMP Date")
-                wks = (datetime.now().date() - lmp).days // 7
-                st.metric("Pregnancy Progress", f"{wks} Weeks")
-            else: st.info("Use the menu to track your Lab reports or book your next visit.")
-
-        elif menu == "AI Assistant":
-            st.title("🤖 Interactive AI Assistant")
-            q = st.text_input("Ask about symptoms, diet, or reports:")
-            if q:
-                res = get_ai_response(q)
-                st.markdown(f"<div class='chat-bubble-user'>{q}</div>", unsafe_allow_html=True)
-                st.markdown(f"<div class='chat-bubble-ai'>{res}</div>", unsafe_allow_html=True)
-
-        elif menu == "Lab Trends":
-            st.title("🧪 Lab History")
-            with st.form("lab"):
-                c1, c2, c3 = st.columns(3)
-                hb = c1.number_input("Hb %", 5.0, 18.0, 11.0)
-                tsh = c2.number_input("TSH", 0.0, 50.0, 2.5)
-                sg = c3.number_input("Sugar", 50.0, 500.0, 100.0)
-                if st.form_submit_button("Save Results"):
-                    new = pd.DataFrame([{"Name": st.session_state.patient_name, "Type": "LAB", "Details": f"Hb: {hb} | TSH: {tsh} | Sugar: {sg}", "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
-            u_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'LAB')].copy()
-            if not u_data.empty:
-                u_data['Hb'] = u_data['Details'].apply(lambda x: extract_val(x, "Hb"))
-                u_data['TSH'] = u_data['Details'].apply(lambda x: extract_val(x, "TSH"))
-                u_data['Sugar'] = u_data['Details'].apply(lambda x: extract_val(x, "Sugar"))
-                st.line_chart(u_data.set_index('Timestamp')[['Hb', 'TSH', 'Sugar']])
-            else: st.warning("No lab records found yet. Enter your values above.")
-
-        elif menu == "Vitals & BMI":
-            st.title("📊 Health Markers")
-            with st.form("v"):
-                c1, c2, c3, c4 = st.columns(4)
-                wt = c1.number_input("Weight (kg)", 30.0, 150.0, 60.0)
-                ht = c2.number_input("Height (cm)", 120.0, 200.0, 160.0)
-                pl = c3.number_input("Pulse", 40, 150, 72)
-                bp = c4.text_input("BP", "120/80")
-                if st.form_submit_button("Record"):
-                    bmi = round(wt / ((ht/100)**2), 2)
-                    new = pd.DataFrame([{"Name": st.session_state.patient_name, "Type": "VIT", "Details": f"BMI: {bmi} | Pulse: {pl} | BP: {bp}", "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
-            v_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'VIT')].copy()
-            if not v_data.empty: st.table(v_data[['Timestamp', 'Details']].tail(5))
-            else: st.warning("No vitals recorded yet.")
-
-        elif menu == "Medical Library":
-            st.title("📚 Services Guide")
-            with st.expander("🔬 Diagnostics"):
-                st.write("**Pap Smear:** Cervical screening.")
-                st.write("**Biopsy:** Tissue check.")
-            with st.expander("🏥 Surgery"):
-                st.write("**Laparoscopy:** Keyhole surgery.")
-                st.write("**D&C / MTP:** Safe pregnancy management.")
-
-        elif menu == "Book Appointment":
-            st.header("📅 Booking")
-            dt = st.date_input("Select Date", min_value=datetime.now().date())
-            bl = df[df['Type'] == 'BLOCK']['Date'].values
-            if str(dt) in bl: st.error("Dr. Priyanka is unavailable on this date.")
-            else:
-                tm = st.selectbox("Slot", ["11:00 AM", "11:30 AM", "12:00 PM", "06:00 PM", "06:30 PM", "07:00 PM"])
-                if st.button("Confirm"):
-                    new = pd.DataFrame([{"Name":st.session_state.patient_name, "Type":"APP", "Date":str(dt), "Time":tm, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
-
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    else

@@ -11,7 +11,6 @@ st.markdown("""
     .dr-header { background:#003366; color:white; padding:25px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
     .vax-card { background:white; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
-    .ai-box { background:#f0f7ff; padding:20px; border-radius:15px; border-left:5px solid #003366; margin-bottom:20px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -59,18 +58,9 @@ else:
         if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
     else:
         st.sidebar.title(f"Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["AI Assistant", "Vitals & BMI", "Vaccination Guide", "Diet & Yoga", "Upload Reports", "Book Appointment"])
+        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccination Guide", "Diet & Yoga", "Upload Reports", "Book Appointment"])
         
-        if m == "AI Assistant":
-            st.title("🤖 Clinical AI Assistant")
-            st.markdown("<div class='ai-box'>Welcome! Ask me about PCOS management, pregnancy care, or clinical terms.</div>", unsafe_allow_html=True)
-            q = st.text_input("Ask a question:")
-            if q:
-                if "pcos" in q.lower(): st.info("PCOS management focuses on Low GI diet, regular exercise (Surya Namaskar), and weight management to improve hormonal balance.")
-                elif "diet" in q.lower(): st.info("For pregnancy, focus on iron, folic acid, and protein. For PCOS, avoid sugar and processed carbs.")
-                else: st.info("Maintaining regular vitals tracking is key. Dr. Priyanka will provide a detailed review of your specific concerns during your visit.")
-
-        elif m == "Vitals & BMI":
+        if m == "Vitals & BMI":
             st.title("📊 Health Trackers")
             with st.form("v_form"):
                 c1, c2, c3 = st.columns(3)
@@ -89,19 +79,13 @@ else:
             st.title("💉 Vaccination Schedule")
             if "Pregnant" in st.session_state.stat:
                 st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 weeks.<br><b>Influenza:</b> Anytime during pregnancy.</div>", unsafe_allow_html=True)
+                
             else:
                 st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses (0, 1, 6 months) for Cervical Cancer prevention.</div>", unsafe_allow_html=True)
+                
 
         elif m == "Diet & Yoga":
             st.title("🧘 Nutrition & Exercise")
             if "Pregnant" in st.session_state.stat:
                 d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
-                with d1: 
-                    st.write("**Diet:** Folic Acid focus. **Yoga:** Butterfly pose.")
-                with d2: 
-                    st.write("**Diet:** Iron & Calcium. **Yoga:** Palm Tree pose.")
-                with d3: 
-                    st.write("**Diet:** High fiber, energy meals. **Yoga:** Supported Squats.")
-            else:
-                st.subheader("PCOS & Wellness")
-                st.write("**Diet:** Low GI, avoid sugar. **Yoga:** Surya Namaskar.")
+                with d

@@ -99,15 +99,12 @@ else:
                 lmp = st.date_input("Select LMP Date")
                 wks = (datetime.now().date() - lmp).days // 7
                 st.metric("Pregnancy Progress", f"{wks} Weeks")
-                
-
-[Image of fetal development stages by week]
-
-            else: st.info("Use the menu to track your Lab reports or book your next visit.")
+            else: 
+                st.info("Welcome back! Use the menu to log your reports or check your health trends.")
 
         elif menu == "AI Assistant":
             st.title("🤖 Interactive AI Assistant")
-            q = st.text_input("Ask about symptoms or diet:")
+            q = st.text_input("Ask about symptoms, reports, or diet:")
             if q:
                 res = get_ai_response(q)
                 st.markdown(f"<div class='chat-bubble-user'>{q}</div>", unsafe_allow_html=True)
@@ -116,4 +113,14 @@ else:
         elif menu == "Lab Trends":
             st.title("🧪 Lab History")
             with st.form("lab"):
-                c1, c2, c3 =
+                c1, c2, c3 = st.columns(3)
+                hb = c1.number_input("Hb %", 5.0, 18.0, 11.0)
+                tsh = c2.number_input("TSH", 0.0, 50.0, 2.5)
+                sg = c3.number_input("Sugar", 50.0, 500.0, 100.0)
+                if st.form_submit_button("Save"):
+                    new = pd.DataFrame([{"Name": st.session_state.patient_name, "Type": "LAB", "Details": f"Hb: {hb} | TSH: {tsh} | Sugar: {sg}", "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
+            u_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'LAB')].copy()
+            if not u_data.empty:
+                u_data['Hb'] = u_data['Details'].apply(lambda x: extract_val(x, "Hb"))
+                u_data['TSH'] =

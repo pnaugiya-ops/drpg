@@ -63,10 +63,12 @@ else:
         
         if m == "AI Assistant":
             st.title("🤖 Clinical AI Assistant")
-            st.markdown("<div class='ai-box'>Welcome! I can help explain your reports or clinical terms. Note: For emergencies or specific medical advice, please consult Dr. Priyanka.</div>", unsafe_allow_html=True)
-            query = st.text_input("How can I assist you today?")
-            if query:
-                st.info(f"Regarding '{query}': Generally, maintaining a balanced diet and regular vitals tracking is key. Dr. Priyanka can provide a detailed review during your next visit.")
+            st.markdown("<div class='ai-box'>Welcome! Ask me about PCOS management, pregnancy care, or clinical terms.</div>", unsafe_allow_html=True)
+            q = st.text_input("Ask a question:")
+            if q:
+                if "pcos" in q.lower(): st.info("PCOS management focuses on Low GI diet, regular exercise (Surya Namaskar), and weight management to improve hormonal balance.")
+                elif "diet" in q.lower(): st.info("For pregnancy, focus on iron, folic acid, and protein. For PCOS, avoid sugar and processed carbs.")
+                else: st.info("Maintaining regular vitals tracking is key. Dr. Priyanka will provide a detailed review of your specific concerns during your visit.")
 
         elif m == "Vitals & BMI":
             st.title("📊 Health Trackers")
@@ -95,40 +97,11 @@ else:
             if "Pregnant" in st.session_state.stat:
                 d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
                 with d1: 
-                    st.subheader("Months 1-3")
-                    st.write("**Diet:** Small, frequent meals. Focus on Folic Acid & Ginger for nausea. Avoid papaya & pineapple.")
-                    st.write("**Yoga:** Anulom Vilom (Breathing), Butterfly pose.")
+                    st.write("**Diet:** Folic Acid focus. **Yoga:** Butterfly pose.")
                 with d2: 
-                    st.subheader("Months 4-6")
-                    st.write("**Diet:** Iron and Calcium rich foods. Increase protein intake. Stay hydrated.")
-                    st.write("**Yoga:** Tadasana (Palm Tree), Kati Chakrasana.")
+                    st.write("**Diet:** Iron & Calcium. **Yoga:** Palm Tree pose.")
                 with d3: 
-                    st.subheader("Months 7-9")
-                    st.write("**Diet:** High fiber to avoid constipation. Energy-dense small meals.")
-                    st.write("**Yoga:** Malasana (Supported Squat), Pelvic tilts.")
+                    st.write("**Diet:** High fiber, energy meals. **Yoga:** Supported Squats.")
             else:
-                st.subheader("PCOS & Gynae Wellness")
-                st.write("**Diet:** Low GI (seeds, nuts, leafy greens). Strictly avoid sugar and processed carbs.")
-                st.write("**Yoga:** Surya Namaskar (Sun Salutation), Bhujangasana (Cobra Pose), Dhanurasana.")
-
-        elif m == "Upload Reports":
-            st.title("🧪 Upload Reports")
-            with st.form("u_form"):
-                f = st.file_uploader("Select Image (JPG/PNG)", type=['jpg', 'png', 'jpeg'])
-                note = st.text_input("Note for Doctor")
-                if st.form_submit_button("Upload Now"):
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":note, "Attachment":img_to_b64(f), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success("Report successfully sent to Dr. Priyanka!")
-
-        elif m == "Book Appointment":
-            st.title("📅 Book Appointment")
-            with st.form("app_form"):
-                dt = st.date_input("Select Date", min_value=datetime.now().date())
-                tm = st.selectbox("Available Time Slot", ["10:00 AM", "11:00 AM", "12:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"])
-                if st.form_submit_button("Confirm Booking"):
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f"Date: {dt} Time: {tm}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"Confirmed for {dt} at {tm}")
-
-    if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
+                st.subheader("PCOS & Wellness")
+                st.write("**Diet:** Low GI, avoid sugar. **Yoga:** Surya Namaskar.")

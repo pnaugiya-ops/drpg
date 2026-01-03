@@ -37,7 +37,7 @@ def extract_val(details, key):
         return float(match.group(1)) if match else None
     except: return None
 
-# --- UPGRADED AI ASSISTANT ---
+# --- AI ASSISTANT LOGIC ---
 def get_ai_response(query):
     query = query.lower()
     responses = {
@@ -70,12 +70,12 @@ if not st.session_state.logged_in:
                 st.session_state.logged_in, st.session_state.role = True, "Doctor"
                 st.rerun()
 
-# --- 3. MAIN APP ---
+# --- 3. MAIN INTERFACE ---
 else:
     df = conn.read(ttl=0)
     if st.session_state.role == "Doctor":
         st.title("👨‍⚕️ Admin Dashboard")
-        t1, t2 = st.tabs(["Records", "Schedule"])
+        t1, t2 = st.tabs(["Records", "Schedule Management"])
         with t1: st.dataframe(df.sort_values(by='Timestamp', ascending=False))
         with t2:
             c1, c2 = st.columns(2)
@@ -99,12 +99,16 @@ else:
                 lmp = st.date_input("Select LMP Date")
                 wks = (datetime.now().date() - lmp).days // 7
                 st.metric("Pregnancy Progress", f"{wks} Weeks")
+                
+
+[Image of fetal development stages by week]
+
             else: 
                 st.info("Welcome back! Use the menu to log your reports or check your health trends.")
 
         elif menu == "AI Assistant":
             st.title("🤖 Interactive AI Assistant")
-            q = st.text_input("Ask about symptoms, reports, or diet:")
+            q = st.text_input("Ask a question about your health or reports:")
             if q:
                 res = get_ai_response(q)
                 st.markdown(f"<div class='chat-bubble-user'>{q}</div>", unsafe_allow_html=True)
@@ -122,5 +126,4 @@ else:
                     conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
             u_data = df[(df['Name'] == st.session_state.patient_name) & (df['Type'] == 'LAB')].copy()
             if not u_data.empty:
-                u_data['Hb'] = u_data['Details'].apply(lambda x: extract_val(x, "Hb"))
-                u_data['TSH'] =
+                u_data

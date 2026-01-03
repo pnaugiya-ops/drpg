@@ -3,15 +3,15 @@ from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, timedelta
 
-# --- 1. SETUP & STYLE ---
-st.set_page_config(page_title="GynaeCare Hub", page_icon="🏥", layout="wide")
+# --- 1. SETUP & BRANDING ---
+st.set_page_config(page_title="Bhavya Labs & Clinics", page_icon="🏥", layout="wide")
 
-# Fixed the CSS Error here
 st.markdown("""
     <style>
     .main { background-color: #fffafa; }
     .stButton>button { border-radius: 20px; background-color: #ff4b6b; color: white; border: none; }
     .stExpander { background-color: white; border-radius: 10px; margin-bottom: 10px; }
+    .clinic-header { color: #ff4b6b; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -21,19 +21,26 @@ DR_PASSWORD = "clinicadmin786"
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in, st.session_state.role = False, "Patient"
 
-# --- 2. LOGIN SCREEN ---
+# --- 2. LOGIN & WELCOME SCREEN ---
 if not st.session_state.logged_in:
-    st.title("🏥 GynaeCare Digital Clinic")
+    st.title("🏥 Welcome to Bhavya Labs & Clinics")
+    st.markdown("### *Comprehensive Care under one roof*")
+    
     with st.container(border=True):
+        st.markdown("""
+        **Our Services:**
+        ✅ Gynaecology & Obstetric Consultation | ✅ Ultrasound | ✅ Pharmacy  
+        ✅ **Full Body Blood Tests (Thyrocare Franchise)** | ✅ Laparoscopy & Infertility
+        """)
         c1, c2 = st.columns(2)
-        c1.markdown("📞 **Emergency:** +91 9676712517")
-        c2.markdown(f"📧 **Email:** pnaugiya@gmail.com")
+        c1.markdown("📞 **Appointment:** +91 9676712517")
+        c2.markdown("📧 **Email:** pnaugiya@gmail.com")
 
-    t1, t2 = st.tabs(["Patient Access", "Doctor Login"])
+    t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
     with t1:
         with st.form("p_login"):
-            name = st.text_input("Patient Full Name")
-            status = st.radio("Are you currently pregnant?", ["Yes", "No (PCOS/General)"])
+            name = st.text_input("Patient Name")
+            status = st.selectbox("Purpose of Visit", ["Pregnancy", "PCOS / General Gynae", "Infertility / Laparoscopy"])
             if st.form_submit_button("Enter Portal") and name:
                 st.session_state.logged_in, st.session_state.patient_name = True, name
                 st.session_state.status, st.session_state.role = status, "Patient"
@@ -41,82 +48,78 @@ if not st.session_state.logged_in:
     with t2:
         with st.form("d_login"):
             pw = st.text_input("Clinic Password", type="password")
-            if st.form_submit_button("Login as Doctor") and pw == DR_PASSWORD:
+            if st.form_submit_button("Login") and pw == DR_PASSWORD:
                 st.session_state.logged_in, st.session_state.role, st.session_state.patient_name = True, "Doctor", "Dr. Admin"
                 st.rerun()
 
 # --- 3. MAIN INTERFACE ---
 else:
-    st.sidebar.title(f"Logged in: {st.session_state.patient_name}")
+    st.sidebar.title(f"Bhavya Clinics")
+    st.sidebar.write(f"Logged in: {st.session_state.patient_name}")
     
     if st.session_state.role == "Doctor":
-        menu = st.sidebar.radio("Clinic Admin", ["Appointments", "Patient Database", "Post Video/Updates"])
-        df = conn.read(ttl=0)
-        # [Doctor Logic code here remains the same as before]
+        menu = st.sidebar.radio("Admin", ["Appointments", "Patient Database", "Post Video/Updates"])
+        # [Doctor logic remains as previously established]
 
     else:
-        menu = st.sidebar.radio("Navigation", ["Dashboard", "Diet & Nutrition", "Medical FAQs & Yoga", "Book Appointment", "Records"])
-        df = conn.read(ttl=0)
+        menu = st.sidebar.radio("Menu", ["Dashboard", "Detailed Diet Plans", "Medical Library", "Book Appointment", "Records"])
+        
+        # --- DASHBOARD ---
+        if menu == "Dashboard":
+            st.title(f"Welcome to Bhavya Labs & Clinics, {st.session_state.patient_name}")
+            if st.session_state.status == "Pregnancy":
+                st.info("🤰 Pregnancy Tracking Active")
+                # [LMP/EDD Logic here]
+            elif st.session_state.status == "Infertility / Laparoscopy":
+                st.success("🔬 Specialized Fertility & Surgical Module")
+                st.write("We offer advanced Laparoscopic solutions and Infertility workups.")
 
-        # --- PREGNANCY DIET ---
-        if menu == "Diet & Nutrition":
-            st.title("🥗 Detailed Meal Plans")
-            diet_type = st.radio("Dietary Preference", ["Vegetarian", "Non-Vegetarian"])
+        # --- DETAILED DIETS (All Trimesters & Lactation) ---
+        elif menu == "Diet & Nutrition":
+            st.title("🥗 Clinical Nutrition Plans")
+            diet_pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
             
-            if st.session_state.status == "Yes":
-                trim = st.selectbox("Select Your Trimester", ["1st Trimester (0-12 Weeks)", "2nd Trimester (13-26 Weeks)", "3rd Trimester (27-40 Weeks)"])
-                
-                if trim == "1st Trimester (0-12 Weeks)":
-                    st.header("🍎 1st Trimester: Foundation")
-                    st.info("Goal: 1800-2000 kcal. Focus on Folic Acid to prevent birth defects.")
-                    if diet_type == "Vegetarian":
-                        st.write("**Early Morning:** Soaked almonds/walnuts. \n**Breakfast:** Moong Dal Chilla or Poha. \n**Lunch:** 2 Roti, Dal, Green Veggie (Spinach/Methi), Curd. \n**Dinner:** Vegetable Dalia or Paneer.")
-                    else:
-                        st.write("**Early Morning:** Soaked nuts. \n**Breakfast:** 2 Boiled Eggs or Egg Bhurji. \n**Lunch:** 1 bowl Chicken Curry (less oil), Rice, Salad. \n**Dinner:** Grilled Fish or Egg Curry.")
-                
-                elif trim == "2nd Trimester (13-26 Weeks)":
-                    st.header("🥩 2nd Trimester: Growth")
-                    st.info("Goal: 2200-2400 kcal. Focus on Iron (blood) and Calcium (bones).")
-                    st.write("**Key Foods:** Jaggery (Gur), Pomegranate, Milk, Paneer/Lean Meat.")
-
-                elif trim == "3rd Trimester (27-40 Weeks)":
-                    st.header("🥛 3rd Trimester: Energy")
-                    st.info("Goal: 2400-2600 kcal. Focus on Fiber (to avoid constipation) and Omega-3.")
-
-            else:
-                st.header("🩸 PCOS Management Plan")
-                st.info("Goal: 1500-1800 kcal. Low Glycemic Index to balance Insulin.")
-                if diet_type == "Vegetarian":
-                    st.write("**Diet:** Replace White Rice with Brown Rice/Ragi. Increase Protein with Sprouts and Tofu.")
-                else:
-                    st.write("**Diet:** Include Fish and Grilled Chicken. Strictly avoid Fried Meats/Sugary drinks.")
-
-        # --- MEDICAL FAQs & YOGA ---
-        elif menu == "Medical FAQs & Yoga":
-            st.title("📚 Education & Wellness")
+            stage = st.selectbox("Select Stage", ["1st Trimester", "2nd Trimester", "3rd Trimester", "Lactation (Breastfeeding)", "PCOS / Weight Loss"])
             
-            with st.expander("🤮 Nausea & Vomiting (Morning Sickness)"):
-                st.write("**Dos:** Eat dry crackers before getting up. Use Ginger/Lemon water. Eat small, frequent meals.")
-                st.write("**Don'ts:** Avoid spicy/oily food. Don't stay on an empty stomach for long.")
+            if "Trimester" in stage:
+                if stage == "1st Trimester":
+                    st.header("🍎 1st Trimester (1800-2000 kcal)")
+                    st.write("**Focus:** Folic Acid. Avoid raw papaya/pineapple.")
+                elif stage == "2nd Trimester":
+                    st.header("🥩 2nd Trimester (2200-2400 kcal)")
+                    st.write("**Focus:** Iron & Calcium. Add 340 extra calories.")
+                elif stage == "3rd Trimester":
+                    st.header("🥛 3rd Trimester (2400-2600 kcal)")
+                    st.write("**Focus:** Energy & Fiber. Avoid heavy spicy meals to prevent heartburn.")
             
-            with st.expander("⚠️ Understanding Abdominal Pain"):
-                st.write("**Normal:** Mild pulling sensation on the sides (Round Ligament Pain).")
-                st.error("**WARNING:** If pain is accompanied by bleeding, blurred vision, or severe cramping, call Dr. immediately.")
+            elif stage == "Lactation (Breastfeeding)":
+                st.header("🤱 Post-Partum & Lactation (2600-2800 kcal)")
+                st.info("You need ~500 extra calories compared to pre-pregnancy.")
+                st.write("**Galactagogues (Milk Boosting Foods):**")
+                st.markdown("- **Vegetarian:** Fenugreek (Methi) seeds, Fennel (Saunf), Garlic, Oats, Milk, and Gond Ladoo.")
+                st.markdown("- **Non-Veg:** Chicken soup and Fish (rich in Omega-3).")
+                st.write("**Hydration:** Drink 3-4 Litres of water daily.")
 
-            with st.expander("🧘 Safe Yoga & Exercise"):
-                st.write("1. **Butterfly Pose (Baddha Konasana):** Great for pelvic health.")
-                st.write("2. **Cat-Cow Stretch:** Relieves back pain.")
-                st.write("3. **Pranayama:** Helps manage stress and oxygen flow.")
-                
+        # --- MEDICAL LIBRARY (New Sections Added) ---
+        elif menu == "Medical Library":
+            st.title("📚 Bhavya Health Library")
+            
+            with st.expander("🔬 Infertility & Laparoscopy"):
+                st.write("**Infertility:** We provide follicular monitoring, IUI, and hormonal balancing.")
+                st.write("**Laparoscopy:** Minimally invasive 'Keyhole' surgery for Ovarian Cysts, Fibroids, and Tubal checks.")
 
-        # --- BOOKING & RECORDS (Included for completeness) ---
+            with st.expander("💊 Contraception (Family Planning)"):
+                st.write("Options available at Bhavya Clinics:")
+                st.markdown("- **Short term:** OCPs (Pills), Injectables (Antara).")
+                st.markdown("- **Long term:** Copper-T (IUD), LNG-IUS.")
+
+            with st.expander("💉 Vaccinations (HPV & Lactation)"):
+                st.write("**During Lactation:** It is 100% SAFE to take the HPV vaccine while breastfeeding.")
+                st.write("**HPV Vaccine:** Essential for preventing Cervical Cancer. Available for women up to age 45.")
+
         elif menu == "Book Appointment":
-            st.header("📅 Book Appointment")
-            # [Add previous booking logic here]
-
-        elif menu == "Records":
-            st.header("📝 Log Vitals")
-            # [Add previous record logging logic here]
+            st.header("📅 Schedule at Bhavya Clinics")
+            # [Appointment Logic]
 
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False

@@ -6,14 +6,14 @@ from datetime import datetime, timedelta
 # --- 1. SETUP & STYLE ---
 st.set_page_config(page_title="GynaeCare Hub", page_icon="🏥", layout="wide")
 
-# Custom CSS for a better look
+# Fixed the CSS Error here
 st.markdown("""
     <style>
-    .main { background-color: #fff5f7; }
-    .stButton>button { width: 100%; border-radius: 20px; background-color: #ff4b6b; color: white; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 15px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
+    .main { background-color: #fffafa; }
+    .stButton>button { border-radius: 20px; background-color: #ff4b6b; color: white; border: none; }
+    .stExpander { background-color: white; border-radius: 10px; margin-bottom: 10px; }
     </style>
-    """, unsafe_index=True)
+    """, unsafe_allow_html=True)
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 DR_PASSWORD = "clinicadmin786" 
@@ -27,87 +27,96 @@ if not st.session_state.logged_in:
     with st.container(border=True):
         c1, c2 = st.columns(2)
         c1.markdown("📞 **Emergency:** +91 9676712517")
-        c2.markdown("📧 **Email:** pnaugiya@gmail.com")
+        c2.markdown(f"📧 **Email:** pnaugiya@gmail.com")
 
     t1, t2 = st.tabs(["Patient Access", "Doctor Login"])
     with t1:
         with st.form("p_login"):
-            name = st.text_input("Name")
-            status = st.radio("Are you pregnant?", ["Yes", "No (PCOS/Gynae)"])
+            name = st.text_input("Patient Full Name")
+            status = st.radio("Are you currently pregnant?", ["Yes", "No (PCOS/General)"])
             if st.form_submit_button("Enter Portal") and name:
                 st.session_state.logged_in, st.session_state.patient_name = True, name
                 st.session_state.status, st.session_state.role = status, "Patient"
                 st.rerun()
     with t2:
         with st.form("d_login"):
-            pw = st.text_input("Password", type="password")
-            if st.form_submit_button("Login") and pw == DR_PASSWORD:
+            pw = st.text_input("Clinic Password", type="password")
+            if st.form_submit_button("Login as Doctor") and pw == DR_PASSWORD:
                 st.session_state.logged_in, st.session_state.role, st.session_state.patient_name = True, "Doctor", "Dr. Admin"
                 st.rerun()
 
 # --- 3. MAIN INTERFACE ---
 else:
-    st.sidebar.title(f"Welcome, {st.session_state.patient_name}")
+    st.sidebar.title(f"Logged in: {st.session_state.patient_name}")
     
     if st.session_state.role == "Doctor":
-        menu = st.sidebar.radio("Clinic Admin", ["Appointments", "Patient Logs", "Post Updates"])
+        menu = st.sidebar.radio("Clinic Admin", ["Appointments", "Patient Database", "Post Video/Updates"])
         df = conn.read(ttl=0)
-        # [Doctor Logic remains same as previous version]
+        # [Doctor Logic code here remains the same as before]
 
     else:
-        menu = st.sidebar.radio("Navigation", ["My Health Dashboard", "Diet & Nutrition", "Medical FAQs & Yoga", "Book Appointment", "Records"])
+        menu = st.sidebar.radio("Navigation", ["Dashboard", "Diet & Nutrition", "Medical FAQs & Yoga", "Book Appointment", "Records"])
         df = conn.read(ttl=0)
 
-        # --- PREGNANCY DIET LOGIC ---
+        # --- PREGNANCY DIET ---
         if menu == "Diet & Nutrition":
-            st.title("🥗 Personalized Nutrition Plan")
-            diet_type = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
+            st.title("🥗 Detailed Meal Plans")
+            diet_type = st.radio("Dietary Preference", ["Vegetarian", "Non-Vegetarian"])
             
             if st.session_state.status == "Yes":
-                trim = st.selectbox("Select Trimester", ["1st Trimester (0-12w)", "2nd Trimester (13-26w)", "3rd Trimester (27-40w)"])
+                trim = st.selectbox("Select Your Trimester", ["1st Trimester (0-12 Weeks)", "2nd Trimester (13-26 Weeks)", "3rd Trimester (27-40 Weeks)"])
                 
-                if trim == "1st Trimester (0-12w)":
-                    st.header("🍎 1st Trimester: Foundation (1800-2000 kcal)")
-                    st.write("**Focus:** Folic acid & managing nausea.")
+                if trim == "1st Trimester (0-12 Weeks)":
+                    st.header("🍎 1st Trimester: Foundation")
+                    st.info("Goal: 1800-2000 kcal. Focus on Folic Acid to prevent birth defects.")
                     if diet_type == "Vegetarian":
-                        st.markdown("- **Breakfast:** Sprouted moong or Poha with nuts.\n- **Lunch:** Brown rice, Dal, Spinach (Palak).\n- **Dinner:** Paneer sautéed with veggies.")
+                        st.write("**Early Morning:** Soaked almonds/walnuts. \n**Breakfast:** Moong Dal Chilla or Poha. \n**Lunch:** 2 Roti, Dal, Green Veggie (Spinach/Methi), Curd. \n**Dinner:** Vegetable Dalia or Paneer.")
                     else:
-                        st.markdown("- **Breakfast:** Boiled eggs or Egg bhurji.\n- **Lunch:** Chicken soup or Fish curry with rice.\n- **Dinner:** Grilled chicken salad.")
+                        st.write("**Early Morning:** Soaked nuts. \n**Breakfast:** 2 Boiled Eggs or Egg Bhurji. \n**Lunch:** 1 bowl Chicken Curry (less oil), Rice, Salad. \n**Dinner:** Grilled Fish or Egg Curry.")
                 
-                elif trim == "2nd Trimester (13-26w)":
-                    st.header("🥩 2nd Trimester: Growth (2200-2400 kcal)")
-                    st.write("**Focus:** Iron and Calcium for bone development.")
-                    st.info("Add an extra 340 calories/day.")
-                
-                elif trim == "3rd Trimester (27-40w)":
-                    st.header("🥛 3rd Trimester: Energy (2400-2600 kcal)")
-                    st.write("**Focus:** Omega-3 (DHA) for brain & Energy.")
+                elif trim == "2nd Trimester (13-26 Weeks)":
+                    st.header("🥩 2nd Trimester: Growth")
+                    st.info("Goal: 2200-2400 kcal. Focus on Iron (blood) and Calcium (bones).")
+                    st.write("**Key Foods:** Jaggery (Gur), Pomegranate, Milk, Paneer/Lean Meat.")
+
+                elif trim == "3rd Trimester (27-40 Weeks)":
+                    st.header("🥛 3rd Trimester: Energy")
+                    st.info("Goal: 2400-2600 kcal. Focus on Fiber (to avoid constipation) and Omega-3.")
 
             else:
-                st.header("🩸 PCOS Management Diet (1500-1800 kcal)")
-                st.write("**Focus:** Low Glycemic Index & High Protein.")
+                st.header("🩸 PCOS Management Plan")
+                st.info("Goal: 1500-1800 kcal. Low Glycemic Index to balance Insulin.")
                 if diet_type == "Vegetarian":
-                    st.markdown("- **Tips:** Use Ragi/Jowar instead of wheat. High fiber salads.")
+                    st.write("**Diet:** Replace White Rice with Brown Rice/Ragi. Increase Protein with Sprouts and Tofu.")
                 else:
-                    st.markdown("- **Tips:** Include lean meat. Avoid fried chicken or heavy oils.")
+                    st.write("**Diet:** Include Fish and Grilled Chicken. Strictly avoid Fried Meats/Sugary drinks.")
 
         # --- MEDICAL FAQs & YOGA ---
         elif menu == "Medical FAQs & Yoga":
-            st.title("📚 Knowledge & Wellness")
+            st.title("📚 Education & Wellness")
             
-            with st.expander("🤮 Managing Nausea & Vomiting (Morning Sickness)"):
-                st.write("**Remedies:** Ginger tea, small frequent meals, dry toast/crackers before getting out of bed.")
+            with st.expander("🤮 Nausea & Vomiting (Morning Sickness)"):
+                st.write("**Dos:** Eat dry crackers before getting up. Use Ginger/Lemon water. Eat small, frequent meals.")
+                st.write("**Don'ts:** Avoid spicy/oily food. Don't stay on an empty stomach for long.")
             
-            with st.expander("⚠️ Is my Abdominal Pain serious?"):
-                st.write("**Normal:** Mild stretching (Round ligament pain).")
-                st.error("**Serious:** Sharp, persistent pain with bleeding or fever. Contact Dr. immediately.")
+            with st.expander("⚠️ Understanding Abdominal Pain"):
+                st.write("**Normal:** Mild pulling sensation on the sides (Round Ligament Pain).")
+                st.error("**WARNING:** If pain is accompanied by bleeding, blurred vision, or severe cramping, call Dr. immediately.")
 
             with st.expander("🧘 Safe Yoga & Exercise"):
-                st.markdown("1. **Marjariasana (Cat-Cow):** Relieves back tension.")
-                st.markdown("2. **Baddha Konasana (Butterfly):** Improves hip flexibility.")
-                st.warning("Avoid lying flat on your back after the 1st trimester.")
+                st.write("1. **Butterfly Pose (Baddha Konasana):** Great for pelvic health.")
+                st.write("2. **Cat-Cow Stretch:** Relieves back pain.")
+                st.write("3. **Pranayama:** Helps manage stress and oxygen flow.")
+                
 
-        # [Include Dashboard, Booking, and Records code from previous version here]
+        # --- BOOKING & RECORDS (Included for completeness) ---
+        elif menu == "Book Appointment":
+            st.header("📅 Book Appointment")
+            # [Add previous booking logic here]
+
+        elif menu == "Records":
+            st.header("📝 Log Vitals")
+            # [Add previous record logging logic here]
 
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False

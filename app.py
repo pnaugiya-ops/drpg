@@ -92,4 +92,43 @@ else:
 
         elif m == "Diet & Yoga":
             st.title("🧘 Nutrition & Exercise")
-            if "Pregnant
+            if "Pregnant" in st.session_state.stat:
+                d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
+                with d1: 
+                    st.subheader("Months 1-3")
+                    st.write("**Diet:** Small, frequent meals. Focus on Folic Acid & Ginger for nausea. Avoid papaya & pineapple.")
+                    st.write("**Yoga:** Anulom Vilom (Breathing), Butterfly pose.")
+                with d2: 
+                    st.subheader("Months 4-6")
+                    st.write("**Diet:** Iron and Calcium rich foods. Increase protein intake. Stay hydrated.")
+                    st.write("**Yoga:** Tadasana (Palm Tree), Kati Chakrasana.")
+                with d3: 
+                    st.subheader("Months 7-9")
+                    st.write("**Diet:** High fiber to avoid constipation. Energy-dense small meals.")
+                    st.write("**Yoga:** Malasana (Supported Squat), Pelvic tilts.")
+            else:
+                st.subheader("PCOS & Gynae Wellness")
+                st.write("**Diet:** Low GI (seeds, nuts, leafy greens). Strictly avoid sugar and processed carbs.")
+                st.write("**Yoga:** Surya Namaskar (Sun Salutation), Bhujangasana (Cobra Pose), Dhanurasana.")
+
+        elif m == "Upload Reports":
+            st.title("🧪 Upload Reports")
+            with st.form("u_form"):
+                f = st.file_uploader("Select Image (JPG/PNG)", type=['jpg', 'png', 'jpeg'])
+                note = st.text_input("Note for Doctor")
+                if st.form_submit_button("Upload Now"):
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":note, "Attachment":img_to_b64(f), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success("Report successfully sent to Dr. Priyanka!")
+
+        elif m == "Book Appointment":
+            st.title("📅 Book Appointment")
+            with st.form("app_form"):
+                dt = st.date_input("Select Date", min_value=datetime.now().date())
+                tm = st.selectbox("Available Time Slot", ["10:00 AM", "11:00 AM", "12:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"])
+                if st.form_submit_button("Confirm Booking"):
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f"Date: {dt} Time: {tm}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Confirmed for {dt} at {tm}")
+
+    if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()

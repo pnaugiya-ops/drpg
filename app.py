@@ -31,7 +31,7 @@ if not st.session_state.logged_in:
         with st.form("p_login"):
             name = st.text_input("Full Name")
             stat = st.radio("Status", ["Pregnant", "Non-Pregnant (PCOS/Gynae)"])
-            if st.form_submit_button("Enter"):
+            if st.form_submit_button("Enter Portal"):
                 st.session_state.update({"logged_in":True, "name":name, "stat":stat, "role":"P"})
                 st.rerun()
     with t2:
@@ -48,12 +48,13 @@ else:
         st.title("👨‍⚕️ Admin Dashboard")
         t_adm = st.tabs(["Patient Submissions", "Manage Slots"])
         with t_adm[0]:
-            for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
-                if row['Name'] == "ADMIN": continue
-                with st.expander(f"📋 {row['Timestamp']} - {row['Name']}"):
-                    st.write(f"**Category:** {row.get('Type','')}")
-                    st.write(f"**Details:** {row.get('Details', '')}")
-                    if 'Attachment' in row and str(row['Attachment']) not in ["nan", ""]: show_img(row['Attachment'])
+            if not df.empty:
+                for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
+                    if row['Name'] == "ADMIN": continue
+                    with st.expander(f"📋 {row['Timestamp']} - {row['Name']}"):
+                        st.write(f"**Category:** {row.get('Type','')}")
+                        st.write(f"**Details:** {row.get('Details', '')}")
+                        if 'Attachment' in row and str(row['Attachment']) not in ["nan", ""]: show_img(row['Attachment'])
         if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
     else:
         st.sidebar.title(f"Welcome, {st.session_state.name}")
@@ -66,7 +67,7 @@ else:
                 h = c1.number_input("Height (cm)", 100, 250, 160)
                 w = c2.number_input("Weight (kg)", 30, 200, 60)
                 p = c3.number_input("Pulse (bpm)", 40, 200, 72)
-                bp = st.text_input("Blood Pressure", "120/80")
+                bp = st.text_input("Blood Pressure (e.g. 120/80)", "120/80")
                 if st.form_submit_button("Save Vitals"):
                     bmi = round(w / ((h/100)**2), 1)
                     det = f"BMI: {bmi} | BP: {bp} | Pulse: {p} | Wt: {w}kg"
@@ -77,40 +78,33 @@ else:
         elif m == "Vaccination Guide":
             st.title("💉 Vaccination Schedule")
             if "Pregnant" in st.session_state.stat:
-                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 weeks.<br><b>Influenza:</b> Anytime.</div>", unsafe_allow_html=True)
-                
+                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 weeks.<br><b>Influenza:</b> Anytime during pregnancy.</div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses at 0, 1, and 6 months for Cervical Cancer prevention.</div>", unsafe_allow_html=True)
-                
+                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses (0, 1, 6 months) for Cervical Cancer prevention.</div>", unsafe_allow_html=True)
 
         elif m == "Diet & Yoga":
             st.title("🧘 Nutrition & Exercise")
             if "Pregnant" in st.session_state.stat:
                 d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
-                with d1: st.write("**Diet:** Folic acid rich foods, ginger for nausea. **Yoga:** Butterfly, Marjariasana."); 
-                with d2: st.write("**Diet:** Iron & Calcium, Coconut water. **Yoga:** Tadasana, Kati Chakrasana."); 
-
-[Image of 2nd trimester pregnancy diet chart]
-
-                with d3: st.write("**Diet:** Small frequent meals, high fiber. **Yoga:** Squats with support (Malasana)."); 
+                with d1: 
+                    st.subheader("1st Trimester (Week 1-12)")
+                    st.write("**Diet:** Focus on Folic Acid, B6 for nausea, and light snacks.")
+                    st.write("**Yoga:** Butterfly pose, Marjariasana (Cat-Cow).")
+                with d2: 
+                    st.subheader("2nd Trimester (Week 13-26)")
+                    st.write("**Diet:** Iron, Calcium, and Vitamin C. Include more protein.")
+                    st.write("**Yoga:** Tadasana (Palm Tree), Virabhadrasana (Warrior).")
+                with d3: 
+                    st.subheader("3rd Trimester (Week 27-40)")
+                    st.write("**Diet:** High fiber, energy-dense foods, small frequent meals.")
+                    st.write("**Yoga:** Malasana (Supported Squat), Deep Breathing.")
             else:
-                st.write("**PCOS Diet:** High fiber, Low GI, anti-inflammatory. **Yoga:** Surya Namaskar, Dhanurasana."); 
+                st.subheader("PCOS Management")
+                st.write("**Diet:** Low GI foods, high fiber, strictly avoid processed sugar.")
+                st.write("**Yoga:** Surya Namaskar, Dhanurasana (Bow Pose), Bhujangasana.")
 
         elif m == "Upload Reports":
             st.title("🧪 Upload Reports")
             with st.form("u"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
-                note = st.text_input("Note")
-                if st.form_submit_button("Submit"):
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":note, "Attachment":img_to_b64(f), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
-
-        elif m == "Book Appointment":
-            st.title("📅 Book Appointment")
-            dt = st.date_input("Date", min_value=datetime.now().date())
-            tm = st.selectbox("Time Slot", ["10:00 AM", "11:00 AM", "12:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"])
-            if st.button("Confirm Booking"):
-                new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f"Date: {dt} Time: {tm}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"Booked for {dt} at {tm}")
-
-        if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
+                f = st.file_uploader("Select Image (JPG/PNG)", type=['jpg', 'png', 'jpeg'])
+                note = st.text_input("Note for Doctor")

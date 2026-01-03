@@ -65,6 +65,25 @@ else:
             st.header("📋 Patient Medical Logs")
             df = conn.read(ttl=0)
             st.dataframe(df, use_container_width=True)
+            elif menu == "Post Video/Updates":
+            st.header("📢 Broadcast to Patients")
+            new_msg = st.text_input("Clinic Announcement / Video Title")
+            video_url = st.text_input("YouTube or Instagram Link")
+            
+            if st.button("Publish Update"):
+                try:
+                    df = conn.read(ttl=0)
+                    broadcast_data = pd.DataFrame([{
+                        "Name": "Dr. Admin",
+                        "Type": "BROADCAST",
+                        "Details": f"{new_msg} | {video_url}",
+                        "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                    }])
+                    updated_df = pd.concat([df, broadcast_data], ignore_index=True)
+                    conn.update(data=updated_df)
+                    st.success("Notification sent to all patients!")
+                except Exception as e:
+                    st.error(f"Error: {e}")
 
     # --- PATIENT VIEW ---
     else:

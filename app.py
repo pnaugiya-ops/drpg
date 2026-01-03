@@ -11,7 +11,6 @@ st.markdown("""
     .main { background-color: #fffafa; }
     .stButton>button { border-radius: 20px; background-color: #ff4b6b; color: white; border: none; font-weight: bold; }
     .stExpander { background-color: white; border-radius: 10px; margin-bottom: 10px; box-shadow: 1px 1px 5px rgba(0,0,0,0.05); }
-    .report-card { background-color: #ffffff; padding: 20px; border-radius: 15px; border-left: 5px solid #ff4b6b; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -21,17 +20,11 @@ DR_PASSWORD = "clinicadmin786"
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in, st.session_state.role = False, "Patient"
 
-# --- 2. LOGIN SCREEN (2 OPTIONS ONLY) ---
+# --- 2. LOGIN SCREEN ---
 if not st.session_state.logged_in:
     st.title("🏥 Welcome to Bhavya Labs & Clinics")
-    st.subheader("Your Partner in Obstetric & Gynaecological Health")
-    
     with st.container(border=True):
-        st.markdown("""
-        **Our Comprehensive Services:**
-        🩺 **Consultation:** Obs & Gynae | 🔬 **Fertility:** IUI, Follicular Study | 🔪 **Surgery:** Laparoscopy  
-        🩸 **Thyrocare Franchise:** All Blood Tests | 🔊 **Ultrasound** | 💊 **Pharmacy**
-        """)
+        st.markdown("**Services:** Gynae Consultation | Ultrasound | Pharmacy | Thyrocare Franchise | Laparoscopy & Infertility")
         c1, c2 = st.columns(2)
         c1.markdown("📞 **Call:** +91 9676712517")
         c2.markdown("📧 **Email:** pnaugiya@gmail.com")
@@ -40,12 +33,11 @@ if not st.session_state.logged_in:
     with t1:
         with st.form("p_login"):
             name = st.text_input("Patient Name")
-            status = st.radio("Current Status", ["Pregnant", "Non-Pregnant (PCOS/Fertility/General)"])
-            if st.form_submit_button("Enter My Portal") and name:
+            status = st.radio("Current Status", ["Pregnant", "Non-Pregnant (PCOS/Gynae/Fertility)"])
+            if st.form_submit_button("Enter Portal") and name:
                 st.session_state.logged_in, st.session_state.patient_name = True, name
                 st.session_state.status, st.session_state.role = status, "Patient"
                 st.rerun()
-
     with t2:
         with st.form("d_login"):
             pw = st.text_input("Clinic Password", type="password")
@@ -55,81 +47,81 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN INTERFACE ---
 else:
-    st.sidebar.title(f"Bhavya Clinics")
-    st.sidebar.info(f"User: {st.session_state.patient_name}")
+    st.sidebar.title("Bhavya Clinics")
     
     if st.session_state.role == "Doctor":
-        # [Doctor Admin logic remains established]
-        st.sidebar.success("Admin Mode Active")
         menu = st.sidebar.radio("Clinic Admin", ["Appointments", "Patient Database", "Post Updates"])
-        # ... (Include previous Doctor code here)
-
-    else:
-        menu = st.sidebar.radio("Navigation", ["Home Dashboard", "Detailed Diet Plans", "Medical Library", "Book Appointment", "My Records"])
+        df = conn.read(ttl=0)
         
-        # --- DASHBOARD ---
-        if menu == "Home Dashboard":
-            st.title(f"Welcome, {st.session_state.patient_name}")
-            if st.session_state.status == "Pregnant":
-                st.markdown("### 🤰 Your Pregnancy Journey")
-                # LMP Calculation logic...
-                st.info("💡 Tip: Don't forget to check the Medical Library for your Vaccination schedule!")
-            else:
-                st.markdown("### 🌸 Gynaecology & Wellness Hub")
-                st.write("Access expert advice on PCOS, Fertility, and Preventative Screenings below.")
+        if menu == "Appointments":
+            st.header("📅 Patient Appointments")
+            if not df.empty and 'Type' in df.columns:
+                appts = df[df['Type'] == 'APPOINTMENT'].sort_values(by='Timestamp', ascending=False)
+                st.dataframe(appts[['Name', 'Status', 'Date', 'Time', 'Details']], use_container_width=True)
+            else: st.info("No bookings yet.")
 
-        # --- DIET PLANS ---
-        elif menu == "Detailed Diet Plans":
-            st.title("🥗 Clinical Nutrition Guide")
-            diet_pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
+        elif menu == "Post Updates":
+            st.header("📢 Broadcast to Patients")
+            msg = st.text_input("Video/News Title")
+            url = st.text_input("YouTube Link")
+            if st.button("Publish"):
+                new_row = pd.DataFrame([{"Name":"Dr. Admin", "Type":"BROADCAST", "Details":f"{msg}|{url}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                conn.update(data=pd.concat([df, new_row], ignore_index=True))
+                st.success("Notification sent!")
+
+    # --- PATIENT INTERFACE ---
+    else:
+        # Appointment is now available for BOTH Pregnant and Non-Pregnant
+        menu = st.sidebar.radio("Navigation", ["Dashboard", "Book Appointment", "Diet Plans", "Medical Library", "My Records"])
+        df = conn.read(ttl=0)
+
+        if menu == "Dashboard":
+            st.title(f"Hello, {st.session_state.patient_name}")
+            if st.session_state.status == "Pregnant":
+                st.markdown("### 🤰 Pregnancy Tracker")
+                # LMP/EDD Logic
+            else:
+                st.markdown("### 🌸 Gynae & Wellness Hub")
+                st.write("Welcome to your health portal. Use the menu to book visits or view diet charts.")
+
+        elif menu == "Book Appointment":
+            st.header("📅 Schedule Your Visit")
+            st.info("Available for Consultation, Ultrasound, and Thyrocare Blood Tests.")
+            date = st.date_input("Date", min_value=datetime.now().date())
+            is_sun = date.weekday() == 6
+            slots = ["11:00 AM", "12:00 PM"] if is_sun else ["11:00 AM", "12:00 PM", "06:00 PM", "07:00 PM"]
+            time = st.selectbox("Time Slot", slots)
+            note = st.text_input("Reason (e.g., Follow-up, PCOS, Blood Test)")
             
-            if st.session_state.status == "Pregnant":
-                stage = st.selectbox("Select Stage", ["1st Trimester", "2nd Trimester", "3rd Trimester", "Lactation (Post-Delivery)"])
-                if stage == "1st Trimester":
-                    st.subheader("🍎 1st Trimester (1800-2000 kcal)")
-                    st.write("Focus on Folic Acid. Managing Nausea with small meals.")
-                elif stage == "2nd Trimester":
-                    st.subheader("🥩 2nd Trimester (2200-2400 kcal)")
-                    st.write("Focus on Iron & Calcium for fetal bone growth.")
-                elif stage == "3rd Trimester":
-                    st.subheader("🥛 3rd Trimester (2400-2600 kcal)")
-                    st.write("Focus on Fiber & Omega-3. Prevent acidity & constipation.")
-                elif stage == "Lactation (Post-Delivery)":
-                    st.subheader("🤱 Lactation Diet (2600-2800 kcal)")
-                    st.write("**Galactagogues:** Fenugreek (Methi), Fennel, Oats, Garlic, and plenty of fluids.")
-            else:
-                st.subheader("🩸 PCOS & Weight Management")
-                st.write("Focus: Low Glycemic Index (GI) and High Fiber to control insulin spikes.")
+            if st.button("Confirm Appointment"):
+                new_appt = pd.DataFrame([{
+                    "Name": st.session_state.patient_name,
+                    "Status": st.session_state.status,
+                    "Type": "APPOINTMENT",
+                    "Date": str(date),
+                    "Time": time,
+                    "Details": note,
+                    "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M")
+                }])
+                conn.update(data=pd.concat([df, new_appt], ignore_index=True))
+                st.success("Appointment Booked! Dr. Admin will see this on the schedule.")
 
-        # --- MEDICAL LIBRARY (The Core Knowledge Base) ---
+        elif menu == "Diet Plans":
+            st.title("🥗 Clinical Nutrition")
+            # Trimester/Lactation/PCOS diet logic...
+
         elif menu == "Medical Library":
             st.title("📚 Bhavya Health Library")
-            
             if st.session_state.status == "Pregnant":
-                with st.expander("💉 Pregnancy Vaccinations"):
-                    st.write("**Tetanus (TT/Td):** 2 doses are mandatory to protect you and your baby.")
-                    st.write("**Influenza:** Recommended in any trimester.")
-                with st.expander("💉 Post-Delivery / Lactation"):
-                    st.write("**HPV Vaccine:** It is perfectly safe to take the HPV vaccine while breastfeeding.")
-            
+                with st.expander("💉 Vaccinations (TT, Flu)"):
+                    st.write("Mandatory Tetanus schedule details.")
             else:
-                with st.expander("🔬 Infertility & Procedures"):
-                    st.write("**Follicular Monitoring:** Serial ultrasounds to track egg growth.")
-                    st.write("**IUI (Intrauterine Insemination):** Processing sperm and placing it in the uterus.")
-                    st.write("**IVF Guidance:** Step-by-step support for advanced conception.")
-                
-                with st.expander("🏥 Laparoscopy (Keyhole Surgery)"):
-                    st.write("Minimally invasive surgery for Ovarian Cysts, Endometriosis, and Fibroids. Faster recovery and minimal scarring.")
-                
-                with st.expander("🛡️ Preventive Screening (Pap Smear & HPV)"):
-                    st.write("**Pap Smear:** A simple test to check for early cervical cell changes.")
-                    st.write("**HPV Vaccination:** Prevents 90% of cervical cancers. Recommended for all women.")
-
-        # --- APPOINTMENTS ---
-        elif menu == "Book Appointment":
-            st.header("📅 Book at Bhavya Clinics")
-            st.checkbox("💉 Include Thyrocare Blood Test (Thyroid, CBC, HbA1c, etc.)")
-            # [Appointment slots logic here]
+                with st.expander("🔬 Infertility & IUI"):
+                    st.write("Follicular monitoring and IUI procedures.")
+                with st.expander("🏥 Laparoscopy"):
+                    st.write("Keyhole surgery for Cysts and Fibroids.")
+                with st.expander("🛡️ HPV & Pap Smear"):
+                    st.write("Preventative screening for Cervical Cancer.")
 
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False

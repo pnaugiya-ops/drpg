@@ -167,4 +167,53 @@ elif st.session_state.get('role') == "P":
         elif "Lactating" in st.session_state.stat:
             st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
             if pref == "Vegetarian":
-                st.write("**Early Morning:** Warm water with soaked fenugreek seeds or cumin water.")
+                st.write("**Early Morning:** Warm water with soaked fenugreek seeds.")
+                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa.")
+                st.write("**Mid-Morning:** 1 seasonal fruit + soaked almonds.")
+                st.write("**Lunch:** 2-3 Rotis + 1 bowl Dal + Green vegetable + Curd.")
+                st.write("**Evening:** Roasted Makhana + Warm Milk.")
+                st.write("**Dinner:** Vegetable Khichdi with ghee.")
+            else:
+                st.write("**Early Morning:** Milk with soaked almonds.")
+                st.write("**Breakfast:** 2 Scrambled/Boiled eggs with toast.")
+                st.write("**Mid-Morning:** Fruit salad OR sprouted moong.")
+                st.write("**Lunch:** 2-3 Rotis + Grilled Chicken/Fish + Spinach.")
+                st.write("**Evening:** Chicken/Lentil soup OR 1 Methi ladoo.")
+                st.write("**Dinner:** 2 Rotis + Fish curry (low mercury).")
+
+    elif m == "Exercise & Yoga":
+        if "Pregnant" in st.session_state.stat:
+            st.header("🧘 Detailed Trimester-Wise Pregnancy Exercise")
+            st.subheader("Trimester 1 (Weeks 1-12)")
+            st.write("* **Activities:** Walking (20-30 min), Pelvic Tilts, Cat-Cow stretch.")
+            st.write("* **Focus:** Building a routine, gentle movement to combat fatigue.")
+            st.subheader("Trimester 2 (Weeks 13-26)")
+            st.write("* **Activities:** Wall Squats, Butterfly Pose, Prenatal Yoga, Swimming.")
+            st.write("* **Focus:** Strengthening pelvic floor and back to support growing baby.")
+            st.subheader("Trimester 3 (Weeks 27-40)")
+            st.write("* **Activities:** Birthing Ball exercises, Side-lying leg lifts, Gentle stretching.")
+            st.write("* **Focus:** Preparing for labor, opening hips, and controlled breathing.")
+            
+        elif "Lactating" in st.session_state.stat:
+            st.header("🤱 Postpartum Recovery Exercise")
+            st.write("**Weeks 0–6:** Walking and Kegels.\n**Weeks 6-12:** Low-impact cardio and bodyweight squats.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("**Daily:** 45 min Brisk walking.\n**Strength:** Bodyweight squats and Planks.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure (e.g. 120/80)")
+            pls = st.number_input("Pulse Rate", 40, 200, 72)
+        if st.button("Save Vitals"):
+            st.success("Vitals saved successfully.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV", "Hepatitis B"])
+        v_date = st.date_

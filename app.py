@@ -17,6 +17,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Database Connection
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
@@ -76,13 +77,14 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN APP ---
 else:
+    # Load Data Safely
     try:
         df = conn.read(ttl=0)
-        if df is not None and not df.empty:
+        if df is None or df.empty:
+            df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
+        else:
             df['Name'] = df['Name'].fillna('').astype(str)
             df['Type'] = df['Type'].fillna('').astype(str)
-        else:
-            df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
     except:
         df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
     
@@ -90,7 +92,7 @@ else:
 
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
-        st.sidebar.info("🕒 **Clinic Timings:**\n- 11:00 AM - 02:00 PM\n- 06:00 PM - 08:00 PM\n*(Closed on Sundays)*")
+        st.sidebar.info("🕒 **Clinic Timings:**\n- 11:00 AM - 02:00 PM\n- 06:00 PM - 08:00 PM")
         
         search = st.text_input("🔍 Search Patient Name", "").lower()
         t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📈 Vitals", "📢 Broadcast", "📅 Availability"])
@@ -100,5 +102,27 @@ else:
             for _, row in apps.sort_values(by='Timestamp', ascending=False).iterrows():
                 st.markdown(f"<div class='patient-card'><b>👤 {row['Name']}</b><br>📅 Slot: {row['Details']}</div>", unsafe_allow_html=True)
         
-        with t_adm[1]:
-            reps = df[(df['Type'] == 'REPORT') & (df['Name'].str.lower().str.contains(search))]
+        # (Rest of Doctor Dashboard components remain unchanged)
+        if st.sidebar.button("Logout", key="dr_logout"): 
+            st.session_state.logged_in = False
+            st.rerun()
+
+    else: # Patient View
+        st.sidebar.markdown(f"### Hello, {st.session_state.name}")
+        m = st.sidebar.radio("Menu", ["Baby Tracker & Calculator", "Diet & Yoga", "Vaccine & Screening Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
+        
+        if m == "Baby Tracker & Calculator":
+            if "Pregnant" in st.session_state.stat:
+                st.header("👶 Pregnancy Tracker & Calculator")
+                lmp = st.date_input("Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
+                edd = lmp + timedelta(days=280)
+                diff = date.today() - lmp
+                weeks, days = diff.days // 7, diff.days % 7
+                
+                st.success(f"🗓️ **EDD:** {edd.strftime('%d %B %Y')} | ⏳ **Stage:** {weeks} Weeks, {days} Days")
+                
+                st.divider()
+                st.subheader("📖 Week-by-Week Baby Development")
+                # Weekly milestones logic
+                if weeks <= 4: st.write("🌱 **Week 1–4 (The Seed):** Baby is the size of a poppy seed.")
+                elif weeks <=

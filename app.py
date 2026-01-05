@@ -25,46 +25,23 @@ except Exception as e:
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- HELPERS ---
-def process_img(f):
-    if not f: return ""
-    try:
-        img = Image.open(f)
-        img.thumbnail((500, 500))
-        buf = io.BytesIO()
-        img.convert("RGB").save(buf, format="JPEG", quality=40)
-        return base64.b64encode(buf.getvalue()).decode()
-    except: return ""
-
-def show_img(b):
-    if b: st.image(io.BytesIO(base64.b64decode(b)), use_container_width=True)
-
-# --- 2. LOGIN & CLINIC INFO ---
+# --- 2. LOGIN LOGIC ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
         <h3>Dr. Priyanka Gupta</h3>
         <p>MS (Obs & Gynae)</p>
-        <div style='margin-top:10px;'>
-            <span class='clinic-badge'>Infertility Specialist</span>
-            <span class='clinic-badge'>Ultrasound</span>
-            <span class='clinic-badge'>Laparoscopic Surgery</span>
-            <span class='clinic-badge'>Pharmacy</span>
-            <span class='clinic-badge'>Thyrocare Blood Test</span>
-        </div>
     </div>""", unsafe_allow_html=True)
     
     t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
     with t1:
         with st.form("p_login"):
             n = st.text_input("Full Name")
-            age = st.number_input("Age", 1, 100, 25)
             s = st.radio("Status", ["Pregnant", "PCOS/Gynae"])
             if st.form_submit_button("Enter Portal"):
                 if n:
-                    st.session_state.update({"logged_in":True, "name":n, "age":age, "stat":s, "role":"P"})
+                    st.session_state.update({"logged_in":True, "name":n, "stat":s, "role":"P"})
                     st.rerun()
-                else: st.warning("Please enter your name")
     with t2:
         with st.form("d_login"):
             pass_in = st.text_input("Clinic Password", type="password")
@@ -72,50 +49,79 @@ if not st.session_state.logged_in:
                 if pass_in == "clinicadmin786":
                     st.session_state.update({"logged_in":True, "role":"D", "name":"Dr. Priyanka"})
                     st.rerun()
-                else: st.error("Access Denied")
 
 # --- 3. MAIN APP ---
 else:
+    # Load Data
     try:
         df = conn.read(ttl=0)
-        if df is not None and not df.empty:
-            df['Name'] = df['Name'].fillna('').astype(str)
-            df['Type'] = df['Type'].fillna('').astype(str)
-        else:
-            df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
+        df = df.fillna('') if df is not None else pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
     except:
-        df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
-    
+        df = pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
+
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
-        search = st.text_input("🔍 Search Patient Name", "").lower()
-        t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📢 Broadcast", "📅 Availability"])
-        
-        with t_adm[0]:
-            apps = df[(df['Type'] == 'APP') & (df['Name'].str.lower().str.contains(search))]
-            for _, row in apps.sort_values(by='Timestamp', ascending=False).iterrows():
-                st.markdown(f"<div class='patient-card'><b>👤 {row['Name']}</b><br>📅 Slot: {row['Details']}</div>", unsafe_allow_html=True)
-        
+        # Doctor dashboard logic here...
         if st.sidebar.button("Logout"): 
             st.session_state.logged_in = False
             st.rerun()
 
     else: # Patient View
-        st.sidebar.markdown(f"### Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Vaccine Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
+        st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
+        m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Book Appointment", "Vitals & BMI", "Upload Reports"])
         
         if m == "Tracker & Calculator":
             if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy & Baby Tracker")
-                lmp = st.date_input("Select Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
+                st.header("👶 Pregnancy & Baby Tracker")
+                lmp = st.date_input("Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
                 edd = lmp + timedelta(days=280)
-                diff = date.today() - lmp
-                weeks, days = diff.days // 7, diff.days % 7
+                weeks = (date.today() - lmp).days // 7
                 
-                st.success(f"🗓️ **EDD:** {edd.strftime('%d %b %Y')} | ⏳ **Stage:** {weeks} Weeks, {days} Days")
-                st.divider()
+                st.success(f"🗓️ **EDD:** {edd.strftime('%d %b %Y')} | ⏳ **Stage:** {weeks} Weeks")
+                
                 st.subheader("📖 Week-by-Week Development")
+                if weeks <= 4:
+                    st.info("🌱 **Week 1-4 (The Seed):** Baby is a tiny ball of cells the size of a poppy seed.")
+                elif weeks <= 5:
+                    st.info("💓 **Week 5 (The Heartbeat):** Size of a sesame seed. The tiny heart tube begins to pulse.")
+                elif weeks <= 8:
+                    st.info("🍇 **Week 8 (Moving Around):** Size of a raspberry. Fingers and toes are starting to sprout.")
+                elif weeks <= 12:
+                    st.info("🍋 **Week 12 (Reflexes):** Size of a lime. Baby can open/close fists and make sucking motions.")
+                elif weeks <= 20:
+                    st.info("🍌 **Week 20 (The Halfway Mark):** Size of a banana. You feel first flutters.")
+                elif weeks <= 27:
+                    st.info("🥦 **Week 27 (Opening Eyes):** Size of cauliflower. Baby develops sleep cycles.")
+                elif weeks >= 38:
+                    st.info("🍉 **Week 40 (Full Term):** Size of a watermelon. Ready for birth!")
+                else:
+                    st.info("👶 Baby is growing vital organs and getting stronger every day.")
                 
-                # Development Guide content
-                if weeks <= 4: st.write("🌱 **Week 1-4 (The Seed):** Baby is the size of a poppy seed.")
-                elif weeks <= 5: st.write("
+            else:
+                st.header("🗓️ Menstrual Cycle Tracker")
+                last_p = st.date_input("Last Period Start", value=date.today() - timedelta(days=28))
+                clen = st.slider("Cycle Length", 21, 45, 28)
+                st.success(f"🩸 **Next Period:** {(last_p + timedelta(days=clen)).strftime('%d %b %Y')}")
+                st.warning(f"🥚 **Ovulation Window:** Around {(last_p + timedelta(days=clen-14)).strftime('%d %b %Y')}")
+                
+
+        elif m == "Diet & Yoga":
+            if "Pregnant" in st.session_state.stat:
+                st.header("🤰 Pregnancy Wellness")
+                t1, t2 = st.tabs(["🥗 Nutrition", "🧘 Exercises"])
+                with t1:
+                    tri = st.selectbox("Select Trimester", ["1st (Weeks 1-12)", "2nd (Weeks 13-26)", "3rd (Weeks 27-40)"])
+                    if "1st" in tri:
+                        st.write("**Focus:** Folic Acid & B6. **Breakfast:** Veggie Poha + Milk.")
+                    elif "2nd" in tri:
+                        st.write("**Focus:** Calcium & Iron. **Lunch:** Brown rice + Dal + Curd.")
+                    else:
+                        st.write("**Focus:** High Fiber. **Dinner:** Chapati + Rajma + Sabzi.")
+                with t2:
+                    st.write("**Recommended:** Walking, Prenatal Yoga, and Pelvic Floor (Kegels).")
+                    
+            else:
+                st.header("🌸 PCOS Wellness Hub")
+                t1, t2 = st.tabs(["🥗 PCOS Nutrition", "🏋️ PCOS Exercise"])
+                with t1:
+                    st.markdown("<div class='diet-box'><b>Focus:</b> 50-60g Protein and 25g Fiber daily.</div>", unsafe_allow_html=True)

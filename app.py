@@ -5,16 +5,15 @@ from datetime import datetime, date, timedelta
 import base64, io
 from PIL import Image
 
-# --- 1. CONFIG & ENHANCED UI STYLING ---
-st.set_page_config(page_title="Bhavya Labs Admin", layout="wide")
+# --- 1. CONFIG & STYLE ---
+st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; margin-bottom:20px; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
     .metric-card { background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid #003366; }
-    .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 15px; }
-    .timing-card { background:#f0f7ff; padding:10px; border-radius:10px; border-left:4px solid #003366; font-size:0.9em; }
-    .type-tag { background: #003366; color: white; padding: 2px 8px; border-radius: 5px; font-size: 0.8em; text-transform: uppercase; }
+    .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 10px; }
+    .diet-box { background: #fff5f7; padding: 15px; border-radius: 10px; border: 1px solid #ffc0cb; margin-top: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -55,8 +54,8 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN APP ---
 else:
-    st.sidebar.markdown(f"**Logged in as:** {st.session_state.name if 'name' in st.session_state else 'Dr. Priyanka'}")
-    if st.sidebar.button("Logout", key="logout_final"):
+    st.sidebar.markdown(f"**Logged in:** {st.session_state.name if 'name' in st.session_state else 'Dr. Priyanka'}")
+    if st.sidebar.button("Logout", key="logout_btn"):
         st.session_state.logged_in = False
         st.rerun()
 
@@ -66,58 +65,63 @@ else:
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
         
-        # --- TOP METRICS ---
-        if not df.empty:
-            c1, c2, c3 = st.columns(3)
-            today_str = date.today().strftime("%Y-%m-%d")
-            apps_today = len(df[(df['Type'] == 'APP') & (df['Details'].str.contains(today_str))])
-            reports_total = len(df[df['Type'] == 'REPORT'])
-            vitals_total = len(df[df['Type'] == 'VITALS'])
-            
-            with c1: st.markdown(f"<div class='metric-card'><h3>📅 Today's Apps</h3><h2>{apps_today}</h2></div>", unsafe_allow_html=True)
-            with c2: st.markdown(f"<div class='metric-card'><h3>🧪 Reports</h3><h2>{reports_total}</h2></div>", unsafe_allow_html=True)
-            with c3: st.markdown(f"<div class='metric-card'><h3>📊 Vitals Sent</h3><h2>{vitals_total}</h2></div>", unsafe_allow_html=True)
-
-        st.write("---")
+        # Admin Search Bar
+        search_query = st.text_input("🔍 Search Patient by Name", "").lower()
         
-        t_adm = st.tabs(["📋 Patient Appointments", "🧪 Lab Reports", "📈 Vitals Tracker", "📅 Manage Schedule"])
+        t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📈 Vitals", "📅 Availability"])
         
-        with t_adm[0]: # Appointments
-            st.subheader("Upcoming Appointments")
-            if not df.empty:
-                apps = df[df['Type'] == 'APP'].sort_values(by='Details', ascending=False)
-                for _, row in apps.iterrows():
-                    st.markdown(f"""
-                    <div class='patient-card'>
-                        <b>👤 {row['Name']}</b><br>
-                        📅 Schedule: {row['Details']}<br>
-                        <span class='type-tag'>Appointment</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+        with t_adm[0]:
+            apps = df[(df['Type'] == 'APP') & (df['Name'].str.lower().contains(search_query))] if not df.empty else pd.DataFrame()
+            for _, row in apps.sort_values(by='Timestamp', ascending=False).iterrows():
+                st.markdown(f"<div class='patient-card'><b>👤 {row['Name']}</b><br>📅 {row['Details']}</div>", unsafe_allow_html=True)
 
-        with t_adm[1]: # Reports
-            st.subheader("Patient Uploaded Reports")
-            reps = df[df['Type'] == 'REPORT'].sort_values(by='Timestamp', ascending=False)
+        with t_adm[1]:
+            reps = df[(df['Type'] == 'REPORT') & (df['Name'].str.lower().contains(search_query))] if not df.empty else pd.DataFrame()
             for _, row in reps.iterrows():
-                with st.container():
-                    st.write(f"**Patient:** {row['Name']} | **Time:** {row['Timestamp']}")
-                    st.info(f"Note: {row['Details']}")
-                    if str(row['Attachment']) != "nan": show_img(row['Attachment'])
-                    st.write("---")
+                with st.expander(f"Report: {row['Name']} - {row['Timestamp']}"):
+                    st.write(f"Note: {row['Details']}")
+                    show_img(row['Attachment'])
 
-        with t_adm[2]: # Vitals
-            st.subheader("Patient Vitals History")
-            vits = df[df['Type'] == 'VITALS'].sort_values(by='Timestamp', ascending=False)
-            st.dataframe(vits[['Timestamp', 'Name', 'Details']], use_container_width=True)
+        with t_adm[2]:
+            st.dataframe(df[df['Type'] == 'VITALS'], use_container_width=True)
 
-        with t_adm[3]: # Schedule Management
-            st.subheader("Clinic Availability")
-            c_a, c_b = st.columns(2)
-            with c_a:
-                block_dt = st.date_input("Select Date to Block", min_value=date.today())
-                if st.button("Block Date"):
-                    new = pd.DataFrame([{"Name":"ADMIN","Type":"BLOCK","Details":str(block_dt),"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"{block_dt} Blocked!"); st.rerun()
-            with c_b:
-                st.write
+        with t_adm[3]:
+            block_dt = st.date_input("Block Date", min_value=date.today())
+            if st.button("Confirm Block"):
+                new = pd.DataFrame([{"Name":"ADMIN","Type":"BLOCK","Details":str(block_dt),"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
+
+    else:
+        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines", "Diet & Yoga", "Upload Reports", "Book Appointment"])
+        
+        if m == "Diet & Yoga":
+            st.header("🥗 Nutritional Guidelines")
+            if "Pregnant" in st.session_state.stat:
+                st.subheader("Pregnancy Daily Diet Chart")
+                st.markdown("""
+                <div class='diet-box'>
+                1. <b>Cereals & Grains:</b> 60g per serving (6 servings per day)<br>
+                2. <b>Pulses & Beans:</b> 30g per serving (3 servings per day)<br>
+                3. <b>Milk & Milk Products:</b> 150ml per serving (2 servings per day)<br>
+                4. <b>Vegetables:</b> Green leafy, roots, and others - 100g per serving (4 servings per day)<br>
+                5. <b>Fruits:</b> 50g per serving (4 servings per day)
+                </div>
+                """, unsafe_allow_html=True)
+                
+
+[Image of the food pyramid for pregnant women]
+
+            else:
+                st.write("**PCOS Diet:** Focus on high fiber and protein. Avoid sugar and Maida.")
+
+        elif m == "Vitals & BMI":
+            st.header("📊 Health Tracker")
+            with st.form("v_form"):
+                hi = st.number_input("Height (cm)", 100, 250, 160)
+                wi = st.number_input("Weight (kg)", 30, 200, 60)
+                pu = st.number_input("Pulse", 40, 200, 72)
+                bp = st.text_input("BP", "120/80")
+                if st.form_submit_button("Save"):
+                    bmi = round(wi / ((hi/100)**2), 1)
+                    color = "Green" if 18.5 <= bmi <= 24.9 else "Red"
+                    new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"VITALS

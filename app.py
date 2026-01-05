@@ -19,17 +19,18 @@ def show_img(b):
 # --- 2. LOGIN ---
 if not st.session_state.logged_in:
     st.markdown("<div class='dr-header'><h1>BHAVYA LABS & CLINICS</h1><h3>Dr. Priyanka Gupta</h3><p>MS (Obs & Gynae)</p></div>", unsafe_allow_html=True)
-    t1, t2 = st.tabs(["Patient", "Doctor"])
+    t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
     with t1:
         with st.form("p"):
-            name = st.text_input("Name")
-            stat = st.radio("Status", ["Pregnant", "Non-Pregnant"])
-            if st.form_submit_button("Enter"):
+            name = st.text_input("Full Name")
+            stat = st.radio("Status", ["Pregnant", "Non-Pregnant (PCOS/Gynae)"])
+            if st.form_submit_button("Enter Portal"):
                 st.session_state.update({"logged_in":True, "name":name, "stat":stat, "role":"P"})
                 st.rerun()
     with t2:
         with st.form("d"):
-            if st.form_submit_button("Login") and st.text_input("Pass", type="password") == "clinicadmin786":
+            pw = st.text_input("Password", type="password")
+            if st.form_submit_button("Login") and pw == "clinicadmin786":
                 st.session_state.update({"logged_in":True, "role":"D"})
                 st.rerun()
 
@@ -45,68 +46,59 @@ else:
                 if 'Attachment' in row and str(row['Attachment']) not in ["nan", ""]: show_img(row['Attachment'])
         if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
     else:
-        st.sidebar.title(f"Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines", "Diet & Yoga", "Reports", "Booking"])
+        st.sidebar.title(f"Welcome, {st.session_state.name}")
+        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccination Guide", "Diet & Yoga", "Upload Reports", "Book Appointment"])
         
         if m == "Vitals & BMI":
+            st.title("📊 Health Trackers")
             with st.form("v"):
-                h, w, p = st.columns(3)
-                hi = h.number_input("Ht(cm)", 100, 250, 160)
-                wi = w.number_input("Wt(kg)", 30, 200, 60)
-                pu = p.number_input("Pulse", 40, 200, 72)
-                bp = st.text_input("BP", "120/80")
-                if st.form_submit_button("Save"):
+                c1, c2, c3 = st.columns(3)
+                hi = c1.number_input("Height (cm)", 100, 250, 160)
+                wi = c2.number_input("Weight (kg)", 30, 200, 60)
+                pu = c3.number_input("Pulse (bpm)", 40, 200, 72)
+                bp = st.text_input("Blood Pressure", "120/80")
+                if st.form_submit_button("Save Vitals"):
                     bmi = round(wi/((hi/100)**2), 1)
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"VIT", "Details":f"BMI:{bmi}, BP:{bp}, Pulse:{pu}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
+                    det = f"BMI:{bmi}, BP:{bp}, Pulse:{pu}"
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"VITALS", "Details":det, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Recorded! BMI: {bmi}")
 
-        elif m == "Vaccines":
+        elif m == "Vaccination Guide":
+            st.title("💉 Vaccination Schedule")
             if "Pregnant" in st.session_state.stat:
-                st.write("Tetanus (TT1): Confirmation | T-Dap: 27-36 weeks | Flu: Anytime")
-                
+                st.info("Tetanus (TT1): At confirmation | T-Dap: 27-36 weeks | Flu: Anytime")
             else:
-                st.write("HPV: 3 doses (0, 1, 6 months) for Cervical Cancer prevention.")
-                
+                st.info("HPV Vaccine: 3 doses (0, 1, 6 months) for Cervical Cancer prevention.")
 
         elif m == "Diet & Yoga":
+            st.title("🧘 Nutrition & Exercise")
             if "Pregnant" in st.session_state.stat:
-                d1, d2, d3 = st.tabs(["1st Tri", "2nd Tri", "3rd Tri"])
+                d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
                 with d1: 
-                    st.write("Diet: Folic Acid. Yoga: Butterfly pose.")
-                    
-
-[Image of first trimester pregnancy diet chart]
-
+                    st.write("**Diet:** Folic Acid focus. **Yoga:** Butterfly, Cat-Cow.")
                 with d2: 
-                    st.write("Diet: Iron/Calcium. Yoga: Palm Tree pose.")
-                    
-
-[Image of second trimester pregnancy diet chart]
-
+                    st.write("**Diet:** Iron & Calcium focus. **Yoga:** Palm Tree, Warrior.")
                 with d3: 
-                    st.write("Diet: High Fiber. Yoga: Supported Squats.")
-                    
-
-[Image of third trimester pregnancy diet chart]
-
+                    st.write("**Diet:** High fiber, energy meals. **Yoga:** Supported Squats.")
             else:
-                st.write("PCOS Diet: Low GI, No Sugar. Yoga: Surya Namaskar.")
-                
+                st.subheader("PCOS Management")
+                st.write("**Diet:** Low GI, No sugar. **Yoga:** Surya Namaskar, Cobra Pose.")
 
-        elif m == "Reports":
+        elif m == "Upload Reports":
+            st.title("🧪 Upload Reports")
             with st.form("u"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png'])
+                f = st.file_uploader("Select Image", type=['jpg', 'png', 'jpeg'])
                 n = st.text_input("Note")
-                if st.form_submit_button("Send"):
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"REP", "Details":n, "Attachment":img_to_b64(f), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
+                if st.form_submit_button("Upload Now"):
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":n, "Attachment":img_to_b64(f), "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success("Sent to Dr. Priyanka!")
 
-        elif m == "Booking":
+        elif m == "Book Appointment":
+            st.title("📅 Book Appointment")
             with st.form("b"):
-                dt = st.date_input("Date")
-                tm = st.selectbox("Slot", ["10AM", "11AM", "12PM", "5PM", "6PM", "7PM"])
+                dt = st.date_input("Select Date")
+                tm = st.selectbox("Slot", ["10:00 AM", "11:00 AM", "12:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"])
                 if st.form_submit_button("Confirm"):
-                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f"{dt} {tm}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
-
-    if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f

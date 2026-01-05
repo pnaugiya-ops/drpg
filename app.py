@@ -140,10 +140,4 @@ elif st.session_state.get('role') == "P":
                 sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
                 urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
                 pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-            if st.form_submit_button("Save Records"):
-                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
-                st.success("Record Saved!")
-
-    elif m == "Diet Plans":
-        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "Pregnant" in st.
+            if st.form_submit_

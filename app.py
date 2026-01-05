@@ -134,4 +134,4 @@ elif st.session_state.get('role') == "P":
             c1, c2 = st.columns(2)
             with c1:
                 hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
-                tsh = st.number_input("
+                tsh =

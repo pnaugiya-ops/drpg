@@ -16,7 +16,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-conn = st.connection("gsheets", type=)
+# FIXED LINE 19: Added GSheetsConnection
+conn = st.connection("gsheets", type=GSheetsConnection)
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
 # --- HELPERS ---
@@ -97,91 +98,4 @@ else:
                 new = pd.DataFrame([{"Name":"ADMIN","Type":"BLOCK","Details":str(block_dt),"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                 conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
             
-        if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
-
-    else: # Patient View
-        updates = df[df['Type'] == 'BROADCAST'].sort_values(by='Timestamp', ascending=False)
-        if not updates.empty:
-            latest = updates.iloc[0]['Details'].split('|')
-            st.info(f"✨ **Latest from Dr. Priyanka:** [{latest[0]}]({latest[1]})")
-
-        st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines", "Diet & Yoga", "Upload Reports", "Book Appointment"])
-        
-        if m == "Diet & Yoga":
-            st.header("🥗 Nutritional Guidelines")
-            if "Pregnant" in st.session_state.stat:
-                # --- PREGNANCY DIET CONTENT FROM UPLOADED FILE ---
-                diet_full_text = """
-                PREGNANCY DIET CHART (BY TRIMESTER)
-
-                IMPORTANT SAFETY[cite: 16]:
-                - Avoid: Raw/undercooked eggs and meat, unpasteurized dairy, high-mercury fish[cite: 17].
-                - Limit: Caffeine to under 200mg/day (approx. 1 cup)[cite: 18].
-                - Hydration: 2.5–3 liters of water daily[cite: 19].
-
-                GENERAL MILK GUIDELINES[cite: 2]:
-                - Target: 3–4 servings per day[cite: 4].
-                - Type: Pasteurized, low-fat, or toned[cite: 6].
-
-                TRIMESTER FOCUS:
-                1. First Trimester: Folic acid and Vitamin B6[cite: 8].
-                2. Second Trimester: Calcium and iron[cite: 11].
-                3. Third Trimester: High fiber and healthy fats[cite: 14].
-                """
-                st.markdown(f"<div class='diet-box'>{diet_full_text.replace('', '<br>')}</div>", unsafe_allow_html=True)
-                
-                # Download Button for Patients
-                st.download_button("📥 Download Full Pregnancy Diet Chart", diet_full_text, file_name="Pregnancy_Diet_Chart.txt")
-                
-                st.subheader("Trimester-Specific Meal Plans")
-                tri = st.selectbox("Select Your Trimester", ["First Trimester (Weeks 1–12)", "Second Trimester (Weeks 13–26)", "Third Trimester (Weeks 27–40)"])
-                
-                if "First" in tri:
-                    st.write("**Focus:** Neural tube development & managing nausea[cite: 8].")
-                    st.markdown("Early Morning: Warm water + 4–5 soaked almonds [cite: 9]")
-                    st.markdown("Breakfast: Veggie Poha or Whole grain toast + boiled eggs [cite: 9]")
-                elif "Second" in tri:
-                    st.write("**Focus:** Bone growth & blood volume[cite: 11].")
-                    st.markdown("Lunch: Brown rice + dal + mixed veggies OR mutton/chicken curry [cite: 12]")
-                elif "Third" in tri:
-                    st.write("**Focus:** Preventing constipation & final baby weight gain[cite: 14].")
-                    st.markdown("Dinner: Chapati + rajma/chole OR fish curry + steamed broccoli [cite: 15]")
-            else:
-                st.subheader("PCOS Diet & Lifestyle")
-                st.write("Focus on High Fiber, Low GI foods. Surya Namaskar is recommended.")
-
-        elif m == "Vitals & BMI":
-            with st.form("v_form"):
-                hi = st.number_input("Height (cm)", 100, 250, 160)
-                wi = st.number_input("Weight (kg)", 30, 200, 60)
-                pu = st.number_input("Pulse", 40, 200, 72)
-                bp = st.text_input("BP", "120/80")
-                if st.form_submit_button("Save"):
-                    bmi = round(wi / ((hi/100)**2), 1)
-                    new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
-
-        elif m == "Book Appointment":
-            sel_dt = st.date_input("Date", min_value=date.today())
-            if str(sel_dt) in blocked_dates: st.error("Clinic Closed")
-            else:
-                with st.form("b_form"):
-                    slots = []
-                    curr = datetime.strptime("11:00", "%H:%M")
-                    while curr <= datetime.strptime("13:45", "%H:%M") : slots.append(curr.strftime("%I:%M %p")) ; curr += timedelta(minutes=15)
-                    tm = st.selectbox("Slot", slots)
-                    if st.form_submit_button("Book"):
-                        new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
-
-        elif m == "Upload Reports":
-            with st.form("u_form"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
-                n = st.text_input("Note")
-                if st.form_submit_button("Send"):
-                    b64 = process_img(f)
-                    new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
-
-        if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
+        if st.sidebar.button("Logout"): st.session

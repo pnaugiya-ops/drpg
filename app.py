@@ -7,22 +7,36 @@ from datetime import datetime, date, timedelta
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
-    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; margin-bottom:10px; }
-    .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
-    .diet-box { background: #fff5f7; padding: 15px; border-radius: 10px; border: 1px solid #ffc0cb; color: #333; margin-bottom: 10px; font-size: 14px; }
-    .clinic-badge { background: #e8f4f8; color: #003366; padding: 5px 10px; border-radius: 5px; font-weight: bold; display: inline-block; margin: 2px; font-size: 11px; border: 1px solid #003366; }
+    .dr-header { 
+        background:#003366; color:white; padding:20px; 
+        border-radius:15px; text-align:center; margin-bottom:10px; 
+    }
+    .stButton>button { 
+        border-radius:10px; background:#ff4b6b; color:white; 
+        font-weight:bold; width:100%; 
+    }
+    .diet-box { 
+        background: #fff5f7; padding: 15px; border-radius: 10px; 
+        border: 1px solid #ffc0cb; color: #333; margin-bottom: 10px; 
+    }
+    .clinic-badge { 
+        background: #e8f4f8; color: #003366; padding: 5px 10px; 
+        border-radius: 5px; font-weight: bold; display: inline-block; 
+        margin: 2px; font-size: 11px; border: 1px solid #003366; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
+# Database Connection
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception:
-    st.error("Database Connection Error. Please check your .streamlit/secrets.toml file.")
+    st.error("Database Connection Error. Check secrets.toml.")
 
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- 2. LOGIN & CLINIC BRANDING ---
+# --- 2. LOGIN & BRANDING ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
@@ -55,9 +69,9 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True, "role":"D", "name":"Dr. Priyanka"})
                     st.rerun()
 
-# --- 3. MAIN APPLICATION ---
+# --- 3. MAIN APP ---
 else:
-    # Sidebar Info & Logout
+    # Sidebar
     st.sidebar.markdown(f"**Patient:** {st.session_state.name}")
     st.sidebar.markdown(f"**Age:** {st.session_state.get('age', 'N/A')}")
     if st.sidebar.button("🔓 Logout"):
@@ -66,15 +80,8 @@ else:
 
     if st.session_state.role == "D":
         st.header("👨‍⚕️ Doctor Dashboard")
-        st.write("Access patient records and appointments via the connected Google Sheet.")
+        st.write("Access records via Google Sheets.")
     
     else: # Patient View
-        m = st.sidebar.radio("Menu", ["Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccination Record", "Book Appointment"])
-        
-        # 3.1 TRACKER
-        if m == "Tracker":
-            if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy Guide")
-                lmp = st.date_input("LMP Date", value=date.today() - timedelta(days=60))
-                weeks = (date.today() - lmp).days // 7
-                st.success(f"🗓️ EDD: {(lmp + timedelta(days
+        menu_options = ["Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccination Record", "Book Appointment"]
+        m = st.sidebar.radio("Menu", menu_options)

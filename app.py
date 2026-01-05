@@ -19,23 +19,17 @@ st.markdown("""
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception:
-    st.error("Database Connection Error.")
+    st.error("Database connection issue.")
 
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- 2. LOGIN SYSTEM ---
+# --- 2. LOGIN LOGIC ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
         <h3>Dr. Priyanka Gupta</h3>
         <p>MS (Obs & Gynae)</p>
-        <div style='margin-top:10px;'>
-            <span class='clinic-badge'>Infertility Specialist</span>
-            <span class='clinic-badge'>Ultrasound</span>
-            <span class='clinic-badge'>Laparoscopic Surgery</span>
-            <span class='clinic-badge'>Pharmacy</span>
-        </div>
     </div>""", unsafe_allow_html=True)
     
     t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
@@ -57,26 +51,20 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN APP ---
 else:
-    # Always show Logout in Sidebar
+    # Sidebar Logout
     if st.sidebar.button("🔓 Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-    try:
-        df = conn.read(ttl=0)
-        df = df.fillna('') if df is not None else pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
-    except:
-        df = pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
-
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
-        st.write("View Patient Appointments and Reports in Google Sheets.")
+        st.info("Check Google Sheets for appointment logs.")
     
-    else: # Patient Portal
+    else: # Patient View
         st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
         m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Book Appointment", "Vitals & BMI", "Upload Reports"])
         
-        # --- 3.1 TRACKER & BABY GUIDE ---
+        # 3.1 TRACKER (Milestones from "Here is a week.docx")
         if m == "Tracker & Calculator":
             if "Pregnant" in st.session_state.stat:
                 st.header("🤰 Pregnancy Week-by-Week Guide")
@@ -84,38 +72,66 @@ else:
                 weeks = (date.today() - lmp).days // 7
                 st.success(f"🗓️ EDD: {(lmp + timedelta(days=280)).strftime('%d %b %Y')} | ⏳ Stage: {weeks} Weeks")
                 
-                # Logic from "Here is a week.docx"
-                if weeks <= 4: st.info("🌱 **Week 4 (Poppy Seed):** Tiny ball of cells snuggling into the womb.")
-                elif weeks <= 5: st.info("💓 **Week 5 (Sesame Seed):** Brain, spine, and heart start forming.")
-                elif weeks <= 8: st.info("🍇 **Week 8 (Raspberry):** Fingers and toes are sprouting.")
-                elif weeks <= 12: st.info("🍋 **Week 12 (Lime):** Baby can open/close fists and make sucking motions.")
-                elif weeks <= 20: st.info("🍌 **Week 20 (Banana):** Halfway mark! You will feel 'flutters'.")
-                elif weeks <= 27: st.info("🥦 **Week 27 (Cauliflower):** Baby can open/blink eyes and has sleep cycles.")
-                elif weeks <= 34: st.info("🍈 **Week 34 (Cantaloupe):** Putting on fat to stay warm; skin not see-through.")
-                elif weeks >= 38: st.info("🍉 **Week 40 (Watermelon):** Full term and ready for the world!")
-                else: st.info("👶 Baby is growing fast and developing senses.")
-                            else:
-                st.header("🗓️ Period Tracker")
+                if weeks <= 4:
+                    st.info("🌱 **Week 1-4 (The Seed):** Baby is a tiny ball of cells the size of a poppy seed.")
+                elif weeks <= 5:
+                    st.info("💓 **Week 5 (The Heartbeat):** Size of a sesame seed. The tiny heart tube begins to pulse.")
+                elif weeks <= 8:
+                    st.info("🍇 **Week 8 (Moving Around):** Size of a raspberry. Fingers and toes are sprouting.")
+                elif weeks <= 12:
+                    st.info("🍋 **Week 11-12 (Reflexes):** Size of a lime. Baby can open/close fists and make sucking motions.")
+                elif weeks <= 20:
+                    st.info("🍌 **Week 20 (Halfway Mark):** Size of a banana. You feel the first 'flutters'.")
+                elif weeks <= 27:
+                    st.info("🥦 **Week 27 (Opening Eyes):** Size of cauliflower. Baby develops a sleep/wake schedule.")
+                elif weeks <= 34:
+                    st.info("🍈 **Week 34 (Filling Out):** Size of a cantaloupe. Baby is putting on fat to stay warm.")
+                elif weeks >= 38:
+                    st.info("🍉 **Week 40 (Full Term):** Size of a watermelon. Ready for the world!")
+                else:
+                    st.info("👶 Baby is growing fast and developing vital senses.")
+                
+            else:
+                st.header("🗓️ Menstrual Cycle Tracker")
                 lp = st.date_input("Last Period Start", value=date.today() - timedelta(days=28))
-                st.success(f"🩸 Next Period Expected: {(lp + timedelta(days=28)).strftime('%d %b %Y')}")
+                st.success(f"🩸 Next Period: {(lp + timedelta(days=28)).strftime('%d %b %Y')}")
 
-        # --- 3.2 DIET & EXERCISE (FROM DOCUMENTS) ---
+        # 3.2 DIET & YOGA (From Pregnancy & PCOS Docs)
         elif m == "Diet & Yoga":
             if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy Exercise & Nutrition")
-                t1, t2 = st.tabs(["🥗 Nutrition", "🧘 Exercises"])
-                with t1:
-                    st.markdown("""<div class='diet-box'><b>General Focus:</b><br>
-                    - Early Morning: Warm water + 4-5 soaked almonds.<br>
-                    - Breakfast: Veggie Poha / Upma + Milk.<br>
-                    - Lunch: Brown rice + Dal + Sautéed Veggies.<br>
-                    - Dinner: Chapati + Rajma/Chole + Curd.</div>""", unsafe_allow_html=True)
-                with t2:
-                    # Data from "Below are basic exercises recommended for each trimester.docx"
+                st.header("🤰 Pregnancy Wellness Hub")
+                d_tab, e_tab = st.tabs(["🥗 Nutrition", "🧘 Exercises"])
+                with d_tab:
+                    st.markdown("""<div class='diet-box'><b>Focus:</b><br>
+                    - Early Morning: Warm water + almonds.<br>
+                    - Breakfast: Veggie Poha + Milk.<br>
+                    - Lunch: Brown rice + Spinach Dal + Curd.<br>
+                    - Dinner: Chapati + Rajma + Vegetable Sabzi.</div>""", unsafe_allow_html=True)
+                with e_tab:
+                    # Data from
                     tri = st.selectbox("Select Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
                     if "1st" in tri:
-                        st.write("**Focus:** Fatigue & Breath awareness.")
-                        st.write("- Walking & Prenatal Yoga\n- Pelvic Floor (Kegels)\n- Cat-Cow Stretch")
+                        st.write("**First Trimester (Gentle Adaptation):**")
+                        st.write("- Walking & Prenatal Yoga")
+                        st.write("- Pelvic Floor (Kegels) & Cat-Cow Stretch")
                     elif "2nd" in tri:
-                        st.write("**Focus:** Moderate resistance & balance.")
-                        st.
+                        st.write("**Second Trimester (Building Strength):**")
+                        st.write("- Swimming & Stationary Cycling")
+                        st.write("- Wall Squats & Side-Lying Leg Lifts")
+                    else:
+                        st.write("**Third Trimester (Mobility & Labor Prep):**")
+                        st.write("- Butterfly Stretch & Deep Supported Squats")
+                        st.write("- Pelvic Tilts & Birthing Ball Exercises")
+                    
+            else:
+                st.header("🌸 PCOS Strength & Nutrition")
+                t1, t2 = st.tabs(["🥗 Nutrition", "🏋️ Exercise"])
+                with t1:
+                    # Data from
+                    st.markdown("""<div class='diet-box'><b>PCOS Principles:</b><br>
+                    - Aim for 50-60g Protein and 25g Fiber daily.<br>
+                    - Walk 10-15 mins after meals to lower sugar spikes.</div>""", unsafe_allow_html=True)
+                with t2:
+                    st.write("**Strength (3-4x/week):** Squats, Lunges, Push-ups, Glute Bridges.")
+                    st.write("**Cardio:** Brisk walking (30-45 mins) is highly effective.")
+                    st.write

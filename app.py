@@ -13,7 +13,7 @@ st.markdown("""
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
     .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; }
     .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 10px; }
-    .emergency-btn { background-color: #ff0000; color: white; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; display: block; }
+    .emergency-btn { background-color: #ff0000 !important; color: white !important; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; display: block; border: none; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -48,7 +48,8 @@ if not st.session_state.logged_in:
                 st.rerun()
     with t2:
         with st.form("d_login"):
-            if st.form_submit_button("Login") and st.text_input("Pass", type="password") == "clinicadmin786":
+            p_input = st.text_input("Pass", type="password")
+            if st.form_submit_button("Login") and p_input == "clinicadmin786":
                 st.session_state.update({"logged_in":True, "role":"D"})
                 st.rerun()
 
@@ -59,9 +60,8 @@ else:
 
     # SIDEBAR
     st.sidebar.markdown(f"### Hello, {st.session_state.name if 'name' in st.session_state else 'Doctor'}")
-    
-    # Emergency Call Link (Replace with your actual clinic number)
-    st.sidebar.markdown('<a href="tel:+919999999999" class="emergency-btn">📞 EMERGENCY CALL</a>', unsafe_allow_html=True)
+    # Replace +910000000000 with your actual clinic number
+    st.sidebar.markdown('<a href="tel:+910000000000" class="emergency-btn">📞 EMERGENCY CALL</a>', unsafe_allow_html=True)
     st.sidebar.write("---")
 
     if st.session_state.role == "D":
@@ -108,18 +108,13 @@ else:
                 5. **Fruits:** 50g per serving (4 servings per day)
                 """
                 st.markdown(f"<div class='diet-box'>{diet_text}</div>", unsafe_allow_html=True)
-                
-
-[Image of the food pyramid for pregnant women]
-
+                st.write("Visual Guide: Food Pyramid for Pregnancy")
+                # This is a placeholder for your actual image URL
+                st.write("*(See visual guide in clinic: Food Pyramid for Pregnant Women)*")
             else:
                 st.subheader("PCOS Lifestyle Care")
                 st.write("**Diet:** High protein, low GI foods. Avoid processed sugar and Maida.")
                 st.write("**Yoga:** Surya Namaskar and Butterfly pose are highly recommended.")
-                
-
-[Image of surya namaskar steps]
-
 
         elif m == "Vitals & BMI":
             with st.form("v_form"):
@@ -146,26 +141,4 @@ else:
                         while curr <= datetime.strptime("19:45", "%H:%M"):
                             slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
                     tm = st.selectbox("Select 15-Min Slot", slots)
-                    if st.form_submit_button("Book Now"):
-                        new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Appointment Booked!")
-
-        elif m == "Vaccines & Screening":
-            st.header("💉 Preventive Care")
-            if "PCOS" in st.session_state.stat:
-                st.info("**HPV Vaccine:** 3 doses (0, 1, 6 months) for cancer prevention.")
-                st.info("**Pap Smear:** Recommended screening every 3 years.")
-                
-            else:
-                st.info("Required: T-Dap (27-36 weeks), Flu (Anytime), Tetanus (on confirmation).")
-
-        elif m == "Upload Reports":
-            with st.form("u_form"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
-                n = st.text_input("Note")
-                if st.form_submit_button("Send to Dr. Priyanka"):
-                    b64 = process_img(f)
-                    new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Report Sent!")
-
-        if st.sidebar.button("Logout", key="p_logout"): st.session_state.logged_in = False; st.rerun()
+                    if st.form_submit_button

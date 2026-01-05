@@ -86,8 +86,6 @@ else:
     except:
         df = pd.DataFrame(columns=["Name", "Type", "Details", "Attachment", "Timestamp"])
     
-    blocked_dates = df[df['Type'] == "BLOCK"]['Details'].tolist() if not df.empty else []
-
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
         search = st.text_input("🔍 Search Patient Name", "").lower()
@@ -107,4 +105,17 @@ else:
         m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Vaccine Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
         
         if m == "Tracker & Calculator":
-            if "Pregnant" in st.session_
+            if "Pregnant" in st.session_state.stat:
+                st.header("🤰 Pregnancy & Baby Tracker")
+                lmp = st.date_input("Select Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
+                edd = lmp + timedelta(days=280)
+                diff = date.today() - lmp
+                weeks, days = diff.days // 7, diff.days % 7
+                
+                st.success(f"🗓️ **EDD:** {edd.strftime('%d %b %Y')} | ⏳ **Stage:** {weeks} Weeks, {days} Days")
+                st.divider()
+                st.subheader("📖 Week-by-Week Development")
+                
+                # Development Guide content
+                if weeks <= 4: st.write("🌱 **Week 1-4 (The Seed):** Baby is the size of a poppy seed.")
+                elif weeks <= 5: st.write("

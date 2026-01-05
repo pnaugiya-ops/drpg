@@ -11,19 +11,17 @@ st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
-    .vax-card { background:white; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:10px; }
     </style>
     """, unsafe_allow_html=True)
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
-# --- HELPERS (Robust Compression) ---
+# --- HELPERS (Compression to prevent API Errors) ---
 def process_and_encode(file):
     if file is None: return ""
     try:
         img = Image.open(file)
-        # Resize to a small footprint for Google Sheets compatibility
         img.thumbnail((500, 500)) 
         buffer = io.BytesIO()
         img.convert("RGB").save(buffer, format="JPEG", quality=40)
@@ -84,16 +82,14 @@ else:
                     det = f"BMI: {bmi} | BP: {bp} | Pulse: {pu}"
                     new = pd.DataFrame([{"Name":st.session_state.name, "Type":"VITALS", "Details":det, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"Recorded! Your BMI is {bmi}")
+                    st.success(f"Recorded! BMI: {bmi}")
 
         elif m == "Vaccination Guide":
             st.title("💉 Vaccination Schedule")
             if "Pregnant" in st.session_state.stat:
                 st.info("T-Dap: 27-36 weeks | Flu: Anytime | Tetanus: Confirmation")
-                
             else:
                 st.info("HPV Vaccine: 3 doses (0, 1, 6 months) for Cervical Cancer prevention.")
-                
 
         elif m == "Diet & Yoga":
             st.title("🧘 Nutrition & Exercise")
@@ -101,32 +97,19 @@ else:
                 d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
                 with d1: 
                     st.write("**Diet:** Folic Acid focus. **Yoga:** Butterfly, Cat-Cow.")
-                    
-
-[Image of first trimester pregnancy diet chart]
-
                 with d2: 
                     st.write("**Diet:** Iron & Calcium. **Yoga:** Palm Tree, Warrior.")
-                    
-
-[Image of second trimester pregnancy diet chart]
-
                 with d3: 
                     st.write("**Diet:** High fiber. **Yoga:** Supported Squats.")
-                    
-
-[Image of third trimester pregnancy diet chart]
-
             else:
                 st.subheader("PCOS Management")
                 st.write("**Diet:** Low GI, No sugar. **Yoga:** Surya Namaskar.")
-                
 
         elif m == "Upload Reports":
             st.title("🧪 Upload Reports")
             with st.form("u"):
                 f = st.file_uploader("Select Image", type=['jpg', 'png', 'jpeg'])
-                n = st.text_input("Note for Doctor")
+                n = st.text_input("Note")
                 if st.form_submit_button("Upload Now"):
                     b64_data = process_and_encode(f)
                     new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":n, "Attachment":b64_data, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])

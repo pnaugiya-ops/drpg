@@ -108,7 +108,7 @@ else:
         
         if "Pregnant" in st.session_state.stat:
             st.header(f"🤰 Detailed {pref} Pregnancy Diet")
-            tri = st.selectbox("Select Trimester", ["1st Trimester (0-12wks)", "2nd Trimester (13-26wks)", "3rd Trimester (27-40wks)"])
+            tri = st.selectbox("Select Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
             if pref == "Vegetarian":
                 st.write("**Early Morning:** 5 Soaked Almonds + 1 glass Warm Milk.")
                 st.write("**Breakfast:** Veggie Poha OR Moong Dal Chilla OR Paneer Paratha with Curd.")
@@ -128,4 +128,8 @@ else:
             st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
             if pref == "Vegetarian":
                 st.write("**Early Morning:** Warm water with Cinnamon OR 1 tsp Apple Cider Vinegar.")
-                st.write("**Breakfast:** Besan Chilla with
+                st.write("**Breakfast:** Besan Chilla with veggies OR Vegetable Oats with Flax seeds.")
+                st.write("**Mid-Morning:** 1 Apple or Pear + 2-3 Walnuts.")
+                st.write("**Lunch:** 2 Missi Roti + 1 bowl Dal + 1 Cup Curd + Large Seasonal Salad.")
+                st.write("**Evening:** Green Tea + Roasted Chana OR Buttermilk.")
+                st.write("**Dinner:** Soya Chunks Curry OR Tofu Stir-fry with Broccoli.")

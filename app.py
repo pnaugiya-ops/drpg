@@ -20,6 +20,7 @@ if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 # --- HELPERS ---
 def img_to_b64(file): 
     return base64.b64encode(file.read()).decode() if file else ""
+
 def show_img(b64): 
     if b64: st.image(io.BytesIO(base64.b64decode(b64)), use_container_width=True)
 
@@ -73,19 +74,4 @@ else:
                     det = f"BMI: {bmi} | BP: {bp} | Pulse: {p} | Wt: {w}kg"
                     new = pd.DataFrame([{"Name":st.session_state.name, "Type":"VITALS", "Details":det, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"Recorded! Your BMI is {bmi}")
-
-        elif m == "Vaccination Guide":
-            st.title("💉 Vaccination Schedule")
-            if "Pregnant" in st.session_state.stat:
-                st.markdown("<div class='vax-card'><b>Tetanus (TT1):</b> At confirmation.<br><b>T-Dap:</b> 27-36 weeks.<br><b>Influenza:</b> Anytime during pregnancy.</div>", unsafe_allow_html=True)
-                
-            else:
-                st.markdown("<div class='vax-card'><b>HPV Vaccine:</b> 3 doses (0, 1, 6 months) for Cervical Cancer prevention.</div>", unsafe_allow_html=True)
-                
-
-        elif m == "Diet & Yoga":
-            st.title("🧘 Nutrition & Exercise")
-            if "Pregnant" in st.session_state.stat:
-                d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
-                with d
+                    st.success(f

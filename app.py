@@ -9,18 +9,18 @@ from PIL import Image
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
-    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; margin-bottom:20px; }
+    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; margin-bottom:10px; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
-    .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; color: #333; font-size: 16px; }
+    .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; color: #333; font-size: 15px; }
     .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 10px; }
+    .clinic-badge { background: #e8f4f8; color: #003366; padding: 5px 10px; border-radius: 5px; font-weight: bold; display: inline-block; margin: 5px; font-size: 12px; border: 1px solid #003366; }
     </style>
     """, unsafe_allow_html=True)
 
-# Establishing Connection with Error Catching
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
-    st.error(f"Connection Error: {e}")
+    st.error(f"Database Connection Error: {e}")
 
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
@@ -39,9 +39,21 @@ def process_img(f):
 def show_img(b):
     if b: st.image(io.BytesIO(base64.b64decode(b)), use_container_width=True)
 
-# --- 2. LOGIN ---
+# --- 2. LOGIN & CLINIC INFO ---
 if not st.session_state.logged_in:
-    st.markdown("<div class='dr-header'><h1>BHAVYA LABS & CLINICS</h1><h3>Dr. Priyanka Gupta</h3><p>MS (Obs & Gynae)</p></div>", unsafe_allow_html=True)
+    st.markdown("""<div class='dr-header'>
+        <h1>BHAVYA LABS & CLINICS</h1>
+        <h3>Dr. Priyanka Gupta</h3>
+        <p>MS (Obs & Gynae)</p>
+        <div style='margin-top:10px;'>
+            <span class='clinic-badge'>Infertility Specialist</span>
+            <span class='clinic-badge'>Ultrasound</span>
+            <span class='clinic-badge'>Laparoscopic Surgery</span>
+            <span class='clinic-badge'>Pharmacy</span>
+            <span class='clinic-badge'>Thyrocare Blood Test</span>
+        </div>
+    </div>""", unsafe_allow_html=True)
+    
     t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
     with t1:
         with st.form("p_login"):
@@ -55,12 +67,12 @@ if not st.session_state.logged_in:
                 else: st.warning("Please enter your name")
     with t2:
         with st.form("d_login"):
-            pass_in = st.text_input("Pass", type="password")
+            pass_in = st.text_input("Clinic Password", type="password")
             if st.form_submit_button("Login"):
                 if pass_in == "clinicadmin786":
                     st.session_state.update({"logged_in":True, "role":"D", "name":"Dr. Priyanka"})
                     st.rerun()
-                else: st.error("Wrong Password")
+                else: st.error("Access Denied")
 
 # --- 3. MAIN APP ---
 else:
@@ -78,8 +90,14 @@ else:
 
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
+        # --- RESTORED CLINIC TIMINGS IN DASHBOARD ---
+        st.sidebar.info("""🕒 **Clinic Timings:**
+        - Morning: 11:00 AM - 02:00 PM
+        - Evening: 06:00 PM - 08:00 PM
+        *(Closed on Sundays)*""")
+        
         search = st.text_input("🔍 Search Patient Name", "").lower()
-        t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📈 Vitals", "📢 Broadcast", "📅 Availability"])
+        t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📈 Vitals", "📢 Broadcast Content", "📅 Availability"])
         
         with t_adm[0]:
             apps = df[(df['Type'] == 'APP') & (df['Name'].str.lower().str.contains(search))]
@@ -99,8 +117,8 @@ else:
         with t_adm[3]:
             with st.form("b_form"):
                 bt = st.text_input("Title")
-                bl = st.text_input("Link")
-                if st.form_submit_button("Broadcast"):
+                bl = st.text_input("YouTube/Instagram Link")
+                if st.form_submit_button("Post Update"):
                     new = pd.DataFrame([{"Name":"DR","Type":"BROADCAST","Details":f"{bt}|{bl}","Timestamp":datetime.now()}])
                     conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
 
@@ -114,68 +132,74 @@ else:
 
     else: # Patient View
         st.sidebar.markdown(f"### Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Diet & Yoga", "Vitals & BMI", "Upload Reports", "Book Appointment"])
+        # --- RESTORED ALL SECTIONS: VACCINE PORTAL INCLUDED ---
+        m = st.sidebar.radio("Menu", ["Diet & Yoga", "Vaccine & Screening Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
         
         if m == "Diet & Yoga":
-            st.header("🥗 Your Personalized Diet Plan")
             if "Pregnant" in st.session_state.stat:
-                st.info("Maintaining a balanced diet is essential for fetal development and maternal health across all three trimesters[cite: 1].")
-                
-                diet_summary = """
-                **General Safety & Guidelines:** [cite: 16]
-                - **Milk Intake:** Aim for 3–4 servings of pasteurized/low-fat milk per day[cite: 4, 6].
-                - **Hydration:** Drink 2.5–3 liters of water daily[cite: 19].
-                - **Avoid:** Raw meat/eggs, unpasteurized dairy, and high-mercury fish[cite: 17].
-                - **Limit:** Caffeine to under 200mg per day[cite: 18].
-                """
-                st.markdown(f"<div class='diet-box'>{diet_summary}</div>", unsafe_allow_html=True)
-                
-                tri = st.selectbox("Select Your Trimester", ["First Trimester (Weeks 1–12)", "Second Trimester (Weeks 13–26)", "Third Trimester (Weeks 27–40)"])
-                
-                if "First" in tri:
-                    st.success("**Focus:** Folic acid for neural tube development and Vitamin B6 for nausea[cite: 8].")
-                    st.write("**Early Morning:** Warm water + 4–5 soaked almonds [cite: 9]")
-                    st.write("**Breakfast:** Veggie Poha or Whole grain toast + boiled eggs [cite: 9]")
-                elif "Second" in tri:
-                    st.success("**Focus:** Calcium and iron for bone growth and blood volume[cite: 11].")
-                    st.write("**Lunch:** Brown rice + dal + veggies OR chicken curry [cite: 12]")
-                    st.write("**Evening Snack:** Handful of nuts or chicken sandwich [cite: 12]")
-                elif "Third" in tri:
-                    st.success("**Focus:** High fiber for digestion and healthy fats for baby weight[cite: 14].")
-                    st.write("**Lunch:** Millet khichdi with veggies OR chicken stew [cite: 15]")
-                    st.write("**Dinner:** Chapati + rajma/chole OR fish curry [cite: 15]")
+                st.header("🥗 Pregnancy Nutritional Plan")
+                diet_sum = "Avoid raw meat/eggs, unpasteurized dairy. Hydration: 2.5–3L water. Caffeine: <200mg/day."
+                st.markdown(f"<div class='diet-box'>{diet_sum}</div>", unsafe_allow_html=True)
+                tri = st.selectbox("Select Trimester", ["First (Weeks 1–12)", "Second (Weeks 13–26)", "Third (Weeks 27–40)"])
+                if "First" in tri: st.write("**Focus:** Folic acid & B6. **Breakfast:** Veggie Poha + milk.")
+                elif "Second" in tri: st.write("**Focus:** Calcium & Iron. **Lunch:** Dal + Brown rice + Sabzi.")
+                elif "Third" in tri: st.write("**Focus:** Fiber & Healthy Fats. **Dinner:** Chapati + Rajma.")
             else:
-                st.subheader("PCOS Diet & Lifestyle")
-                st.write("Focus on High Fiber, Low GI foods. Daily activity like Yoga is highly recommended.")
+                # --- NEW PCOS DIET INTEGRATION ---
+                st.header("🥗 Core PCOS Dietary Principles (2026)")
+                st.markdown("""<div class='diet-box'>
+                - <b>Protein:</b> Aim for 50–60g daily.<br>
+                - <b>Dairy:</b> Limit to 1–2 servings (Full-fat may worsen acne).<br>
+                - <b>Fiber:</b> At least 25g daily from whole grains & non-starchy veg.<br>
+                - <b>Avoid:</b> Refined carbs (Maida), Sugary sodas, and Fried foods.
+                </div>""", unsafe_allow_html=True)
+                
+                diet_type = st.radio("Choose Diet Chart", ["Vegetarian", "Non-Vegetarian"])
+                if diet_type == "Vegetarian":
+                    st.info("**Breakfast:** Moong dal chilla with mint chutney.")
+                    st.info("**Lunch:** 2 Jowar/Bajra rotis + mixed veg curry + dal + salad.")
+                    st.info("**Dinner:** Tofu/Paneer stir-fry or Veg khichdi (Lighter).")
+                else:
+                    st.info("**Breakfast:** 2 Boiled egg whites + whole grain toast.")
+                    st.info("**Lunch:** Grilled chicken/Fish + brown rice + green sabzi.")
+                    st.info("**Dinner:** Grilled fish or chicken + sautéed Mediterranean veggies.")
+
+        elif m == "Vaccine & Screening Portal":
+            st.header("💉 Preventive Care & Vaccines")
+            if "Pregnant" in st.session_state.stat:
+                st.subheader("Maternal Vaccines")
+                st.info("- **Tetanus Toxoid (TT):** On confirmation.\n- **T-Dap:** Between 27-36 weeks.\n- **Flu Vaccine:** Recommended during season.")
+            else:
+                st.subheader("Gynae Screening & Vaccines")
+                st.info("- **HPV Vaccine:** For cervical cancer prevention (3 doses).\n- **Pap Smear:** Every 3 years as per guidelines.")
 
         elif m == "Vitals & BMI":
             with st.form("v_form"):
                 hi = st.number_input("Height (cm)", 100, 250, 160)
                 wi = st.number_input("Weight (kg)", 30, 200, 60)
-                bp = st.text_input("BP", "120/80")
+                bp = st.text_input("BP Reading", "120/80")
                 if st.form_submit_button("Save"):
                     bmi = round(wi / ((hi/100)**2), 1)
                     new = pd.DataFrame([{"Name":st.session_state.name,"Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}","Timestamp":datetime.now()}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
+                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"Saved! BMI: {bmi}")
 
         elif m == "Book Appointment":
-            sel_dt = st.date_input("Date", min_value=date.today())
-            if str(sel_dt) in blocked_dates: st.error("Clinic Closed")
+            # --- RESTORED 15-MIN SLOTS & TIMINGS ---
+            st.write("🕒 **Clinic Hours:** 11:00 AM - 02:00 PM & 06:00 PM - 08:00 PM")
+            sel_dt = st.date_input("Select Date", min_value=date.today())
+            if str(sel_dt) in blocked_dates or sel_dt.weekday() == 6: st.error("Clinic Closed")
             else:
                 with st.form("b_form"):
-                    slots = [f"{h:02d}:00" for h in range(11, 14)] + [f"{h:02d}:00" for h in range(18, 20)]
-                    tm = st.selectbox("Select Slot", slots)
-                    if st.form_submit_button("Confirm"):
+                    morning = [f"{h}:{m:02d} AM" for h in range(11, 14) for m in [0, 15, 30, 45]]
+                    evening = [f"{h}:{m:02d} PM" for h in [6, 7] for m in [0, 15, 30, 45]]
+                    tm = st.selectbox("Select Slot", morning + evening)
+                    if st.form_submit_button("Book Appointment"):
                         new = pd.DataFrame([{"Name":st.session_state.name,"Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now()}])
-                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
+                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Confirmed!")
 
         elif m == "Upload Reports":
             with st.form("u_form"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
-                n = st.text_input("Note")
-                if st.form_submit_button("Send"):
+                f = st.file_uploader("Upload Lab/Scan Image", type=['jpg', 'png', 'jpeg'])
+                n = st.text_input("Note for Doctor")
+                if st.form_submit_button("Send to Dr. Priyanka"):
                     b64 = process_img(f)
-                    new = pd.DataFrame([{"Name":st.session_state.name,"Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now()}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
-
-        if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()

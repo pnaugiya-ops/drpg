@@ -22,7 +22,7 @@ except Exception:
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- 2. LOGIN & BRANDING ---
+# --- 2. LOGIN & CLINIC BRANDING ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
@@ -55,7 +55,7 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True, "role":"D", "name":"Dr. Priyanka"})
                     st.rerun()
 
-# --- 3. MAIN APP ---
+# --- 3. MAIN APPLICATION ---
 else:
     st.sidebar.markdown(f"**Patient:** {st.session_state.name}\n\n**Age:** {st.session_state.get('age', 'N/A')}")
     if st.sidebar.button("🔓 Logout"):
@@ -66,7 +66,7 @@ else:
         st.header("👨‍⚕️ Doctor Dashboard")
         st.write("Access records via Google Sheets.")
     
-    else: # Patient View
+    else:
         m = st.sidebar.radio("Menu", ["Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccination Record", "Book Appointment"])
         
         # 3.1 TRACKER (Source: Here is a week.docx)
@@ -77,10 +77,11 @@ else:
                 weeks = (date.today() - lmp).days // 7
                 st.success(f"🗓️ EDD: {(lmp + timedelta(days=280)).strftime('%d %b %Y')} | ⏳ Week: {weeks}")
                 
-                if weeks <= 4: st.info("🌱 **Week 4 (Poppy Seed):** Snuggling into the womb.")
-                elif weeks <= 8: st.info("🍇 **Week 8 (Raspberry):** Fingers and toes sprouting.")
-                elif weeks <= 12: st.info("🍋 **Week 12 (Lime):** Baby can make sucking motions.")
-                elif weeks <= 20: st.info("🍌 **Week 20 (Banana):** Halfway mark! You'll feel 'flutters'.")
+                if weeks <= 4: st.info("🌱 **Week 4:** Baby is the size of a poppy seed.")
+                elif weeks <= 8: st.info("🍇 **Week 8:** Raspberry size. Fingers and toes sprouting.")
+                elif weeks <= 12: st.info("🍋 **Week 12:** Lime size. Baby can make sucking motions.")
+                elif weeks <= 20: st.info("🍌 **Week 20:** Banana size. You'll feel 'flutters'.")
+                elif weeks >= 38: st.info("🍉 **Week 40:** Watermelon size. Ready for birth!")
                 else: st.info("👶 Baby is growing vital senses daily.")
             else:
                 st.header("🗓️ Period Tracker")
@@ -88,23 +89,61 @@ else:
                 st.success(f"🩸 Next Expected: {(lp + timedelta(days=28)).strftime('%d %b %Y')}")
                 
 
-        # 3.2 DETAILED DIET (Integrated Detailed Veg/Non-Veg)
+        # 3.2 DIET PLANS (Detailed Integrated)
         elif m == "Diet Plans":
             if "Pregnant" in st.session_state.stat:
-                st.header("🥗 Pregnancy Diet Chart")
-                pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
+                st.header("🥗 Pregnancy Diet")
+                pref = st.radio("Type", ["Vegetarian", "Non-Vegetarian"])
                 st.markdown("<div class='diet-box'><b>Early Morning:</b> Soaked almonds + Warm water.</div>", unsafe_allow_html=True)
                 st.markdown("<div class='diet-box'><b>Breakfast:</b> Veggie Poha / Stuffed Paratha + Curd.</div>", unsafe_allow_html=True)
                 if pref == "Non-Vegetarian":
-                    st.markdown("<div class='diet-box'><b>Protein:</b> 2 Boiled Egg Whites (Mid-day) or Chicken/Fish (Lunch).</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Lunch:</b> Dal + Seasonal Veggie + 2 Roti + Salad.</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Dinner:</b> Light Chapati + Paneer(Veg) or Grilled Chicken(Non-Veg).</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='diet-box'><b>Lunch Option:</b> Grilled Fish or Lean Chicken + 2 Roti + Salad.</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown("<div class='diet-box'><b>Lunch Option:</b> Dal + Seasonal Veggie + 2 Roti + Curd.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Dinner:</b> Light Chapati + Paneer / Dal / Steamed Veggies.</div>", unsafe_allow_html=True)
             else:
                 st.header("🌸 PCOS Nutrition")
-                st.markdown("<div class='diet-box'><b>PCOS Basics:</b> 50-60g Protein & 25g Fiber daily. Low-GI foods only. Walk 15 mins after meals.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>PCOS Plan:</b> 50-60g Protein & 25g Fiber daily. Low-GI foods only. Walk 15 mins after every meal.</div>", unsafe_allow_html=True)
 
         # 3.3 EXERCISE (Source: Trimester & Strength docs)
         elif m == "Exercise & Yoga":
             if "Pregnant" in st.session_state.stat:
                 st.header("🧘 Trimester Fitness")
-                tri = st.selectbox("Select Trimester", ["1st", "
+                tri = st.selectbox("Current Trimester", ["1st", "2nd", "3rd"])
+                if tri == "1st": st.write("- Walking & Prenatal Yoga\n- Pelvic Floor (Kegels)")
+                elif tri == "2nd": st.write("- Swimming & Wall Squats\n- Side-Lying Leg Lifts")
+                else: st.write("- Butterfly Stretch & Pelvic Tilts\n- Birthing Ball")
+                
+            else:
+                st.header("🏋️ PCOS Strength Training")
+                st.write("- **Strength:** Squats, Lunges, Push-ups (3-4x/week)")
+                st.write("- **LISS:** Brisk walking (30-45 mins) for insulin sensitivity")
+
+        # 3.4 VITALS & VACCINATION
+        elif m == "Health Vitals":
+            st.header("📈 Track Health Vitals")
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+            bp = st.text_input("Blood Pressure (e.g. 120/80)")
+            sugar = st.number_input("Blood Sugar", 50, 500, 100)
+            if st.button("Calculate BMI"):
+                bmi = round(w / ((h/100)**2), 1)
+                st.success(f"BMI: {bmi}")
+                
+
+[Image of BMI category chart]
+
+
+        elif m == "Vaccination Record":
+            st.header("💉 Vaccination Portal")
+            v_name = st.text_input("Vaccine Name")
+            st.file_uploader("Upload Record Card", type=['jpg','png','jpeg'])
+            if st.button("Save"): st.success("Record Saved!")
+
+        elif m == "Book Appointment":
+            st.header("📅 Clinic Booking")
+            dt = st.date_input("Date", min_value=date.today())
+            if dt.weekday() == 6: st.error("Clinic Closed on Sundays")
+            else:
+                tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "06:00 PM", "07:00 PM"])
+                if st.button("Confirm"): st.success("Appointment Requested.")

@@ -57,7 +57,7 @@ if not st.session_state.logged_in:
                     st.rerun()
 
 # --- 3. DOCTOR DASHBOARD ---
-elif st.session_state.role == "D":
+elif st.session_state.get('role') == "D":
     st.sidebar.markdown(f"### 👩‍⚕️ Welcome, {st.session_state.name}")
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
@@ -95,7 +95,7 @@ elif st.session_state.role == "D":
             st.success("Video successfully broadcasted.")
 
 # --- 4. PATIENT DASHBOARD ---
-else:
+elif st.session_state.get('role') == "P":
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
@@ -133,3 +133,4 @@ else:
                 st.write("**Lunch:** 2 Missi Roti + 1 bowl Dal + 1 Cup Curd + Large Seasonal Salad.")
                 st.write("**Evening:** Green Tea + Roasted Chana OR Buttermilk.")
                 st.write("**Dinner:** Soya Chunks Curry OR Tofu Stir-fry with Broccoli.")
+            else:

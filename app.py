@@ -108,28 +108,18 @@ else:
         
         if m == "Tracker & Calculator":
             if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy & Baby Tracker")
-                lmp = st.date_input("Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
+                st.header("👶 Pregnancy & Baby Tracker")
+                lmp = st.date_input("Select LMP (Last Menstrual Period)", value=date.today() - timedelta(days=30))
                 edd = lmp + timedelta(days=280)
                 diff = date.today() - lmp
                 weeks, days = diff.days // 7, diff.days % 7
-                st.success(f"🗓️ **Estimated Delivery Date:** {edd.strftime('%d %B %Y')}")
+                st.success(f"🗓️ **Expected Delivery Date (EDD):** {edd.strftime('%d %B %Y')}")
                 st.info(f"⏳ **Current Stage:** {weeks} Weeks and {days} Days")
                 
                 st.divider()
                 st.subheader("📖 Week-by-Week Baby Development")
-                if weeks <= 4: st.write("🌱 **Week 4 (Poppy Seed):** Baby is a tiny ball of cells.")
-                elif weeks <= 5: st.write("💓 **Week 5 (Sesame Seed):** The heart begins to pulse.")
-                elif weeks <= 8: st.write("🍇 **Week 8 (Raspberry):** Fingers and toes are sprouting.")
-                elif weeks <= 12: st.write("🍋 **Week 12 (Lime):** Baby can open/close fists.")
-                elif weeks <= 20: st.write("🍌 **Week 20 (Banana):** Halfway mark! You may feel flutters.")
-                elif weeks <= 27: st.write("🥦 **Week 27 (Cauliflower):** Baby starts a sleep/wake schedule.")
-                elif weeks >= 38: st.write("🍉 **Week 38-40 (Watermelon):** Full term! Ready for the world.")
-                else: st.write("👶 Baby is growing rapidly and developing vital senses.")
-                
-            else:
-                st.header("🗓️ Menstrual Cycle Tracker")
-                last_p = st.date_input("Last Period Start Date", value=date.today() - timedelta(days=28))
-                cycle_len = st.slider("Cycle Length (Days)", 21, 45, 28)
-                next_p = last_p + timedelta(days=cycle_len)
-                ovulation
+                if weeks <= 4: st.write("🌱 **Week 1-4 (The Seed):** Baby is a tiny ball of cells the size of a **poppy seed**.")
+                elif weeks <= 5: st.write("💓 **Week 5 (The Heartbeat):** Size of a **sesame seed**. Tiny heart begins to pulse.")
+                elif weeks <= 7: st.write("🫐 **Week 7 (Face Forming):** Size of a **blueberry**. Face and nostrils take shape.")
+                elif weeks <= 12: st.write("🍋 **Week 12 (Reflexes):** Size of a **lime**. Baby can open/close fists.")
+                elif weeks <= 20: st.write("🍌 **Week

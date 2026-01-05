@@ -56,7 +56,6 @@ else:
 
     m = st.sidebar.radio("Navigation", ["Health Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment"])
     
-    # 3.1 FULL PREGNANCY TRACKER
     if m == "Health Tracker":
         if "Pregnant" in st.session_state.stat:
             st.header("🤰 Pregnancy Week-by-Week Development")
@@ -77,28 +76,28 @@ else:
             lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
             st.success(f"🩸 Next Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
 
-    # 3.2 DETAILED DIET PLANS
     elif m == "Diet Plans":
         pref = st.radio("Diet Preference", ["Vegetarian", "Non-Vegetarian"])
-        
-        if "Lactating" in st.session_state.stat:
-            st.header("🤱 Lactation Diet Plan (+500 kcal)")
+        if "PCOS" in st.session_state.stat:
+            st.header("🌸 Detailed PCOS Diet Chart")
             if pref == "Vegetarian":
-                st.markdown("<div class='diet-box'><b>Early Morning:</b> Fenugreek/Cumin water</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Breakfast:</b> Ragi Dosa OR Oats with nuts</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Lunch:</b> 2-3 Rotis, Dal, Green Veggies, Curd, Salad</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Dinner:</b> Veg Khichdi with ghee OR Veg Curry + Brown Rice</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Early Morning:</b> Warm water with lemon/cinnamon.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Breakfast:</b> Moong Dal Chilla OR Vegetable Dalia OR Sprouted Salad.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Mid-Morning:</b> 1 Fruit (Apple/Pear) + Handful of Walnuts.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Lunch:</b> 2 Missi Roti + 1 bowl Dal + Green Veggie + Salad.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Evening:</b> Roasted Chana OR Buttermilk.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Dinner:</b> Soya Chunks Curry OR Tofu Stir-fry with vegetables.</div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div class='diet-box'><b>Early Morning:</b> Milk with soaked almonds</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Breakfast:</b> 2 Scrambled Eggs with toast</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Lunch:</b> Grilled Fish/Chicken + Brown Rice + Spinach</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Dinner:</b> Fish Curry OR Lean Meat stir-fry</div>", unsafe_allow_html=True)
-        
+                st.markdown("<div class='diet-box'><b>Early Morning:</b> Apple Cider Vinegar in warm water.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Breakfast:</b> 2 Egg Whites + Spinach OR Vegetable Oats.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Mid-Morning:</b> 1 Fruit + Flax seeds.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Lunch:</b> Grilled Chicken/Fish + small bowl Brown Rice + Salad.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Evening:</b> Handful of Almonds OR Clear Chicken Soup.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Dinner:</b> Baked Salmon OR Chicken Salad (No creamy dressings).</div>", unsafe_allow_html=True)
         elif "Pregnant" in st.session_state.stat:
-            st.header("🥗 Pregnancy Full Diet Chart")
-            st.markdown("<div class='diet-box'><b>Early Morning:</b> 5 Soaked Almonds + Warm Water</div>", unsafe_allow_html=True)
+            st.header("🥗 Pregnancy Diet Chart")
             st.markdown("<div class='diet-box'><b>Breakfast:</b> Veggie Poha / Oats / Stuffed Paratha + Curd</div>", unsafe_allow_html=True)
-            st.markdown("<div class='diet-box'><b>Mid-Morning:</b> 1 Fruit + Coconut Water</div>", unsafe_allow_html=True)
-            if pref == "Non-Vegetarian":
-                st.markdown("<div class='diet-box'><b>Lunch:</b> 2 Roti + Chicken/Fish Curry + Salad</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>
+            st.markdown("<div class='diet-box'><b>Lunch:</b> 2 Roti + Dal Tadka + Seasonal Veggie + Salad</div>", unsafe_allow_html=True)
+            st.markdown("<div class='diet-box'><b>Dinner:</b> 1 Roti + Paneer/Dal + Milk</div>", unsafe_allow_html=True)
+        else:
+            st.header("🤱

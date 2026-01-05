@@ -13,7 +13,6 @@ st.markdown("""
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
     .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; color: #333; }
     .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 10px; }
-    .broadcast-card { background: #e8f4f8; padding: 15px; border-radius: 10px; border-left: 5px solid #003366; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -56,7 +55,7 @@ if not st.session_state.logged_in:
 # --- 3. MAIN APP ---
 else:
     df = conn.read(ttl=0)
-    # Safety fix for the error you encountered:
+    # Safety fix for the search error
     if not df.empty:
         df['Name'] = df['Name'].fillna('').astype(str)
         df['Type'] = df['Type'].fillna('').astype(str)
@@ -90,7 +89,8 @@ else:
                 b_link = st.text_input("Paste URL (YouTube/Instagram)")
                 if st.form_submit_button("Post Update"):
                     new = pd.DataFrame([{"Name":"DR_PRIYANKA","Type":"BROADCAST","Details":f"{b_title}|{b_link}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Posted!"); st.rerun()
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success("Posted Content!"); st.rerun()
 
         with t_adm[4]:
             block_dt = st.date_input("Block Clinic Date", min_value=date.today())
@@ -101,33 +101,29 @@ else:
         if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
 
     else: # Patient View
-        # Latest Update Notification for Patients
+        # Broadcast Notification
         updates = df[df['Type'] == 'BROADCAST'].sort_values(by='Timestamp', ascending=False)
         if not updates.empty:
             latest = updates.iloc[0]['Details'].split('|')
             st.info(f"✨ **Latest from Dr. Priyanka:** [{latest[0]}]({latest[1]})")
 
         st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines & Screening", "Diet & Yoga", "Upload Reports", "Book Appointment"])
+        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines", "Diet & Yoga", "Upload Reports", "Book Appointment"])
         
         if m == "Diet & Yoga":
             st.header("🥗 Nutritional Guidelines")
             if "Pregnant" in st.session_state.stat:
                 st.subheader("Pregnancy Daily Diet Chart")
-                
-
-[Image of the food pyramid for pregnant women]
-
                 st.markdown("""<div class='diet-box'>
-                1. <b>Cereals & Grains:</b> 60g per serving (6 servings/day)<br>
-                2. <b>Pulses & Beans:</b> 30g per serving (3 servings/day)<br>
-                3. <b>Milk & Milk Products:</b> 150ml per serving (2 servings/day)<br>
-                4. <b>Vegetables:</b> 100g per serving (4 servings/day)<br>
-                5. <b>Fruits:</b> 50g per serving (4 servings/day)</div>""", unsafe_allow_html=True)
+                <b>1. Cereals & Grains:</b> 60g per serving (6 servings per day)<br>
+                <b>2. Pulses & Beans:</b> 30g per serving (3 servings per day)<br>
+                <b>3. Milk & Milk Products:</b> 150ml per serving (2 servings per day)<br>
+                <b>4. Vegetables:</b> Green leafy, roots & others - 100g serving (4 servings per day)<br>
+                <b>5. Fruits:</b> 50g per serving (4 servings per day)
+                </div>""", unsafe_allow_html=True)
             else:
-                st.subheader("PCOS Diet & Yoga")
-                
-                st.write("Focus on High Fiber, Low GI foods. Try Butterfly Pose and Surya Namaskar.")
+                st.subheader("PCOS Diet & Lifestyle")
+                st.write("Focus on High Fiber, Low GI foods. Daily physical activity like Yoga (Surya Namaskar) is recommended.")
 
         elif m == "Vitals & BMI":
             with st.form("v_form"):
@@ -135,9 +131,9 @@ else:
                 wi = st.number_input("Weight (kg)", 30, 200, 60)
                 pu = st.number_input("Pulse", 40, 200, 72)
                 bp = st.text_input("BP", "120/80")
-                if st.form_submit_button("Save"):
+                if st.form_submit_button("Save Vitals"):
                     bmi = round(wi / ((hi/100)**2), 1)
-                    new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}, Pulse:{pu}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
 
         elif m == "Book Appointment":
@@ -149,17 +145,14 @@ else:
                     curr = datetime.strptime("11:00", "%H:%M")
                     while curr <= datetime.strptime("13:45", "%H:%M"):
                         slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    if sel_dt.weekday() != 6:
+                        curr = datetime.strptime("18:00", "%H:%M")
+                        while curr <= datetime.strptime("19:45", "%H:%M"):
+                            slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
                     tm = st.selectbox("Slot", slots)
-                    if st.form_submit_button("Book"):
+                    if st.form_submit_button("Book Now"):
                         new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                         conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
-
-        elif m == "Vaccines & Screening":
-            if "PCOS" in st.session_state.stat:
-                st.info("HPV Vaccine (3 doses) and Pap Smear screening are vital.")
-                
-            else:
-                st.info("T-Dap, Flu, and Tetanus as per schedule.")
 
         elif m == "Upload Reports":
             with st.form("u_form"):

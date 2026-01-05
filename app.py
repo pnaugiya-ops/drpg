@@ -1,25 +1,148 @@
-gspread.exceptions.APIError: This app has encountered an error. The original error message is redacted to prevent data leaks. Full error details have been recorded in the logs (if you're on Streamlit Cloud, click on 'Manage app' in the lower right of your app).
-Traceback:
-File "/mount/src/drpg/app.py", line 95, in <module>
-    conn.update(data=pd.concat([df, new], ignore_index=True))
-    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/home/adminuser/venv/lib/python3.13/site-packages/streamlit_gsheets/gsheets_connection.py", line 658, in update
-    return self.client.update(spreadsheet=spreadsheet, worksheet=worksheet, data=data, folder_id=folder_id)
-           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-File "/home/adminuser/venv/lib/python3.13/site-packages/streamlit_gsheets/gsheets_connection.py", line 324, in update
-    set_with_dataframe(worksheet, data)
-    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-File "/home/adminuser/venv/lib/python3.13/site-packages/gspread_dataframe.py", line 442, in set_with_dataframe
-    resp = worksheet.update_cells(
-        cells_to_update, value_input_option="USER_ENTERED"
-    )
-File "/home/adminuser/venv/lib/python3.13/site-packages/gspread/worksheet.py", line 940, in update_cells
-    data = self.spreadsheet.values_update(
-        range_name,
-        params={"valueInputOption": value_input_option},
-        body={"values": values_rect},
-    )
-File "/home/adminuser/venv/lib/python3.13/site-packages/gspread/spreadsheet.py", line 217, in values_update
-    r = self.client.request("put", url, params=params, json=body)
-File "/home/adminuser/venv/lib/python3.13/site-packages/gspread/client.py", line 93, in request
-    raise APIError(response)
+import streamlit as st
+from streamlit_gsheets import GSheetsConnection
+import pandas as pd
+from datetime import datetime
+import base64, io
+from PIL import Image
+
+# --- 1. CONFIG & STYLE ---
+st.set_page_config(page_title="Bhavya Labs", layout="wide")
+st.markdown("""
+    <style>
+    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; }
+    .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
+    .vax-card { background:white; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:10px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+conn = st.connection("gsheets", type=GSheetsConnection)
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
+
+# --- HELPERS (Robust Compression) ---
+def process_and_encode(file):
+    if file is None: return ""
+    try:
+        img = Image.open(file)
+        # Resize to a small footprint for Google Sheets compatibility
+        img.thumbnail((500, 500)) 
+        buffer = io.BytesIO()
+        img.convert("RGB").save(buffer, format="JPEG", quality=40)
+        return base64.b64encode(buffer.getvalue()).decode()
+    except:
+        return ""
+
+def show_img(b): 
+    if b: st.image(io.BytesIO(base64.b64decode(b)), use_container_width=True)
+
+# --- 2. LOGIN ---
+if not st.session_state.logged_in:
+    st.markdown("<div class='dr-header'><h1>BHAVYA LABS & CLINICS</h1><h3>Dr. Priyanka Gupta</h3><p>MS (Obs & Gynae)</p></div>", unsafe_allow_html=True)
+    t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
+    with t1:
+        with st.form("p_login"):
+            name = st.text_input("Full Name")
+            stat = st.radio("Status", ["Pregnant", "Non-Pregnant (PCOS)"])
+            if st.form_submit_button("Enter Portal"):
+                st.session_state.update({"logged_in":True, "name":name, "stat":stat, "role":"P"})
+                st.rerun()
+    with t2:
+        with st.form("d_login"):
+            pw = st.text_input("Password", type="password")
+            if st.form_submit_button("Login") and pw == "clinicadmin786":
+                st.session_state.update({"logged_in":True, "role":"D"})
+                st.rerun()
+
+# --- 3. MAIN APP ---
+else:
+    df = conn.read(ttl=0)
+    if st.session_state.role == "D":
+        st.title("👨‍⚕️ Admin Dashboard")
+        if st.sidebar.button("Logout"): 
+            st.session_state.logged_in = False
+            st.rerun()
+        if not df.empty:
+            for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
+                if row['Name'] == "ADMIN": continue
+                with st.expander(f"📋 {row['Name']} - {row['Timestamp']}"):
+                    st.write(f"**Type:** {row.get('Type','')} | **Details:** {row.get('Details','')}")
+                    if 'Attachment' in row and str(row['Attachment']) not in ["nan", ""]: 
+                        show_img(row['Attachment'])
+    else:
+        st.sidebar.title(f"Welcome, {st.session_state.name}")
+        m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccination Guide", "Diet & Yoga", "Upload Reports", "Book Appointment"])
+        
+        if m == "Vitals & BMI":
+            st.title("📊 Health Trackers")
+            with st.form("v"):
+                c1, c2, c3 = st.columns(3)
+                hi = c1.number_input("Height (cm)", 100, 250, 160)
+                wi = c2.number_input("Weight (kg)", 30, 200, 60)
+                pu = c3.number_input("Pulse (bpm)", 40, 200, 72)
+                bp = st.text_input("Blood Pressure", "120/80")
+                if st.form_submit_button("Save Vitals"):
+                    bmi = round(wi/((hi/100)**2), 1)
+                    det = f"BMI: {bmi} | BP: {bp} | Pulse: {pu}"
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"VITALS", "Details":det, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Recorded! Your BMI is {bmi}")
+
+        elif m == "Vaccination Guide":
+            st.title("💉 Vaccination Schedule")
+            if "Pregnant" in st.session_state.stat:
+                st.info("T-Dap: 27-36 weeks | Flu: Anytime | Tetanus: Confirmation")
+                
+            else:
+                st.info("HPV Vaccine: 3 doses (0, 1, 6 months) for Cervical Cancer prevention.")
+                
+
+        elif m == "Diet & Yoga":
+            st.title("🧘 Nutrition & Exercise")
+            if "Pregnant" in st.session_state.stat:
+                d1, d2, d3 = st.tabs(["1st Trimester", "2nd Trimester", "3rd Trimester"])
+                with d1: 
+                    st.write("**Diet:** Folic Acid focus. **Yoga:** Butterfly, Cat-Cow.")
+                    
+
+[Image of first trimester pregnancy diet chart]
+
+                with d2: 
+                    st.write("**Diet:** Iron & Calcium. **Yoga:** Palm Tree, Warrior.")
+                    
+
+[Image of second trimester pregnancy diet chart]
+
+                with d3: 
+                    st.write("**Diet:** High fiber. **Yoga:** Supported Squats.")
+                    
+
+[Image of third trimester pregnancy diet chart]
+
+            else:
+                st.subheader("PCOS Management")
+                st.write("**Diet:** Low GI, No sugar. **Yoga:** Surya Namaskar.")
+                
+
+        elif m == "Upload Reports":
+            st.title("🧪 Upload Reports")
+            with st.form("u"):
+                f = st.file_uploader("Select Image", type=['jpg', 'png', 'jpeg'])
+                n = st.text_input("Note for Doctor")
+                if st.form_submit_button("Upload Now"):
+                    b64_data = process_and_encode(f)
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"UPLOAD", "Details":n, "Attachment":b64_data, "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success("Report successfully sent!")
+
+        elif m == "Book Appointment":
+            st.title("📅 Book Appointment")
+            with st.form("b"):
+                dt = st.date_input("Select Date")
+                tm = st.selectbox("Slot", ["10:00 AM", "11:00 AM", "12:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"])
+                if st.form_submit_button("Confirm"):
+                    new = pd.DataFrame([{"Name":st.session_state.name, "Type":"APP", "Details":f"{dt} {tm}", "Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Booked for {dt} at {tm}")
+
+    if st.sidebar.button("Logout"): 
+        st.session_state.logged_in = False
+        st.rerun()

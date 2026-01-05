@@ -11,9 +11,9 @@ st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; margin-bottom:20px; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
-    .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; }
+    .diet-box { background: #fff5f7; padding: 20px; border-radius: 12px; border: 1px solid #ffc0cb; line-height: 1.6; color: #333; }
     .patient-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #ff4b6b; margin-bottom: 10px; }
-    .emergency-btn { background-color: #ff0000 !important; color: white !important; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; display: block; }
+    .emergency-btn { background-color: #ff0000 !important; color: white !important; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; text-decoration: none; display: block; border: none; margin-bottom: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -59,7 +59,9 @@ if not st.session_state.logged_in:
 else:
     df = conn.read(ttl=0)
     blocked_dates = df[df['Type'] == "BLOCK"]['Details'].tolist() if not df.empty else []
-    st.sidebar.markdown(f"### Hello, {st.session_state.name}")
+    
+    # SIDEBAR
+    st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
     st.sidebar.markdown('<a href="tel:+919999999999" class="emergency-btn">📞 EMERGENCY CALL</a>', unsafe_allow_html=True)
 
     if st.session_state.role == "D":
@@ -104,13 +106,11 @@ else:
                 3. <b>Milk & Milk Products:</b> 150ml per serving (2 servings/day)<br>
                 4. <b>Vegetables:</b> 100g per serving (4 servings/day)<br>
                 5. <b>Fruits:</b> 50g per serving (4 servings/day)</div>""", unsafe_allow_html=True)
-                
-
-[Image of the food pyramid for pregnant women]
-
+                st.info("💡 Tip: Follow a 'Food Pyramid' approach—focus on complex carbs and high-fiber veggies.")
             else:
                 st.subheader("PCOS Diet Chart")
                 st.write("Focus on High Fiber, Low GI foods, and Lean Proteins.")
+                st.info("💡 Yoga Tip: Surya Namaskar and Butterfly poses help improve hormonal balance.")
 
         elif m == "Vitals & BMI":
             with st.form("v_form"):
@@ -121,11 +121,12 @@ else:
                 if st.form_submit_button("Save Vitals"):
                     bmi = round(wi / ((hi/100)**2), 1)
                     new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}, Pulse:{pu}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Vitals Recorded! BMI: {bmi}")
 
         elif m == "Book Appointment":
             sel_dt = st.date_input("Date", min_value=date.today())
-            if str(sel_dt) in blocked_dates: st.error("Clinic Closed")
+            if str(sel_dt) in blocked_dates: st.error("Clinic Closed on this date.")
             else:
                 with st.form("b_form"):
                     slots = []
@@ -144,7 +145,6 @@ else:
         elif m == "Vaccines":
             if "PCOS" in st.session_state.stat:
                 st.info("HPV Vaccine (3 doses) and regular Pap Smear screening are key for Gynae wellness.")
-                
             else:
                 st.info("Maternal Vaccination: T-Dap, Flu, and Tetanus Toxoid as advised by the doctor.")
 

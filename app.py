@@ -9,16 +9,16 @@ st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
     .stButton>button { background:#ff4b6b; color:white; font-weight:bold; width:100%; border-radius:10px; }
-    .diet-box { background: #fff5f7; padding: 15px; border-radius: 10px; border: 1px solid #ffc0cb; color: #333; margin-bottom: 10px; }
+    .diet-box { background: #fff5f7; padding: 15px; border-radius: 10px; border: 1px solid #ffc0cb; color: #333; margin-bottom: 10px; line-height: 1.6; }
     .clinic-badge { background: #e8f4f8; color: #003366; padding: 5px 10px; border-radius: 5px; font-weight: bold; display: inline-block; margin: 2px; font-size: 11px; border: 1px solid #003366; }
     </style>
     """, unsafe_allow_html=True)
 
-# Connection
+# Connection Setup
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except:
-    st.error("Connection Error.")
+    st.error("Database connection issue.")
 
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
@@ -44,7 +44,7 @@ if not st.session_state.logged_in:
             n = st.text_input("Full Name")
             a = st.number_input("Age", 18, 100, 25)
             s = st.radio("Status", ["Pregnant", "PCOS/Gynae"])
-            if st.form_submit_button("Enter"):
+            if st.form_submit_button("Enter Portal"):
                 if n:
                     st.session_state.update({"logged_in":True,"name":n,"age":a,"stat":s,"role":"P"})
                     st.rerun()
@@ -56,48 +56,69 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True,"role":"D","name":"Dr. Priyanka"})
                     st.rerun()
 
-# --- 3. MAIN APP ---
+# --- 3. MAIN APPLICATION ---
 else:
-    st.sidebar.markdown(f"**Patient:** {st.session_state.name}\n\n**Age:** {st.session_state.get('age','N/A')}")
+    # Profile & Logout in Sidebar
+    st.sidebar.markdown(f"**Patient:** {st.session_state.name} | **Age:** {st.session_state.get('age','N/A')}")
     if st.sidebar.button("🔓 Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
     if st.session_state.role == "D":
         st.header("👨‍⚕️ Doctor Dashboard")
-        st.write("Access records via Google Sheets.")
+        st.write("Access records and reports via the connected Google Sheet.")
     
     else:
-        m = st.sidebar.radio("Menu", ["Tracker", "Diet Plans", "Exercise", "Vitals & Vaccines", "Book Appointment"])
+        m = st.sidebar.radio("Navigate", ["Baby Tracker", "Diet Charts", "Exercise & Yoga", "Health Vitals", "Vaccination Record", "Book Appointment"])
         
-        # 3.1 TRACKER
-        if m == "Tracker":
+        # 3.1 BABY TRACKER (From "Here is a week.docx")
+        if m == "Baby Tracker":
             if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy Guide")
-                lmp = st.date_input("LMP Date", value=date.today() - timedelta(days=60))
-                edd = lmp + timedelta(days=280)
+                st.header("🤰 Pregnancy Week-by-Week Guide")
+                lmp = st.date_input("Select LMP Date", value=date.today() - timedelta(days=60))
                 weeks = (date.today() - lmp).days // 7
-                st.success(f"EDD: {edd.strftime('%d %b %Y')} | Week: {weeks}")
+                edd = lmp + timedelta(days=280)
+                st.success(f"🗓️ EDD: {edd.strftime('%d %b %Y')} | ⏳ You are at Week: {weeks}")
                 
+                if weeks <= 4: 
+                    st.info("🌱 **Week 4 (Poppy Seed):** Tiny ball of cells snuggling into the womb.")
+                elif weeks <= 12: 
+                    st.info("🍋 **Week 12 (Lime):** Baby can open/close fists and make sucking motions.")
+                elif weeks <= 20: 
+                    st.info("🍌 **Week 20 (Banana):** Halfway mark! You will feel the first 'flutters'.")
+                elif weeks >= 38: 
+                    st.info("🍉 **Week 40 (Watermelon):** Full term and ready for the world!")
+                else: 
+                    st.info("👶 Baby is growing fast and developing vital senses.")
                 
-                
-                if weeks <= 4: st.info("🌱 Week 4: Implantation stage.")
-                elif weeks <= 12: st.info("🍋 Week 12: Baby can open/close fists.")
-                elif weeks <= 20: st.info("🍌 Week 20: Halfway! You feel flutters.")
-                else: st.info("👶 Baby is growing vital senses.")
             else:
-                st.header("🗓️ Period Tracker")
+                st.header("🗓️ Menstrual Cycle Tracker")
                 lp = st.date_input("Last Period Start", value=date.today() - timedelta(days=14))
                 st.success(f"🩸 Next Expected: {(lp + timedelta(days=28)).strftime('%d %b %Y')}")
+                
 
-        # 3.2 DIET (Triple Quoted for Stability)
-        elif m == "Diet Plans":
+        # 3.2 DIET CHARTS (Detailed Veg/Non-Veg & PCOS)
+        elif m == "Diet Charts":
             if "Pregnant" in st.session_state.stat:
-                st.header("🥗 Pregnancy Diet")
+                st.header("🥗 Pregnancy Nutrition Plan")
                 pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
-                st.markdown("""<div class='diet-box'>
-                    <b>Early Morning:</b> Soaked almonds + Warm water.<br>
-                    <b>Breakfast:</b> Veggie Poha / Stuffed Paratha + Curd.</div>""", unsafe_allow_html=True)
+                st.markdown("""<div class='diet-box'><b>Early Morning:</b> Soaked almonds + Warm water.<br>
+                <b>Breakfast:</b> Veggie Poha / Stuffed Paratha + Curd.<br>
+                <b>Lunch:</b> 2 Roti + Dal + Seasonal Veggie + Salad.</div>""", unsafe_allow_html=True)
                 
                 if pref == "Non-Vegetarian":
-                    st.markdown("""<div class
+                    st.markdown("""<div class='diet-box'><b>Non-Veg Tip:</b> Add 2 Boiled Egg Whites (Mid-day) or Chicken/Fish (Lunch).</div>""", unsafe_allow_html=True)
+                
+                st.markdown("""<div class='diet-box'><b>Dinner:</b> Light Chapati + Paneer Curry / Dal / Steamed Veggies.</div>""", unsafe_allow_html=True)
+            else:
+                st.header("🌸 PCOS Nutrition Plan")
+                st.markdown("""<div class='diet-box'><b>Core Principles:</b><br>
+                - 50-60g Protein and 25g Fiber daily.<br>
+                - Focus on Low-GI foods (Jowar, Bajra, Oats).<br>
+                - Walk 10-15 mins after every meal to manage sugar levels.</div>""", unsafe_allow_html=True)
+
+        # 3.3 EXERCISE & YOGA (From Exercise & Strength docs)
+        elif m == "Exercise & Yoga":
+            if "Pregnant" in st.session_state.stat:
+                st.header("🧘 Trimester Fitness Guide")
+                tri = st.selectbox("Current Trimester", ["1st Trimester", "2nd Trimester", "3rd Tr

@@ -134,46 +134,75 @@ else:
         
         if m == "Diet & Yoga":
             if "Pregnant" in st.session_state.stat:
-                st.header("🥗 Pregnancy Nutritional Plan")
-                # --- DETAILED PREGNANCY DIET FROM DOCUMENT ---
-                st.markdown("""<div class='diet-box'>
-                <b>General Safety:</b><br>
-                - 🥛 <b>Milk:</b> 3–4 servings daily (Pasteurized/Low-fat).<br>
-                - 💧 <b>Hydration:</b> 2.5–3 Liters of water daily.<br>
-                - ☕ <b>Caffeine:</b> Limit to < 200mg/day (approx 1 cup).<br>
-                - 🚫 <b>Avoid:</b> Raw meat, unpasteurized dairy, high-mercury fish.
-                </div>""", unsafe_allow_html=True)
+                st.header("🤰 Pregnancy Wellness Hub")
                 
-                tri = st.selectbox("Select Your Trimester", ["1st Trimester (Weeks 1-12)", "2nd Trimester (Weeks 13-26)", "3rd Trimester (Weeks 27-40)"])
+                tab_diet, tab_exercise = st.tabs(["🥗 Nutrition Plan", "🧘 Trimester Exercises"])
                 
-                if "1st" in tri:
-                    st.success("**Focus:** Folic acid & Vitamin B6 (Nausea management).")
-                    st.write("**Early Morning:** Warm water + 4–5 soaked almonds.")
-                    st.write("**Breakfast:** Veggie Poha/Upma + milk OR Whole grain toast + 2 eggs.")
-                    st.write("**Lunch:** 2 rotis + spinach dal + sautéed veggies + curd.")
-                elif "2nd" in tri:
-                    st.success("**Focus:** Calcium & Iron (Bone growth & Blood volume).")
-                    st.write("**Breakfast:** Vegetable paratha + curd OR Oats porridge.")
-                    st.write("**Lunch:** Brown rice + dal + mixed veggies OR Chicken curry.")
-                    st.write("**Evening:** Mixed nuts OR Chicken sandwich.")
-                elif "3rd" in tri:
-                    st.success("**Focus:** High Fiber (Constipation) & Healthy Fats.")
-                    st.write("**Breakfast:** Besan chilla + mint chutney OR Oats + 2 eggs.")
-                    st.write("**Lunch:** Millet khichdi + dal + salad OR Grilled salmon + rice.")
-                    st.write("**Dinner:** Chapati + rajma/chole OR Fish curry.")
+                with tab_diet:
+                    st.markdown("""<div class='diet-box'>
+                    <b>General Safety:</b><br>
+                    - 🥛 <b>Milk:</b> 3–4 servings daily[cite: 4].<br>
+                    - 💧 <b>Hydration:</b> 2.5–3 Liters of water daily[cite: 19].<br>
+                    - ☕ <b>Caffeine:</b> Limit to < 200mg/day[cite: 18].
+                    </div>""", unsafe_allow_html=True)
+                    
+                    tri = st.selectbox("Select Trimester (Nutrition)", ["1st Trimester (Weeks 1-12)", "2nd Trimester (Weeks 13-26)", "3rd Trimester (Weeks 27-40)"])
+                    
+                    if "1st" in tri:
+                        st.success("**Focus:** Folic acid & Vitamin B6[cite: 8].")
+                        st.write("**Early Morning:** Warm water + 4–5 soaked almonds[cite: 9].")
+                        st.write("**Breakfast:** Veggie Poha/Upma + milk OR Whole grain toast + 2 eggs[cite: 9].")
+                    elif "2nd" in tri:
+                        st.success("**Focus:** Calcium & Iron[cite: 11].")
+                        st.write("**Breakfast:** Veg paratha + curd OR Oats porridge[cite: 12].")
+                        st.write("**Lunch:** Brown rice + dal + mixed veggies OR Chicken curry[cite: 12].")
+                    elif "3rd" in tri:
+                        st.success("**Focus:** High Fiber & Healthy Fats[cite: 14].")
+                        st.write("**Breakfast:** Besan chilla + mint chutney OR Oats + 2 eggs[cite: 15].")
+                        st.write("**Lunch:** Millet khichdi + dal + salad OR Grilled salmon + rice[cite: 15].")
+
+                with tab_exercise:
+                    tri_ex = st.selectbox("Select Trimester (Exercises)", ["1st Trimester: Gentle Adaptation", "2nd Trimester: Building Strength", "3rd Trimester: Mobility & Labor Prep"])
+                    
+                    if "1st" in tri_ex:
+                        st.info("**Focus:** Managing fatigue and morning sickness with low-impact movements[cite: 36].")
+                        st.write("- **Walking:** Improves circulation and mood[cite: 37].")
+                        st.write("- **Prenatal Yoga:** Stretching and breath awareness[cite: 38].")
+                        st.write("- **Kegels:** Strengthens pelvic floor[cite: 39].")
+                        st.write("- **Cat-Cow Stretch:** Relieves lower back tension[cite: 40].")
+                    elif "2nd" in tri_ex:
+                        st.info("**Focus:** Moderate resistance and balance training[cite: 43].")
+                        st.write("- **Swimming:** Reduces joint pressure and prevents overheating[cite: 44].")
+                        st.write("- **Stationary Cycling:** Safer than outdoor biking to avoid falls[cite: 45].")
+                        st.write("- **Side-Lying Leg Lifts:** Strengthens hip stabilizers[cite: 46].")
+                        st.write("- **Wall Squats:** Prepares thighs for delivery[cite: 47].")
+                        st.warning("**Note:** Avoid lying flat on your back for more than a few minutes.")
+                    elif "3rd" in tri_ex:
+                        st.info("**Focus:** Flexibility, pelvic opening, and relaxation[cite: 51].")
+                        st.write("- **Butterfly Stretch:** Opens hips and inner thighs.")
+                        st.write("- **Deep Supported Squats:** Encourages optimal baby positioning[cite: 53].")
+                        st.write("- **Birthing Ball Exercises:** Gently rocking to keep hips fluid[cite: 55].")
+                        st.write("- **Diaphragmatic Breathing:** Critical tool for labor pain management.")
+                    
+                    st.markdown("""<div class='diet-box'>
+                    <b>⚠️ Exercise Safety (2026):</b><br>
+                    - <b>Talk Test:</b> You should be able to hold a conversation while exercising.<br>
+                    - <b>Hydration:</b> Drink water before, during, and after every session[cite: 59].<br>
+                    - <b>Avoid Risks:</b> No contact sports, jumping, or heavy lifting[cite: 60].<br>
+                    - <b>Consultation:</b> Always get medical clearance before starting a new routine[cite: 61].
+                    </div>""", unsafe_allow_html=True)
             else:
-                # --- PCOS DIET FROM DOCUMENT ---
                 st.header("🥗 Core PCOS Dietary Principles")
                 st.markdown("""<div class='diet-box'>
                 - <b>Protein:</b> 50–60g daily. <b>Fiber:</b> >25g daily.<br>
-                - <b>Dairy:</b> 1–2 servings (Limit full-fat to avoid acne).<br>
+                - <b>Dairy:</b> 1–2 servings (Limit full-fat).<br>
                 - <b>Avoid:</b> Maida, Sugary sodas, Fried/Processed meats.
                 </div>""", unsafe_allow_html=True)
                 p_type = st.radio("Diet Type", ["Vegetarian", "Non-Vegetarian"])
                 if p_type == "Vegetarian":
-                    st.info("**Breakfast:** Moong dal chilla. **Lunch:** Jowar rotis + veg + dal. **Dinner:** Tofu stir-fry.")
+                    st.info("**Breakfast:** Moong dal chilla. **Lunch:** Jowar rotis + veg + dal.")
                 else:
-                    st.info("**Breakfast:** 2 Boiled egg whites + toast. **Lunch:** Grilled chicken + brown rice. **Dinner:** Grilled fish.")
+                    st.info("**Breakfast:** 2 Boiled egg whites + toast. **Lunch:** Grilled chicken + brown rice.")
 
         elif m == "Vaccine & Screening Portal":
             st.header("💉 Preventive Care")
@@ -212,7 +241,6 @@ else:
                     new = pd.DataFrame([{"Name":st.session_state.name,"Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now()}])
                     conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
 
-        # --- RESTORED LOGOUT BUTTON IN PATIENT SIDEBAR ---
         if st.sidebar.button("Logout", key="pt_logout"): 
             st.session_state.logged_in = False
             st.rerun()

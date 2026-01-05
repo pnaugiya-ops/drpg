@@ -134,3 +134,84 @@ elif st.session_state.get('role') == "P":
                 st.write("**Evening:** Green Tea + Roasted Chana OR Buttermilk.")
                 st.write("**Dinner:** Soya Chunks Curry OR Tofu Stir-fry with Broccoli.")
             else:
+                st.write("**Early Morning:** Lemon water OR Fenugreek water.")
+                st.write("**Breakfast:** 2 Egg White Omelet with Spinach and Mushrooms.")
+                st.write("**Mid-Morning:** 1 bowl Papaya OR Handful of Flax seeds.")
+                st.write("**Lunch:** Grilled Chicken + 1 portion Brown Rice + Huge Mixed Salad.")
+                st.write("**Evening:** Clear Chicken Soup OR 10 Almonds.")
+                st.write("**Dinner:** Baked Fish OR Chicken Salad with Olive Oil.")
+
+        elif "Lactating" in st.session_state.stat:
+            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** Warm water with soaked fenugreek seeds or cumin water.")
+                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa OR Methi paratha with curd.")
+                st.write("**Mid-Morning:** 1 seasonal fruit (papaya/pomegranate) + soaked almonds and dates.")
+                st.write("**Lunch:** 2–3 Whole wheat rotis + 1 bowl Dal + Green leafy vegetable + 1 cup Curd + Salad.")
+                st.write("**Evening Snack:** Roasted Makhana OR Paneer tikka OR 1 Methi/Gond ladoo with milk.")
+                st.write("**Dinner:** Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.")
+                st.write("**Before Bed:** Warm milk with turmeric and saffron.")
+            else:
+                st.write("**Early Morning:** Fenugreek water OR Milk with soaked almonds.")
+                st.write("**Breakfast:** 2 Scrambled/Boiled eggs with toast OR Oats porridge with seeds.")
+                st.write("**Mid-Morning:** Fruit salad OR 1 bowl of sprouted moong chaat.")
+                st.write("**Lunch:** 2–3 Rotis or brown rice + Grilled Chicken or Fish + 1 bowl Spinach + Salad.")
+                st.write("**Evening Snack:** Chicken/Lentil soup OR Handful of walnuts and raisins OR 1 Methi ladoo.")
+                st.write("**Dinner:** 2 Rotis + Fish curry (low mercury) OR Lean meat stir-fry.")
+                st.write("**Before Bed:** Warm milk with turmeric or fennel tea.")
+
+    elif m == "Exercise & Yoga":
+        if "Lactating" in st.session_state.stat:
+            st.header("🧘 Detailed Postpartum Recovery Exercise")
+            st.write("**Weeks 0–6:** Walking (5-30 mins), Kegels (3 sets of 10), Belly breathing, Pelvic Tilts.")
+            st.write("**Weeks 6–12:** Swimming, stationary cycling, modified squats, lunges, and Yoga.")
+            st.write("**After 12 Weeks:** Slowly reintroduce jogging or light weights.")
+            st.info("Note: Exercise immediately AFTER feeding to avoid discomfort.")
+        else:
+            st.write("✅ **Standard Routine:** Walking, Wall squats, and Yoga.")
+
+    elif m == "Health Tracker":
+        if "Pregnant" in st.session_state.stat:
+            st.header("🤰 Pregnancy Tracker")
+            lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
+            wks = (date.today()-lmp).days // 7
+            st.success(f"🗓️ EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | Week: {wks}")
+        else:
+            lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
+            st.success(f"🩸 Next Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
+
+    elif m == "Lab Reports & Trends":
+        st.header("📊 Lab Report Entry")
+        with st.form("lab_entry"):
+            hb = st.number_input("Hemoglobin", 5.0, 20.0, 12.0)
+            sugar = st.number_input("Blood Sugar", 50, 500, 90)
+            if st.form_submit_button("Save"):
+                st.session_state.lab_records.append({"Date": date.today(), "Name": st.session_state.name, "Hb": hb, "Sugar": sugar})
+                st.success("Saved!")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        h = st.number_input("Height (cm)", 100, 250, 160)
+        w = st.number_input("Weight (kg)", 30, 200, 60)
+        bp = st.text_input("Blood Pressure")
+        if st.button("Save"): st.success("Saved.")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment")
+        dt = st.date_input("Select Date", min_value=date.today())
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("Clinic Closed.")
+        else:
+            tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "06:00 PM"])
+            if st.button("Confirm"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success("Booked!")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        if st.session_state.broadcasts:
+            for b in st.session_state.broadcasts:
+                st.video(b['url'])
+                st.write(b['desc'])
+        else:
+            st.write("Stay tuned for upcoming health videos.")

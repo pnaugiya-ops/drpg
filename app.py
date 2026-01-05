@@ -134,4 +134,78 @@ elif st.session_state.get('role') == "P":
             c1, c2 = st.columns(2)
             with c1:
                 hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
-                tsh =
+                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
+                cbc = st.number_input("WBC Count (CBC)", 1000, 20000, 7000)
+            with c2:
+                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
+                urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
+                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+            if st.form_submit_button("Save Records"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
+                st.success("Record Saved!")
+
+    elif m == "Diet Plans":
+        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
+        if "Pregnant" in st.session_state.stat:
+            st.header(f"🤰 Detailed {pref} Pregnancy Diet")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** 5 Soaked Almonds + Warm Milk.\n**Breakfast:** Veggie Poha OR Moong Dal Chilla.\n**Mid-Morning:** 1 Fruit + Coconut Water.\n**Lunch:** 2 Roti + Dal + Green Veggie + Salad.\n**Dinner:** 2 Roti + Paneer Bhurji + Warm Milk.")
+            else:
+                st.write("**Early Morning:** 1 Boiled Egg + 5 Soaked Almonds.\n**Breakfast:** Egg Omelet OR Chicken Keema Paratha.\n**Lunch:** 2 Roti + Chicken/Fish Curry + Spinach + Salad.\n**Dinner:** Grilled Fish OR Egg Curry + 1 Roti.")
+
+        elif "PCOS" in st.session_state.stat:
+            st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** Cinnamon Water.\n**Breakfast:** Besan Chilla with added vegetables.\n**Mid-Morning:** 1 Fruit.\n**Lunch:** 2 Missi Roti + Dal + Curd + Salad.\n**Dinner:** Soya Chunks Curry OR Tofu Stir-fry.")
+            else:
+                st.write("**Early Morning:** Lemon water.\n**Breakfast:** 2 Egg White Omelet with Mushrooms.\n**Lunch:** Grilled Chicken + Brown Rice + Salad.\n**Dinner:** Baked Fish OR Chicken Salad.")
+
+    elif m == "Exercise & Yoga":
+        if "Lactating" in st.session_state.stat:
+            st.header("🧘 Detailed Postpartum Recovery Exercise")
+            st.write("**Weeks 0–6 (Immediate):** Walking (5-30 mins), Pelvic Floor (Kegels - 3 sets of 10), Diaphragmatic Breathing, and Pelvic Tilts.")
+            st.write("**Weeks 6–12 (Post-Checkup):** Low-Impact Cardio (Swimming, Cycling), Bodyweight Strength (Squats, Lunges, Planks), and Yoga/Pilates.")
+            st.write("**After 12 Weeks:** Slowly reintroduce jogging or light weights once core is stable.")
+            st.info("**Safety Tips:** Exercise immediately AFTER breastfeeding. Drink water before, during, and after. Use a high-impact sports bra. Rinse breasts after sweating. Avoid maximal intensity to prevent lactic acid buildup.")
+        elif "Pregnant" in st.session_state.stat:
+            st.header("🧘 Trimester-Wise Pregnancy Exercise")
+            st.write("**1st Tri:** Gentle walking and Pelvic stretches.\n**2nd Tri:** Wall squats and Cat-cow pose.\n**3rd Tri:** Butterfly stretch and Birthing ball exercises.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("**Daily:** 45 min Brisk walking.\n**Strength:** Bodyweight squats and Planks.\n**Yoga:** Surya Namaskar for hormonal balance.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure")
+            pls = st.number_input("Pulse Rate", 40, 200, 72)
+        if st.button("Save Vitals"):
+            st.success("Vitals saved.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV"])
+        v_date = st.date_input("Date Administered")
+        if st.button("Log Vaccine"):
+            st.success(f"Logged {v_name} for {v_date}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment")
+        dt = st.date_input("Select Date", min_value=date.today())
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("Clinic Closed.")
+        else:
+            tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "06:00 PM"])
+            if st.button("Confirm"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success("Booked!")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        for b in st.session_state.broadcasts:
+            st.video(b['url'])
+            st.write(b['desc'])

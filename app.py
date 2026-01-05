@@ -140,4 +140,33 @@ elif st.session_state.get('role') == "P":
                 sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
                 urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
                 pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-            if st.form_submit_
+            if st.form_submit_button("Save Records"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
+                st.success("Record Saved!")
+
+    elif m == "Diet Plans":
+        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
+        if "Pregnant" in st.session_state.stat:
+            st.header(f"🤰 Detailed {pref} Pregnancy Diet")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** 5 Soaked Almonds + Warm Milk.\n**Breakfast:** Veggie Poha OR Moong Dal Chilla.\n**Mid-Morning:** 1 Fruit + Coconut Water.\n**Lunch:** 2 Roti + Dal + Green Veggie + Salad.\n**Dinner:** 2 Roti + Paneer Bhurji + Warm Milk.")
+            else:
+                st.write("**Early Morning:** 1 Boiled Egg + 5 Soaked Almonds.\n**Breakfast:** Egg Omelet OR Chicken Keema Paratha.\n**Lunch:** 2 Roti + Chicken/Fish Curry + Spinach + Salad.\n**Dinner:** Grilled Fish OR Egg Curry + 1 Roti.")
+
+        elif "PCOS" in st.session_state.stat:
+            st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** Cinnamon Water.\n**Breakfast:** Besan Chilla with added vegetables.\n**Mid-Morning:** 1 Fruit.\n**Lunch:** 2 Missi Roti + Dal + Curd + Salad.\n**Dinner:** Soya Chunks Curry OR Tofu Stir-fry.")
+            else:
+                st.write("**Early Morning:** Lemon water.\n**Breakfast:** 2 Egg White Omelet with Mushrooms.\n**Lunch:** Grilled Chicken + Brown Rice + Salad.\n**Dinner:** Baked Fish OR Chicken Salad.")
+
+        elif "Lactating" in st.session_state.stat:
+            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** Warm water with soaked fenugreek seeds or cumin water.")
+                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa OR Methi paratha with curd.")
+                st.write("**Mid-Morning:** 1 seasonal fruit (papaya/pomegranate) + soaked almonds and dates.")
+                st.write("**Lunch:** 2–3 Whole wheat rotis + 1 bowl Dal + Green leafy vegetable + 1 cup Curd + Salad.")
+                st.write("**Evening Snack:** Roasted Makhana OR Paneer tikka OR 1 Methi/Gond ladoo with milk.")
+                st.write("**Dinner:** Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.")
+                st.write("**

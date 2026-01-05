@@ -107,19 +107,4 @@ else:
         m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Vaccine Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
         
         if m == "Tracker & Calculator":
-            if "Pregnant" in st.session_state.stat:
-                st.header("👶 Pregnancy & Baby Tracker")
-                lmp = st.date_input("Select LMP (Last Menstrual Period)", value=date.today() - timedelta(days=30))
-                edd = lmp + timedelta(days=280)
-                diff = date.today() - lmp
-                weeks, days = diff.days // 7, diff.days % 7
-                st.success(f"🗓️ **Expected Delivery Date (EDD):** {edd.strftime('%d %B %Y')}")
-                st.info(f"⏳ **Current Stage:** {weeks} Weeks and {days} Days")
-                
-                st.divider()
-                st.subheader("📖 Week-by-Week Baby Development")
-                if weeks <= 4: st.write("🌱 **Week 1-4 (The Seed):** Baby is a tiny ball of cells the size of a **poppy seed**.")
-                elif weeks <= 5: st.write("💓 **Week 5 (The Heartbeat):** Size of a **sesame seed**. Tiny heart begins to pulse.")
-                elif weeks <= 7: st.write("🫐 **Week 7 (Face Forming):** Size of a **blueberry**. Face and nostrils take shape.")
-                elif weeks <= 12: st.write("🍋 **Week 12 (Reflexes):** Size of a **lime**. Baby can open/close fists.")
-                elif weeks <= 20: st.write("🍌 **Week
+            if "Pregnant" in st.session_

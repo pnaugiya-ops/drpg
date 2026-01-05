@@ -166,7 +166,65 @@ elif st.session_state.get('role') == "P":
                 st.write("**Early Morning:** Warm water with soaked fenugreek seeds or cumin water.")
                 st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa OR Methi paratha with curd.")
                 st.write("**Mid-Morning:** 1 seasonal fruit (papaya/pomegranate) + soaked almonds and dates.")
-                st.write("**Lunch:** 2–3 Whole wheat rotis + 1 bowl Dal + Green leafy vegetable + 1 cup Curd + Salad.")
+                st.write("**Lunch:** 2-3 Whole wheat rotis + 1 bowl Dal + Green leafy vegetable + 1 cup Curd + Salad.")
                 st.write("**Evening Snack:** Roasted Makhana OR Paneer tikka OR 1 Methi/Gond ladoo with milk.")
                 st.write("**Dinner:** Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.")
-                st.write("**
+                st.write("**Before Bed:** Warm milk with turmeric and saffron.")
+            else:
+                st.write("**Early Morning:** Fenugreek water OR Milk with soaked almonds.")
+                st.write("**Breakfast:** 2 Scrambled/Boiled eggs with toast OR Oats porridge with seeds.")
+                st.write("**Mid-Morning:** Fruit salad OR 1 bowl of sprouted moong chaat.")
+                st.write("**Lunch:** 2-3 Rotis or brown rice + Grilled Chicken or Fish + 1 bowl Spinach + Salad.")
+                st.write("**Evening Snack:** Chicken/Lentil soup OR Handful of walnuts and raisins OR 1 Methi ladoo.")
+                st.write("**Dinner:** 2 Rotis + Fish curry (low mercury) OR Lean meat stir-fry.")
+                st.write("**Before Bed:** Warm milk with turmeric or fennel tea.")
+
+    elif m == "Exercise & Yoga":
+        if "Lactating" in st.session_state.stat:
+            st.header("🧘 Detailed Postpartum Recovery Exercise")
+            st.write("**Weeks 0–6 (Immediate):** Walking (5-30 mins), Pelvic Floor (Kegels - 3 sets of 10), Diaphragmatic Breathing, and Pelvic Tilts.")
+            st.write("**Weeks 6–12 (Post-Checkup):** Low-Impact Cardio (Swimming, Cycling), Bodyweight Strength (Squats, Lunges, Planks), and Yoga/Pilates.")
+            st.write("**After 12 Weeks:** Slowly reintroduce jogging or light weights once core is stable.")
+            st.info("**Safety Tips:** Exercise immediately AFTER breastfeeding. Drink water before, during, and after. Use a high-impact sports bra. Rinse breasts after sweating. Avoid maximal intensity to prevent lactic acid buildup.")
+        elif "Pregnant" in st.session_state.stat:
+            st.header("🧘 Trimester-Wise Pregnancy Exercise")
+            st.write("**1st Tri:** Gentle walking and Pelvic stretches.\n**2nd Tri:** Wall squats and Cat-cow pose.\n**3rd Tri:** Butterfly stretch and Birthing ball exercises.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("**Daily:** 45 min Brisk walking.\n**Strength:** Bodyweight squats and Planks.\n**Yoga:** Surya Namaskar for hormonal balance.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure")
+            pls = st.number_input("Pulse Rate", 40, 200, 72)
+        if st.button("Save Vitals"):
+            st.success("Vitals saved.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV"])
+        v_date = st.date_input("Date Administered")
+        if st.button("Log Vaccine"):
+            st.success(f"Logged {v_name} for {v_date}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment")
+        dt = st.date_input("Select Date", min_value=date.today())
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("Clinic Closed.")
+        else:
+            tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "06:00 PM"])
+            if st.button("Confirm"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success("Booked!")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        for b in st.session_state.broadcasts:
+            st.video(b['url'])
+            st.write(b['desc'])

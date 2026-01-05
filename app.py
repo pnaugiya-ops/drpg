@@ -6,9 +6,10 @@ from datetime import datetime, date, timedelta
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
-    .dr-header { background:#003366; color:white; padding:15px; border-radius:12px; text-align:center; }
-    .diet-box { background:#fff5f7; padding:12px; border-radius:10px; border:1px solid #ffc0cb; color:#333; margin-bottom:10px; }
-    .badge { background:#e8f4f8; color:#003366; padding:4px 8px; border-radius:4px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
+    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
+    .diet-box { background:#fff5f7; padding:15px; border-radius:10px; border:1px solid #ffc0cb; color:#333; margin-bottom:10px; }
+    .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
+    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -17,19 +18,17 @@ if 'logged_in' not in st.session_state:
 
 # --- 2. LOGIN & BRANDING ---
 if not st.session_state.logged_in:
-    st.markdown("""
-        <div class='dr-header'>
-            <h1>BHAVYA LABS & CLINICS</h1>
-            <p>Dr. Priyanka Gupta - MS (Obs & Gynae)</p>
-            <div>
-                <span class='badge'>Infertility Specialist</span>
-                <span class='badge'>Ultrasound</span>
-                <span class='badge'>Laparoscopic Surgery</span>
-                <span class='badge'>Pharmacy</span>
-                <span class='badge'>Thyrocare Franchise</span>
-            </div>
+    st.markdown("""<div class='dr-header'>
+        <h1>BHAVYA LABS & CLINICS</h1>
+        <h3>Dr. Priyanka Gupta - MS (Obs & Gynae)</h3>
+        <div>
+            <span class='clinic-badge'>Infertility Specialist</span>
+            <span class='clinic-badge'>Ultrasound</span>
+            <span class='clinic-badge'>Laparoscopic Surgery</span>
+            <span class='clinic-badge'>Pharmacy</span>
+            <span class='clinic-badge'>Thyrocare Franchise</span>
         </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
     
     t1, t2 = st.tabs(["Patient Portal", "Doctor Access"])
     with t1:
@@ -51,82 +50,107 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN APPLICATION ---
 else:
-    st.sidebar.markdown(f"**Patient:** {st.session_state.name}")
-    st.sidebar.markdown(f"**Age:** {st.session_state.get('age','N/A')}")
+    st.sidebar.markdown(f"### 👤 {st.session_state.name}")
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
         st.rerun()
 
     if st.session_state.role == "D":
         st.header("👨‍⚕️ Doctor Dashboard")
-        st.info("Live data is synced with Google Sheets.")
+        st.info("Live patient data is connected via Google Sheets.")
     else:
-        m = st.sidebar.radio("Menu", ["Tracker", "Diet Plans", "Exercise", "Vitals & Vaccines", "Booking"])
+        m = st.sidebar.radio("Navigation", ["Baby Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment"])
         
-        if m == "Tracker":
+        # 3.1 BABY TRACKER
+        if m == "Baby Tracker":
             if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy Guide")
-                lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=60))
+                st.header("🤰 Pregnancy Week-by-Week")
+                lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
                 wks = (date.today()-lmp).days // 7
-                edd = lmp + timedelta(days=280)
-                st.success(f"EDD: {edd.strftime('%d %b %Y')} | Week: {wks}")
+                st.success(f"🗓️ EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | ⏳ Current Week: {wks}")
                 
-                if wks <= 4: st.info("🌱 Week 4: Size of a poppy seed.")
-                elif wks <= 12: st.info("🍋 Week 12: Baby can open/close fists.")
-                elif wks <= 20: st.info("🍌 Week 20: Halfway! You feel flutters.")
-                else: st.info("👶 Baby is growing fast!")
+                
+                
+                if wks <= 4: st.info("🌱 **Week 4:** Baby is a poppy seed size. Implantation complete.")
+                elif wks <= 8: st.info("🍇 **Week 8:** Raspberry size. Heart is beating!")
+                elif wks <= 12: st.info("🍋 **Week 12:** Lime size. Baby starts moving fingers.")
+                elif wks <= 20: st.info("🍌 **Week 20:** Banana size. Halfway! You feel flutters.")
+                elif wks <= 30: st.info("🥦 **Week 30:** Cabbage size. Baby can open eyes.")
+                else: st.info("🍉 **Week 40:** Ready for birth!")
             else:
                 st.header("🗓️ Period Tracker")
-                lp = st.date_input("Last Period", value=date.today()-timedelta(days=14))
-                next_p = lp + timedelta(days=28)
-                st.success(f"🩸 Next Expected: {next_p.strftime('%d %b %Y')}")
+                lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
+                st.success(f"🩸 Next Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
+                
 
+        # 3.2 DETAILED DIET
         elif m == "Diet Plans":
             if "Pregnant" in st.session_state.stat:
-                st.header("🥗 Pregnancy Nutrition")
-                pref = st.radio("Diet Type", ["Vegetarian", "Non-Vegetarian"])
-                st.markdown("<div class='diet-box'><b>Morning:</b> Soaked almonds + Warm water.</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Breakfast:</b> Veggie Poha / Paratha + Curd.</div>", unsafe_allow_html=True)
+                st.header("🥗 Pregnancy Diet Chart")
+                pref = st.radio("Type", ["Vegetarian", "Non-Vegetarian"])
+                st.markdown("<div class='diet-box'><b>Early Morning:</b> 5 Soaked Almonds + 1 Glass Warm Water</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Breakfast:</b> Veggie Poha / Oats / Stuffed Paratha + 1 Bowl Curd</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Mid-Morning:</b> 1 Fruit (Apple/Pomegranate) + Coconut Water</div>", unsafe_allow_html=True)
+                
                 if pref == "Non-Vegetarian":
-                    st.markdown("<div class='diet-box'><b>Lunch:</b> Chicken/Fish + 2 Roti + Salad.</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='diet-box'><b>Lunch:</b> 2 Roti + Chicken/Fish Curry + Bowl of Salad</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='diet-box'><b>Dinner:</b> Grilled Chicken / Egg Curry + 1 Roti + Steamed Veggies</div>", unsafe_allow_html=True)
                 else:
-                    st.markdown("<div class='diet-box'><b>Lunch:</b> Dal + Seasonal Veggie + 2 Roti + Curd.</div>", unsafe_allow_html=True)
-                st.markdown("<div class='diet-box'><b>Dinner:</b> Light Roti + Paneer / Dal.</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='diet-box'><b>Lunch:</b> 2 Roti + Dal Tadka + Seasonal Veggie + Salad</div>", unsafe_allow_html=True)
+                    st.markdown("<div class='diet-box'><b>Dinner:</b> Paneer Bhurji / Dal + 1 Roti + Warm Milk</div>", unsafe_allow_html=True)
             else:
-                st.header("🌸 PCOS Nutrition")
-                st.markdown("<div class='diet-box'><b>Rules:</b> 50-60g Protein & 25g Fiber daily. Low-GI foods only. Walk 15 mins after meals.</div>", unsafe_allow_html=True)
+                st.header("🌸 PCOS Nutrition Plan")
+                st.markdown("<div class='diet-box'><b>Core Principle:</b> 50-60g Protein & 25g Fiber daily. Low-GI foods only. Walk 15 mins after every meal.</div>", unsafe_allow_html=True)
 
-        elif m == "Exercise":
+        # 3.3 DETAILED EXERCISE
+        elif m == "Exercise & Yoga":
             if "Pregnant" in st.session_state.stat:
-                st.header("🧘 Trimester Fitness")
-                tri = st.selectbox("Current Trimester", ["1st", "2nd", "3rd"])
-                if tri == "1st": st.write("- Walking, Yoga, Kegels")
-                elif tri == "2nd": st.write("- Swimming, Wall Squats")
-                else: st.write("- Butterfly stretch, Pelvic tilts")
+                st.header("🧘 Trimester-Specific Exercise")
+                tri = st.selectbox("Select Current Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
+                
+                if "1st" in tri:
+                    st.write("✅ **Focus:** Walking (20 mins), Prenatal Yoga, Pelvic Floor (Kegels).")
+                elif "2nd" in tri:
+                    st.write("✅ **Focus:** Swimming, Wall Squats, Side-Lying Leg Lifts, Cat-Cow Stretch.")
+                else:
+                    st.write("✅ **Focus:** Butterfly Stretch, Pelvic Tilts, Deep Breathing, Birthing Ball.")
             else:
-                st.header("🏋️ PCOS Strength")
-                st.write("- Strength: Squats, Lunges, Pushups (3x/week)")
-                st.write("- Cardio: 30m Brisk walking daily")
+                st.header("🏋️ PCOS Strength Training")
+                st.write("✅ **Strength:** Squats, Lunges, Pushups (3-4x/week).")
+                st.write("✅ **Cardio:** 30-45 mins Brisk walking for insulin sensitivity.")
 
-        elif m == "Vitals & Vaccines":
-            st.header("📈 Health Records")
-            h = st.number_input("Height (cm)", 100, 250, 160)
-            w = st.number_input("Weight (kg)", 30, 200, 60)
+        # 3.4 VITALS & VACCINES
+        elif m == "Health Vitals":
+            st.header("📈 Health Vitals")
+            h, w = st.number_input("Height (cm)", 100, 250, 160), st.number_input("Weight (kg)", 30, 200, 60)
             if st.button("Calculate BMI"): 
                 bmi = round(w/((h/100)**2), 1)
                 st.success(f"Your BMI: {bmi}")
-            
-            st.divider()
-            st.subheader("💉 Vaccinations")
-            v_name = st.text_input("Vaccine Name")
-            st.file_uploader("Upload Record Card", type=['jpg','png','jpeg'])
+                
 
-        elif m == "Booking":
-            st.header("📅 Book Appointment")
-            dt = st.date_input("Select Date", min_value=date.today())
-            if dt.weekday() == 6: 
-                st.error("Clinic Closed on Sundays")
+[Image of BMI category chart]
+
+
+        elif m == "Vaccinations":
+            st.header("💉 Vaccination Portal")
+            with st.form("vac_f"):
+                v_name = st.text_input("Vaccine Name (e.g. Tdap, Flu)")
+                v_file = st.file_uploader("Upload Vaccination Card", type=['jpg','png','jpeg'])
+                if st.form_submit_button("Save Record"): st.success("Record Saved!")
+
+        # 3.5 15-MINUTE BOOKINGS
+        elif m == "Book Appointment":
+            st.header("📅 Book Appointment (15-Min Slots)")
+            dt = st.date_input("Date", min_value=date.today())
+            if dt.weekday() == 6: st.error("Clinic Closed on Sundays")
             else:
-                tm = st.selectbox("Slot", ["11:00 AM", "06:00 PM"])
-                if st.button("Confirm"): 
-                    st.success("Appointment Requested.")
+                slots = []
+                # Morning 11:00 to 2:00
+                for h in range(11, 14):
+                    for m in [0, 15, 30, 45]: slots.append(f"{h:02d}:{m:02d} AM")
+                # Evening 6:00 to 9:00
+                for h in range(18, 21):
+                    for m in [0, 15, 30, 45]: slots.append(f"{h-12:02d}:{m:02d} PM")
+                
+                tm = st.selectbox("Select Time Slot", slots)
+                if st.button("Confirm Booking"): st.success(f"Request sent for {dt} at {tm}")

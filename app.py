@@ -2,8 +2,6 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime, date, timedelta
-import base64, io
-from PIL import Image
 
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
@@ -21,37 +19,28 @@ st.markdown("""
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
-    st.error("Database Connection Error. Please check secrets.")
+    st.error("Database Connection Error. Please verify secrets.toml.")
 
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 
-# --- 2. LOGIN & CLINIC INFO ---
+# --- 2. LOGIN LOGIC ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
         <h3>Dr. Priyanka Gupta</h3>
         <p>MS (Obs & Gynae)</p>
-        <div style='margin-top:10px;'>
-            <span class='clinic-badge'>Infertility Specialist</span>
-            <span class='clinic-badge'>Ultrasound</span>
-            <span class='clinic-badge'>Laparoscopic Surgery</span>
-            <span class='clinic-badge'>Pharmacy</span>
-            <span class='clinic-badge'>Thyrocare Blood Test</span>
-        </div>
     </div>""", unsafe_allow_html=True)
     
     t1, t2 = st.tabs(["Patient Portal", "Doctor Login"])
     with t1:
         with st.form("p_login"):
             n = st.text_input("Full Name")
-            age = st.number_input("Age", 1, 100, 25)
             s = st.radio("Status", ["Pregnant", "PCOS/Gynae"])
             if st.form_submit_button("Enter Portal"):
                 if n:
-                    st.session_state.update({"logged_in":True, "name":n, "age":age, "stat":s, "role":"P"})
+                    st.session_state.update({"logged_in":True, "name":n, "stat":s, "role":"P"})
                     st.rerun()
-                else: st.warning("Please enter your name")
     with t2:
         with st.form("d_login"):
             pass_in = st.text_input("Clinic Password", type="password")
@@ -59,65 +48,78 @@ if not st.session_state.logged_in:
                 if pass_in == "clinicadmin786":
                     st.session_state.update({"logged_in":True, "role":"D", "name":"Dr. Priyanka"})
                     st.rerun()
-                else: st.error("Access Denied")
 
 # --- 3. MAIN APP ---
 else:
-    # Load Data Safely
-    try:
-        df = conn.read(ttl=0)
-        df = df.fillna('') if df is not None else pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
-    except:
-        df = pd.DataFrame(columns=["Name", "Type", "Details", "Timestamp"])
+    # Sidebar Logout Button (Always Visible)
+    if st.sidebar.button("🔓 Logout", key="logout_btn"):
+        st.session_state.logged_in = False
+        st.rerun()
 
-    # --- DOCTOR VIEW ---
     if st.session_state.role == "D":
         st.markdown("<div class='dr-header'><h1>👨‍⚕️ Doctor Dashboard</h1></div>", unsafe_allow_html=True)
-        st.sidebar.button("Logout", on_click=lambda: st.session_state.update({"logged_in": False}))
+        st.info("Check Google Sheets for the latest appointments and reports.")
         
-        search = st.text_input("🔍 Search Patient Name", "").lower()
-        t_adm = st.tabs(["📋 Appointments", "🧪 Reports", "📢 Broadcast"])
+    else: # Patient View
+        st.sidebar.markdown(f"### Welcome, {st.session_state.name}")
+        m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Book Appointment", "Vitals & BMI", "Upload Reports"])
         
-        with t_adm[0]:
-            apps = df[(df['Type'] == 'APP') & (df['Name'].str.lower().str.contains(search))]
-            for _, row in apps.sort_values(by='Timestamp', ascending=False).iterrows():
-                st.markdown(f"<div class='patient-card'><b>👤 {row['Name']}</b><br>📅 Slot: {row['Details']}</div>", unsafe_allow_html=True)
-
-    # --- PATIENT VIEW ---
-    else:
-        st.sidebar.markdown(f"### Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Tracker & Calculator", "Diet & Yoga", "Vaccine Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
-        
-        # 1. Tracker & Calculator
+        # 3.1 TRACKER & CALCULATOR
         if m == "Tracker & Calculator":
             if "Pregnant" in st.session_state.stat:
-                st.header("👶 Pregnancy Tracker")
+                st.header("🤰 Pregnancy & Baby Tracker")
                 lmp = st.date_input("Select LMP", value=date.today() - timedelta(days=30))
-                edd = lmp + timedelta(days=280)
                 weeks = (date.today() - lmp).days // 7
-                st.success(f"🗓️ **EDD:** {edd.strftime('%d %B %Y')} | ⏳ **Stage:** {weeks} Weeks")
+                st.success(f"🗓️ EDD: {(lmp + timedelta(days=280)).strftime('%d %B %Y')} | ⏳ Stage: {weeks} Weeks")
                 
-                st.divider()
-                st.subheader("📖 Week-by-Week Baby Development")
-                if weeks <= 4: st.write("🌱 **Week 4 (Poppy Seed):** Baby is a tiny ball of cells snuggling into the womb.")
-                elif weeks <= 5: st.write("💓 **Week 5 (Sesame Seed):** Heart tube begins to pulse.")
-                elif weeks <= 8: st.write("🍇 **Week 8 (Raspberry):** Fingers and toes are starting to sprout.")
-                elif weeks <= 12: st.write("🍋 **Week 12 (Lime):** Baby can open/close fists and make sucking motions.")
-                elif weeks <= 20: st.write("🍌 **Week 20 (Banana):** Halfway mark! You feel the first 'flutters'.")
-                elif weeks <= 27: st.write("🥦 **Week 27 (Cauliflower):** Baby begins to develop a sleep/wake schedule.")
-                elif weeks >= 38: st.write("🍉 **Week 40 (Watermelon):** Full term! Ready for birth.")
-                else: st.write("👶 Baby is growing fast and getting stronger every day.")
+                st.subheader("📖 Week-by-Week Development")
+                if weeks <= 4: 
+                    st.info("🌱 **Week 4 (Poppy Seed):** Baby is a tiny ball of cells snuggling into the womb.")
+                elif weeks <= 8:
+                    st.info("🍇 **Week 8 (Raspberry):** Fingers and toes are starting to sprout.")
+                elif weeks <= 12:
+                    st.info("🍋 **Week 12 (Lime):** Baby can open/close fists and make sucking motions.")
+                elif weeks <= 20:
+                    st.info("🍌 **Week 20 (Banana):** Halfway mark! You will feel the first flutters.")
+                elif weeks >= 38:
+                    st.info("🍉 **Week 40 (Watermelon):** Full term! Ready for the world.")
+                else:
+                    st.info("👶 Baby is growing fast, developing senses, and practicing breathing.")
                 
             else:
-                st.header("🗓️ Period Tracker")
+                st.header("🗓️ Menstrual Cycle Tracker")
                 lp = st.date_input("Last Period Start", value=date.today() - timedelta(days=28))
-                st.success(f"🩸 **Next Period:** {(lp + timedelta(days=28)).strftime('%d %b %Y')}")
+                st.success(f"🩸 Next Period Expected: {(lp + timedelta(days=28)).strftime('%d %B %Y')}")
                 
 
-        # 2. Diet & Yoga (Data from your exact documents)
+        # 3.2 DIET & YOGA (Fixed and Restored)
         elif m == "Diet & Yoga":
             if "Pregnant" in st.session_state.stat:
                 st.header("🤰 Pregnancy Wellness Hub")
-                t1, t2 = st.tabs(["🥗 Nutrition", "🧘 Exercises"])
-                with t1:
-                    tri = st.selectbox("Select Trimester
+                d_tab, e_tab = st.tabs(["🥗 Nutrition Plan", "🧘 Trimester Exercises"])
+                with d_tab:
+                    tri = st.selectbox("Select Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
+                    if "1st" in tri:
+                        st.markdown("""<div class='diet-box'><b>Focus: Folic Acid.</b><br>
+                        - Early Morning: Warm water + 5 almonds.<br>
+                        - Breakfast: Veggie Poha + Milk.<br>
+                        - Lunch: 2 Rotis + Spinach Dal + Curd.</div>""", unsafe_allow_html=True)
+                    elif "2nd" in tri:
+                        st.markdown("""<div class='diet-box'><b>Focus: Calcium & Iron.</b><br>
+                        - Breakfast: Multigrain paratha + Curd.<br>
+                        - Lunch: Brown rice + Dal + Sautéed Veggies.<br>
+                        - Dinner: Paneer curry + Chapati.</div>""", unsafe_allow_html=True)
+                    else:
+                        st.markdown("""<div class='diet-box'><b>Focus: High Fiber.</b><br>
+                        - Breakfast: Besan Chilla or Oats.<br>
+                        - Lunch: Millet Khichdi + Dal + Salad.<br>
+                        - Dinner: Chapati + Rajma/Chole + Vegetable Sabzi.</div>""", unsafe_allow_html=True)
+                with e_tab:
+                    st.write("**1st Tri:** Walking, Prenatal Yoga, Kegels.")
+                    st.write("**2nd Tri:** Swimming, Wall Squats, Side-Lying Leg Lifts.")
+                    st.write("**3rd Tri:** Butterfly Stretch, Pelvic Tilts, Birthing Ball.")
+                    
+            else:
+                st.header("🌸 PCOS Wellness Hub")
+                st.markdown("""<div class='diet-box'><b>PCOS Principles:</b> 50-60g Protein, 25g Fiber daily.<br>
+                <b>Strength Training:</b> Squats, Lunges, Push-ups (3-4x

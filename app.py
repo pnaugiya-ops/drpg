@@ -130,100 +130,68 @@ else:
 
     else: # Patient View
         st.sidebar.markdown(f"### Hello, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Diet & Yoga", "Vaccine & Screening Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
+        m = st.sidebar.radio("Menu", ["Baby Tracker & Calculator", "Diet & Yoga", "Vaccine & Screening Portal", "Vitals & BMI", "Upload Reports", "Book Appointment"])
         
-        if m == "Diet & Yoga":
+        # --- RESTORED PREGNANCY CALCULATOR & NEW BABY TRACKER ---
+        if m == "Baby Tracker & Calculator":
+            if "Pregnant" in st.session_state.stat:
+                st.header("👶 Pregnancy Tracker & Calculator")
+                lmp = st.date_input("Select Last Menstrual Period (LMP)", value=date.today() - timedelta(days=30))
+                if lmp:
+                    edd = lmp + timedelta(days=280)
+                    today = date.today()
+                    diff = today - lmp
+                    weeks = diff.days // 7
+                    days = diff.days % 7
+                    st.success(f"🗓️ **Estimated Delivery Date (EDD):** {edd.strftime('%d %B %Y')}")
+                    st.info(f"⏳ **Current Pregnancy Stage:** {weeks} Weeks and {days} Days")
+                    
+                    st.divider()
+                    st.subheader("📖 Week-by-Week Baby Development")
+                    # Week-by-Week Data Integration
+                    if weeks <= 4: st.write("🌱 **Week 1–4 (The Seed):** The baby is a tiny ball of cells the size of a **poppy seed**.")
+                    elif weeks <= 5: st.write("💓 **Week 5 (The Heartbeat):** Size of a **sesame seed**. The brain, spine, and heart start forming.")
+                    elif weeks <= 6: st.write("🎋 **Week 6 (Little Buds):** Size of a **lentil**. Tiny buds appear that will become arms and legs.")
+                    elif weeks <= 7: st.write("🫐 **Week 7 (Face Forming):** Size of a **blueberry**. The face, eyes, and nostrils start to take shape.")
+                    elif weeks <= 8: st.write("🍇 **Week 8 (Moving Around):** Size of a **raspberry**. Fingers and toes are sprouting.")
+                    elif weeks <= 12: st.write("🍋 **Week 11–12 (Reflexes):** Size of a **lime**. Baby can open/close fists and make sucking motions.")
+                    elif weeks <= 15: st.write("🍎 **Week 13–15 (Active Flipping):** Size of an **apple**. Baby is active, flipping and rolling in fluid.")
+                    elif weeks <= 18: st.write("🫑 **Week 16–18 (Hearing Sounds):** Size of a **bell pepper**. Baby can hear your voice.")
+                    elif weeks <= 20: st.write("🍌 **Week 19–20 (The Halfway Mark):** Size of a **banana**. You may feel first flutters.")
+                    elif weeks <= 23: st.write("🍊 **Week 21–23 (Developing Senses):** Size of a **grapefruit**. Baby can taste amniotic fluid.")
+                    elif weeks <= 27: st.write("🥦 **Week 24–27 (Opening Eyes):** Size of **cauliflower**. Baby begins regular sleep/wake schedule.")
+                    elif weeks <= 31: st.write("🥥 **Week 28–31 (Getting Smart):** Size of a **coconut**. Brain is growing fast.")
+                    elif weeks <= 34: st.write("🍈 **Week 32–34 (Filling Out):** Size of a **cantaloupe**. Baby is putting on fat.")
+                    elif weeks <= 40: st.write("🍉 **Week 38–40 (Full Term):** Size of a **watermelon**. Baby is ready for the world.")
+
+            else:
+                # --- RESTORED MENSTRUAL CYCLE CALCULATOR ---
+                st.header("🗓️ Period & Cycle Tracker")
+                last_p = st.date_input("Last Period Start Date", value=date.today() - timedelta(days=28))
+                cycle_len = st.slider("Average Cycle Length (Days)", 21, 45, 28)
+                if last_p:
+                    next_p = last_p + timedelta(days=cycle_len)
+                    ovulation = last_p + timedelta(days=cycle_len - 14)
+                    st.success(f"🩸 **Next Expected Period:** {next_p.strftime('%d %B %Y')}")
+                    st.warning(f"🥚 **Estimated Ovulation Window:** Around {ovulation.strftime('%d %B %Y')}")
+
+        elif m == "Diet & Yoga":
             if "Pregnant" in st.session_state.stat:
                 st.header("🤰 Pregnancy Wellness Hub")
                 tab_diet, tab_exercise = st.tabs(["🥗 Nutrition Plan", "🧘 Trimester Exercises"])
                 with tab_diet:
                     st.markdown("""<div class='diet-box'>
-                    <b>General Safety:</b><br>
                     - 🥛 <b>Milk:</b> 3–4 servings daily.<br>
-                    - 💧 <b>Hydration:</b> 2.5–3 Liters of water daily.<br>
+                    - 💧 <b>Hydration:</b> 2.5–3 Liters water daily.<br>
                     - ☕ <b>Caffeine:</b> Limit to < 200mg/day.
                     </div>""", unsafe_allow_html=True)
                     tri = st.selectbox("Select Trimester (Nutrition)", ["1st Trimester (Weeks 1-12)", "2nd Trimester (Weeks 13-26)", "3rd Trimester (Weeks 27-40)"])
                     if "1st" in tri:
-                        st.success("**Focus:** Folic acid & B6.")
-                        st.write("**Early Morning:** Warm water + 4–5 soaked almonds.")
                         st.write("**Breakfast:** Veggie Poha/Upma + milk OR Whole grain toast + 2 eggs.")
                     elif "2nd" in tri:
-                        st.success("**Focus:** Calcium & Iron.")
-                        st.write("**Breakfast:** Veg paratha + curd OR Oats porridge.")
                         st.write("**Lunch:** Brown rice + dal + mixed veggies OR Chicken curry.")
                     elif "3rd" in tri:
-                        st.success("**Focus:** High Fiber & Healthy Fats.")
-                        st.write("**Breakfast:** Besan chilla + mint chutney OR Oats + 2 eggs.")
                         st.write("**Lunch:** Millet khichdi + dal + salad OR Grilled salmon + rice.")
                 with tab_exercise:
                     tri_ex = st.selectbox("Select Trimester (Exercises)", ["1st Trimester: Gentle Adaptation", "2nd Trimester: Building Strength", "3rd Trimester: Mobility & Labor Prep"])
-                    if "1st" in tri_ex:
-                        st.write("- **Walking:** Low-impact cardio.\n- **Prenatal Yoga:** Flexibility.\n- **Kegels:** Pelvic floor strength.")
-                    elif "2nd" in tri_ex:
-                        st.write("- **Swimming:** Joint pressure relief.\n- **Stationary Cycling:** Fall safety.\n- **Wall Squats:** Delivery prep.")
-                    elif "3rd" in tri_ex:
-                        st.write("- **Butterfly Stretch:** Hip opening.\n- **Deep Squats:** Labor prep.\n- **Diaphragmatic Breathing:** Pain management.")
-            else:
-                st.header("🌸 PCOS Wellness Hub")
-                tab_pcos_diet, tab_pcos_exercise = st.tabs(["🥗 Nutrition Plan", "🏋️ Exercise Routine"])
-                with tab_pcos_diet:
-                    st.markdown("""<div class='diet-box'>
-                    - <b>Protein:</b> 50–60g daily. <b>Fiber:</b> >25g daily.<br>
-                    - <b>Dairy:</b> 1–2 servings (Limit full-fat).<br>
-                    - <b>Avoid:</b> Maida, Sugary sodas, Fried/Processed meats.
-                    </div>""", unsafe_allow_html=True)
-                    p_type = st.radio("Diet Type", ["Vegetarian", "Non-Vegetarian"])
-                    if p_type == "Vegetarian":
-                        st.info("**Breakfast:** Moong dal chilla. **Lunch:** Jowar rotis + veg + dal.")
-                    else:
-                        st.info("**Breakfast:** 2 Boiled egg whites + toast. **Lunch:** Grilled chicken + brown rice.")
-                with tab_pcos_exercise:
-                    st.markdown("""<div class='diet-box'>
-                    <b>💪 Strength Training (3–4x/week):</b> Focus on Squats, Lunges, Push-ups, and Glute Bridges (3 sets of 12-15 reps).<br>
-                    <b>🏃 Strategic Cardio:</b> 30–45 min brisk walking (LISS). Limit HIIT to 2 sessions per week.<br>
-                    <b>🧘 Mind-Body:</b> Child's Pose, Cobra, and Butterfly Stretch to lower cortisol.
-                    </div>""", unsafe_allow_html=True)
-                    st.subheader("🗓️ Weekly PCOS Schedule")
-                    st.write("- **Mon:** 45m Walk + Core\n- **Tue/Fri:** Strength Training\n- **Wed:** Gentle Yoga\n- **Thu:** Short HIIT/Cycling\n- **Sat:** Fun Cardio (Zumba)\n- **Sun:** Nature Walk")
-
-        elif m == "Vaccine & Screening Portal":
-            st.header("💉 Preventive Care")
-            if "Pregnant" in st.session_state.stat:
-                st.info("**Maternal Vaccines:** Tetanus (TT), T-Dap (Weeks 27-36), and Seasonal Flu shots.")
-            else:
-                st.info("**Gynae Wellness:** HPV Vaccine (3 doses) and Pap Smear screening (Every 3 years).")
-
-        elif m == "Vitals & BMI":
-            with st.form("v_form"):
-                hi = st.number_input("Height (cm)", 100, 250, 160); wi = st.number_input("Weight (kg)", 30, 200, 60)
-                bp = st.text_input("BP Reading", "120/80")
-                if st.form_submit_button("Save"):
-                    bmi = round(wi / ((hi/100)**2), 1)
-                    new = pd.DataFrame([{"Name":st.session_state.name,"Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}","Timestamp":datetime.now()}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
-
-        elif m == "Book Appointment":
-            st.write("🕒 **Hours:** 11:00 AM - 02:00 PM & 06:00 PM - 08:00 PM")
-            sel_dt = st.date_input("Date", min_value=date.today())
-            if str(sel_dt) in blocked_dates or sel_dt.weekday() == 6: st.error("Clinic Closed")
-            else:
-                with st.form("b_form"):
-                    morning = [f"{h}:{m:02d} AM" for h in range(11, 14) for m in [0, 15, 30, 45]]
-                    evening = [f"{h}:{m:02d} PM" for h in [6, 7] for m in [0, 15, 30, 45]]
-                    tm = st.selectbox("Slot", morning + evening)
-                    if st.form_submit_button("Book"):
-                        new = pd.DataFrame([{"Name":st.session_state.name,"Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now()}])
-                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Confirmed!")
-
-        elif m == "Upload Reports":
-            with st.form("u_form"):
-                f = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg']); n = st.text_input("Note")
-                if st.form_submit_button("Send"):
-                    b64 = process_img(f)
-                    new = pd.DataFrame([{"Name":st.session_state.name,"Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now()}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Sent!")
-
-        if st.sidebar.button("Logout", key="pt_logout"): 
-            st.session_state.logged_in = False
-            st.rerun()
+                    if "1st" in tri_ex: st.write("- Walking\n- Prenatal Yoga

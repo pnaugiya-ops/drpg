@@ -1,103 +1,104 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 from datetime import datetime, date, timedelta
 
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
-    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
+    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; }
     .diet-box { background:#fff5f7; padding:15px; border-radius:10px; border:1px solid #ffc0cb; color:#333; margin-bottom:10px; }
-    .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
-    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; }
+    .badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     </style>
     """, unsafe_allow_html=True)
 
-if 'logged_in' not in st.session_state: 
-    st.session_state.logged_in = False
+if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
-# --- 2. LOGIN & BRANDING ---
+# --- 2. LOGIN ---
 if not st.session_state.logged_in:
-    st.markdown("""<div class='dr-header'>
-        <h1>BHAVYA LABS & CLINICS</h1>
-        <h3>Dr. Priyanka Gupta - MS (Obs & Gynae)</h3>
-        <div>
-            <span class='clinic-badge'>Infertility Specialist</span>
-            <span class='clinic-badge'>Ultrasound</span>
-            <span class='clinic-badge'>Laparoscopic Surgery</span>
-            <span class='clinic-badge'>Pharmacy</span>
-            <span class='clinic-badge'>Thyrocare Franchise</span>
-        </div>
-    </div>""", unsafe_allow_html=True)
-    
+    st.markdown("""<div class='dr-header'><h1>BHAVYA LABS & CLINICS</h1><p>Dr. Priyanka Gupta - MS (Obs & Gynae)</p>
+    <div><span class='badge'>Infertility Specialist</span><span class='badge'>Ultrasound</span><span class='badge'>Laparoscopy</span><span class='badge'>Pharmacy</span></div></div>""", unsafe_allow_html=True)
     t1, t2 = st.tabs(["Patient Portal", "Doctor Access"])
     with t1:
         with st.form("p_login"):
-            n = st.text_input("Full Name")
+            n = st.text_input("Name")
             a = st.number_input("Age", 18, 100, 25)
             s = st.radio("Status", ["Pregnant", "PCOS/Gynae", "Lactating Mother"])
-            if st.form_submit_button("Enter Portal"):
-                if n:
-                    st.session_state.update({"logged_in":True,"name":n,"age":a,"stat":s,"role":"P"})
-                    st.rerun()
+            if st.form_submit_button("Enter"):
+                if n: st.session_state.update({"logged_in":True,"name":n,"age":a,"stat":s,"role":"P"})
+                st.rerun()
     with t2:
         with st.form("d_login"):
-            p = st.text_input("Clinic Password", type="password")
-            if st.form_submit_button("Login"):
-                if p == "clinicadmin786":
-                    st.session_state.update({"logged_in":True,"role":"D","name":"Dr. Priyanka"})
-                    st.rerun()
+            if st.text_input("Password", type="password") == "clinicadmin786" and st.form_submit_button("Login"):
+                st.session_state.update({"logged_in":True,"role":"D","name":"Dr. Priyanka"})
+                st.rerun()
 
-# --- 3. MAIN APPLICATION ---
+# --- 3. MAIN APP ---
 else:
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
         st.rerun()
 
-    if st.session_state.role == "D":
-        st.header("👨‍⚕️ Doctor Dashboard")
-        st.info("Live patient data is connected via Google Sheets.")
-    else:
-        m = st.sidebar.radio("Navigation", ["Health Tracker", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment"])
-        
-        # 3.1 TRACKER
-        if m == "Health Tracker":
-            if "Pregnant" in st.session_state.stat:
-                st.header("🤰 Pregnancy Week-by-Week")
-                lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
-                wks = (date.today()-lmp).days // 7
-                st.success(f"🗓️ EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | ⏳ Current Week: {wks}")
-            elif "Lactating" in st.session_state.stat:
-                st.header("🤱 Postpartum Recovery")
-                st.info("Focus on hydration (8–12 glasses daily) and energy frequency (3 main meals, 2–3 snacks).")
-            else:
-                st.header("🗓️ Period Tracker")
-                lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
-                st.success(f"🩸 Next Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
+    m = st.sidebar.radio("Nav", ["Tracker", "Diet Plans", "Exercise", "Vitals", "Vaccinations", "Booking"])
 
-        # 3.2 DIET PLANS
-        elif m == "Diet Plans":
-            pref = st.radio("Diet Preference", ["Vegetarian", "Non-Vegetarian"])
-            
-            if "Lactating" in st.session_state.stat:
-                st.header("🤱 Lactation Diet Plan")
-                st.info("Goal: +300–500 extra calories per day for milk production.")
-                if pref == "Vegetarian":
-                    st.markdown("""<div class='diet-box'><b>Early Morning:</b> Soaked fenugreek seeds or cumin water.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Breakfast:</b> Oats porridge with nuts OR Ragi dosa OR Methi/Palak paratha.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2-3 Rotis + 1 bowl Dal + Green leafy vegetable + Curd + Salad.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Evening:</b> Roasted Makhana OR Paneer tikka OR Methi/Gond ladoo with milk.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Dinner:</b> Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.</div>""", unsafe_allow_html=True)
-                else:
-                    st.markdown("""<div class='diet-box'><b>Early Morning:</b> Fenugreek water OR Milk with soaked almonds.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Breakfast:</b> 2 Scrambled/Boiled eggs with whole-wheat toast.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2-3 Rotis or brown rice + Grilled/Curried Chicken or Fish + Spinach.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Evening:</b> Chicken/Lentil soup OR Walnuts and raisins OR 1 Methi ladoo.</div>""", unsafe_allow_html=True)
-                    st.markdown("""<div class='diet-box'><b>Dinner:</b> 2 Rotis + Fish curry (low mercury) OR Lean meat stir-fry.</div>""", unsafe_allow_html=True)
-            
-            elif "Pregnant" in st.session_state.stat:
-                st.header("🥗 Pregnancy Diet Chart")
-                st.markdown("""<div class='diet-box'><b>Morning:</b> 5 Soaked Almonds + Warm Water.</div>""", unsafe_allow_html=True)
-                if pref == "Non-Vegetarian":
-                    st.markdown("""<div class='diet-box'><b>Lunch
+    if m == "Tracker":
+        if "Pregnant" in st.session_state.stat:
+            lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
+            wks = (date.today()-lmp).days // 7
+            st.success(f"EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | Week: {wks}")
+        elif "Lactating" in st.session_state.stat:
+            st.info("Focus on 8-12 glasses of water daily [cite: 3] and galactagogues like fenugreek and cumin[cite: 4].")
+        else:
+            lp = st.date_input("Last Period", value=date.today()-timedelta(days=14))
+            st.success(f"Next Period: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
+
+    elif m == "Diet Plans":
+        pref = st.radio("Type", ["Vegetarian", "Non-Vegetarian"])
+        if "Lactating" in st.session_state.stat:
+            st.info("Goal: +300-500 extra calories daily[cite: 1]. Eat 3 meals and 2-3 snacks[cite: 5].")
+            if pref == "Vegetarian":
+                st.markdown("<div class='diet-box'><b>Morning:</b> Fenugreek/Cumin water </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Breakfast:</b> Oats porridge / Ragi dosa / Methi paratha </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Lunch:</b> Roti, Moong/Masoor Dal, Green Veg, Curd </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Dinner:</b> Veg Khichdi with ghee / Brown rice with veg curry </div>", unsafe_allow_html=True)
+            else:
+                st.markdown("<div class='diet-box'><b>Morning:</b> Fenugreek water or Milk with almonds </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Breakfast:</b> 2 Eggs with toast / Oats with seeds </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Lunch:</b> Roti/Brown rice + Chicken or Fish + Spinach </div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-box'><b>Dinner:</b> Fish curry or Lean meat stir-fry </div>", unsafe_allow_html=True)
+        elif "PCOS" in st.session_state.stat:
+            st.markdown("<div class='diet-box'><b>PCOS Diet:</b> Low GI foods. Missi Roti, Dal, Sprouted Salad. No sugar.</div>", unsafe_allow_html=True)
+
+    elif m == "Exercise":
+        if "Pregnant" in st.session_state.stat:
+            tri = st.selectbox("Trimester", ["1st", "2nd", "3rd"])
+            if "1st" in tri: st.write("✅ Walking, Prenatal Yoga, Kegels")
+            elif "2nd" in tri: st.write("✅ Swimming, Wall Squats, Cat-Cow stretch")
+            else: st.write("✅ Butterfly stretch, Pelvic tilts, Birthing Ball")
+        else:
+            st.write("✅ **PCOS:** Strength (Squats/Planks) 3x/week. 45m Brisk Walk daily.")
+
+    elif m == "Vitals":
+        h, w = st.number_input("Ht (cm)", 100, 250, 160), st.number_input("Wt (kg)", 30, 200, 60)
+        bp, pls = st.text_input("BP (120/80)"), st.number_input("Pulse", 40, 200, 72)
+        if st.button("Save"):
+            bmi = round(w/((h/100)**2), 1)
+            st.success(f"BMI: {bmi} | BP: {bp} | Pulse: {pls}")
+
+    elif m == "Vaccinations":
+        if "Pregnant" in st.session_state.stat:
+            st.info("Essential: 1. Tetanus (TT), 2. Tdap, 3. Influenza (Flu)")
+        else:
+            st.info("Essential: HPV Vaccination (3 Doses schedule)")
+        with st.form("v"):
+            st.selectbox("Type", ["Tetanus", "Tdap", "Flu", "HPV Dose 1", "HPV Dose 2", "HPV Dose 3"])
+            st.file_uploader("Upload Card")
+            st.form_submit_button("Save")
+
+    elif m == "Booking":
+        dt = st.date_input("Date", min_value=date.today())
+        if dt.weekday() == 6: st.error("Closed on Sundays")
+        else:
+            slots = [f"{h}:{m:02d} AM" for h in range(11,14) for m in [0,15,30,45]] + [f"{h-12}:{m:02d} PM" for h in range(18,21) for m in [0,15,30,45]]
+            st.selectbox("Slot", slots)
+            if st.button("Confirm"): st.success("Requested")

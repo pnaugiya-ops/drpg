@@ -17,6 +17,12 @@ if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'lab_records' not in st.session_state:
     st.session_state.lab_records = []
+if 'appointments' not in st.session_state:
+    st.session_state.appointments = []
+if 'blocked_dates' not in st.session_state:
+    st.session_state.blocked_dates = []
+if 'broadcasts' not in st.session_state:
+    st.session_state.broadcasts = []
 
 # --- 2. LOGIN & BRANDING ---
 if not st.session_state.logged_in:
@@ -50,147 +56,84 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True,"role":"D","name":"Dr. Priyanka"})
                     st.rerun()
 
-# --- 3. MAIN APPLICATION ---
+# --- 3. DOCTOR DASHBOARD ---
+elif st.session_state.role == "D":
+    st.sidebar.markdown(f"### 👩‍⚕️ {st.session_state.name}")
+    if st.sidebar.button("Logout"): 
+        st.session_state.logged_in = False
+        st.rerun()
+    
+    dm = st.sidebar.radio("Doctor Panel", ["Manage Appointments", "Patient Lab Reports", "Block Dates", "Broadcast Media"])
+
+    if dm == "Manage Appointments":
+        st.header("📅 Patient Bookings")
+        if st.session_state.appointments:
+            st.table(pd.DataFrame(st.session_state.appointments))
+        else:
+            st.write("No appointments booked yet.")
+
+    elif dm == "Patient Lab Reports":
+        st.header("📋 Review Lab Reports")
+        if st.session_state.lab_records:
+            st.dataframe(pd.DataFrame(st.session_state.lab_records))
+        else:
+            st.write("No lab records found.")
+
+    elif dm == "Block Dates":
+        st.header("🚫 Block Dates for Clinic")
+        b_date = st.date_input("Select Date to Block")
+        reason = st.text_input("Reason (Optional)")
+        if st.button("Block Date"):
+            st.session_state.blocked_dates.append(b_date)
+            st.success(f"Date {b_date} blocked.")
+
+    elif dm == "Broadcast Media":
+        st.header("📢 Social Media Broadcast")
+        v_url = st.text_input("YouTube/Video URL")
+        v_desc = st.text_area("Video Description")
+        if st.button("Broadcast to Patients"):
+            st.session_state.broadcasts.append({"url": v_url, "desc": v_desc})
+            st.success("Video broadcasted to all patient dashboards!")
+
+# --- 4. PATIENT DASHBOARD ---
 else:
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
         st.rerun()
 
-    m = st.sidebar.radio("Navigation", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment"])
+    m = st.sidebar.radio("Navigation", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Broadcasts"])
     
-    # 3.1 PREGNANCY/PERIOD TRACKER
+    # 4.1 TRACKER
     if m == "Health Tracker":
         if "Pregnant" in st.session_state.stat:
             st.header("🤰 Pregnancy Week-by-Week")
-            lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
+            lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
-            st.success(f"🗓️ EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | ⏳ Current Week: {wks}")
-            if wks <= 4: st.info("🌱 Week 4: Size of a poppy seed. Implantation is occurring.")
-            elif wks <= 8: st.info("🍇 Week 8: Size of a raspberry. Heart is beating.")
-            elif wks <= 12: st.info("🍋 Week 12: Size of a lime. Baby starts moving fingers.")
-            elif wks <= 20: st.info("🍌 Week 20: Size of a banana. Halfway! You feel kicks.")
-            elif wks <= 30: st.info("🥦 Week 30: Size of a cabbage. Eyes open.")
-            elif wks <= 40: st.info("🍉 Week 40: Full term! Ready for birth.")
+            st.success(f"🗓️ EDD: {(lmp+timedelta(days=280)).strftime('%d %b %Y')} | Week: {wks}")
         else:
-            st.header("🗓️ Period Tracker")
             lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
             st.success(f"🩸 Next Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
 
-    # 3.2 RESTORED LAB REPORTS & TRENDS
+    # 4.2 LAB REPORTS
     elif m == "Lab Reports & Trends":
-        st.header("📊 Lab Report Monitoring")
+        st.header("📊 Lab Results")
         with st.form("lab_entry"):
-            col1, col2 = st.columns(2)
-            with col1:
-                test_date = st.date_input("Test Date", value=date.today())
-                hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
-                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
-            with col2:
-                cbc = st.number_input("WBC Count (cells/mcL)", 1000, 20000, 7000)
-                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
-                urine = st.selectbox("Urine Protein/Sugar", ["Nil", "Trace", "1+", "2+", "3+"])
-            
-            if st.form_submit_button("Add Entry & Update Chart"):
-                st.session_state.lab_records.append({
-                    "Date": test_date, "Hb": hb, "TSH": tsh, 
-                    "WBC": cbc, "Sugar": sugar, "Urine": urine
-                })
-                st.success("Record Added!")
+            hb = st.number_input("Hemoglobin", 5.0, 20.0, 12.0)
+            sugar = st.number_input("Blood Sugar", 50, 500, 90)
+            if st.form_submit_button("Save"):
+                st.session_state.lab_records.append({"Date": date.today(), "Name": st.session_state.name, "Hb": hb, "Sugar": sugar})
+                st.success("Added!")
 
-        if st.session_state.lab_records:
-            df = pd.DataFrame(st.session_state.lab_records).sort_values("Date")
-            st.subheader("📈 Health Trends Over Time")
-            chart_type = st.selectbox("Select Metric to View Trend", ["Hb", "TSH", "Sugar", "WBC"])
-            st.line_chart(df.set_index("Date")[chart_type])
-            st.write("**History Table**")
-            st.table(df)
-
-    # 3.3 DIET PLANS
+    # 4.3 FULL DETAILED DIET PLANS (Pregnancy & PCOS)
     elif m == "Diet Plans":
-        pref = st.radio("Diet Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "PCOS" in st.session_state.stat:
-            st.header("🌸 Detailed PCOS Diet Plan")
-            if pref == "Vegetarian":
-                st.write("**Early Morning:** Warm water with lemon or cinnamon.")
-                st.write("**Breakfast:** Moong Dal Chilla OR Vegetable Dalia OR Sprouted Salad.")
-                st.write("**Lunch:** 2 Missi Roti + 1 bowl Dal + Green Veggie + Salad.")
-                st.write("**Dinner:** Soya Chunks Curry OR Tofu Stir-fry with vegetables.")
-            else:
-                st.write("**Early Morning:** Apple Cider Vinegar in warm water.")
-                st.write("**Breakfast:** 2 Egg Whites + Spinach OR Vegetable Oats.")
-                st.write("**Lunch:** Grilled Chicken/Fish + small bowl Brown Rice + Salad.")
-                st.write("**Dinner:** Baked Salmon OR Chicken Salad.")
-        elif "Lactating" in st.session_state.stat:
-            st.header("🤱 Detailed Lactation Diet Plan")
-            st.info("Additional 300–500 calories per day to support milk production.")
-            if pref == "Vegetarian":
-                st.write("**Early Morning:** Warm water with soaked fenugreek or cumin water.")
-                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa OR Methi paratha with curd.")
-                st.write("**Lunch:** 2–3 Rotis + 1 bowl Dal + Green leafy vegetable + Curd + Salad.")
-                st.write("**Dinner:** Vegetable Khichdi with ghee OR Brown rice with veg curry.")
-            else:
-                st.write("**Early Morning:** Fenugreek water OR Milk with soaked almonds.")
-                st.write("**Breakfast:** 2 Eggs with toast OR Oats porridge with seeds/fruits.")
-                st.write("**Lunch:** Chicken/Fish Curry + Brown Rice + Spinach sabzi.")
-                st.write("**Dinner:** Fish curry (low mercury) OR Lean meat stir-fry.")
-        else:
-            st.header("🥗 Detailed Pregnancy Diet Chart")
-            st.write("**Early Morning:** 5 Soaked Almonds + Warm Water.")
-            st.write("**Breakfast:** Veggie Poha / Oats / Stuffed Paratha + 1 Bowl Curd.")
-            st.write("**Lunch:** 2 Roti + Dal Tadka + Seasonal Veggie + Salad.")
-            st.write("**Dinner:** 1 Roti + Paneer/Dal/Chicken + Warm Milk.")
-
-    # 3.4 EXERCISES (INCLUDING LACTATION UPDATES)
-    elif m == "Exercise & Yoga":
+        pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
+        
         if "Pregnant" in st.session_state.stat:
-            st.header("🧘 Trimester-Specific Yoga")
-            tri = st.selectbox("Select Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
-            if "1st" in tri: st.write("✅ **1st:** Walking (20 mins), Gentle Yoga, Kegels.")
-            elif "2nd" in tri: st.write("✅ **2nd:** Swimming, Wall Squats, Side-Lying Leg Lifts, Cat-Cow.")
-            else: st.write("✅ **3rd:** Butterfly Stretch, Pelvic Tilts, Birthing Ball.")
-        elif "Lactating" in st.session_state.stat:
-            st.header("🧘 Postpartum Recovery Exercise")
-            st.write("**Weeks 0–6:** Short walks (5-30 mins), Kegels (3 sets of 10), Belly breathing.")
-            st.write("**Weeks 6–12:** Swimming, modified squats, and Yoga.")
-            st.write("- **Tip:** Exercise *after* feeding to avoid breast engorgement discomfort.")
-        else:
-            st.header("🏋️ PCOS Strength Training")
-            st.write("✅ **Strength:** Squats, Lunges, Planks.")
-            st.write("✅ **Cardio:** 45 mins Brisk walking daily.")
-
-    # 3.5 HEALTH VITALS
-    elif m == "Health Vitals":
-        st.header("📈 Health Vitals")
-        c1, c2 = st.columns(2)
-        with c1:
-            h = st.number_input("Height (cm)", 100, 250, 160)
-            w = st.number_input("Weight (kg)", 30, 200, 60)
-        with c2:
-            bp = st.text_input("Blood Pressure (e.g., 120/80)")
-            pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-        if st.button("Calculate & Save"):
-            bmi = round(w/((h/100)**2), 1)
-            st.success(f"Vitals Recorded: BMI {bmi}, BP {bp}, Pulse {pls}")
-
-    # 3.6 VACCINATIONS
-    elif m == "Vaccinations":
-        st.header("💉 Vaccination Records")
-        if "Pregnant" in st.session_state.stat:
-            st.info("Essential: 1. Tetanus (TT) | 2. Tdap | 3. Influenza (Flu)")
-        else:
-            st.info("Essential: HPV Vaccination (3 Doses)")
-        with st.form("vac_form"):
-            v_type = st.selectbox("Vaccine", ["Tetanus", "Tdap", "Influenza", "HPV Dose 1", "HPV Dose 2", "HPV Dose 3", "Other"])
-            v_date = st.date_input("Date")
-            if st.form_submit_button("Save"): st.success("Record saved!")
-
-    # 3.7 15-MINUTE BOOKINGS
-    elif m == "Book Appointment":
-        st.header("📅 15-Minute Slots")
-        dt = st.date_input("Date", min_value=date.today())
-        if dt.weekday() == 6: st.error("Clinic Closed on Sundays")
-        else:
-            slots = [f"{h:02d}:{m:02d} AM" for h in range(11, 14) for m in [0, 15, 30, 45]] + [f"{h-12:02d}:{m:02d} PM" for h in [18, 19, 20] for m in [0, 15, 30, 45]]
-            tm = st.selectbox("Select Time", slots)
-            if st.button("Confirm Booking"): st.success(f"Confirmed for {dt} at {tm}")
+            st.header("🤰 Detailed Pregnancy Trimester Diet")
+            tri = st.selectbox("Select Current Trimester", ["1st Trimester (0-12wks)", "2nd Trimester (13-26wks)", "3rd Trimester (27-40wks)"])
+            
+            if pref == "Vegetarian":
+                st.write("**Early Morning:** 5 Soaked Almonds + 1 glass Warm Milk.")
+                st.write("**Breakfast:** Veggie Poha OR Moong Dal Chilla OR Paneer Paratha + Curd.")
+                st.write("**Mid-Morning:** 1 Fruit (Pomegranate/Apple)

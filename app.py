@@ -103,7 +103,6 @@ else:
 
     m = st.sidebar.radio("Navigation", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
     
-    # --- DIET PLANS (RESTORING FULL DETAIL) ---
     if m == "Diet Plans":
         pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
         
@@ -112,34 +111,21 @@ else:
             tri = st.selectbox("Select Trimester", ["1st Trimester (0-12wks)", "2nd Trimester (13-26wks)", "3rd Trimester (27-40wks)"])
             if pref == "Vegetarian":
                 st.write("**Early Morning:** 5 Soaked Almonds + 1 glass Warm Milk.")
-                st.write("**Breakfast:** Veggie Poha OR Moong Dal Chilla OR Paneer/Aloo Paratha with Curd.")
-                st.write("**Mid-Morning:** 1 Seasonal Fruit (Pomegranate/Apple/Guava) + Coconut Water.")
-                st.write("**Lunch:** 2-3 Whole Wheat Roti + 1 Bowl Dal + 1 Bowl Green Vegetable + 1 Cup Curd + Fresh Salad.")
-                st.write("**Evening Snack:** Roasted Makhana OR Sprouted Moong Salad OR Handful of Roasted Chana.")
-                st.write("**Dinner:** 2 Roti + Paneer Bhurji OR Mixed Vegetable Curry + 1 glass Warm Milk before bed.")
+                st.write("**Breakfast:** Veggie Poha OR Moong Dal Chilla OR Paneer Paratha with Curd.")
+                st.write("**Mid-Morning:** 1 Seasonal Fruit (Pomegranate/Apple) + Coconut Water.")
+                st.write("**Lunch:** 2-3 Roti + 1 Bowl Dal + 1 Bowl Seasonal Vegetable + 1 Cup Curd + Salad.")
+                st.write("**Evening:** Roasted Makhana OR Sprouted Moong Salad.")
+                st.write("**Dinner:** 2 Roti + Paneer Bhurji OR Mix Veg + Warm Milk.")
             else:
                 st.write("**Early Morning:** 1 Boiled Egg + 5 Soaked Almonds.")
-                st.write("**Breakfast:** 2 Egg Omelet with Spinach OR Chicken Keema Paratha + 1 Bowl Curd.")
-                st.write("**Mid-Morning:** 1 Seasonal Fruit (Apple/Banana) + Handful of Walnuts.")
-                st.write("**Lunch:** 2 Roti + Grilled Chicken or Fish Curry + Spinach Sabzi + Cucumber & Tomato Salad.")
-                st.write("**Evening Snack:** Chicken Soup OR 2 Boiled Egg Whites OR Handful of Almonds.")
-                st.write("**Dinner:** Grilled Fish OR Egg Curry with 1 Roti + Steamed Vegetables (Broccoli/Carrots).")
+                st.write("**Breakfast:** 2 Egg Omelet with Spinach OR Chicken Keema Paratha + Curd.")
+                st.write("**Mid-Morning:** 1 Seasonal Fruit + Handful of Walnuts.")
+                st.write("**Lunch:** 2 Roti + Grilled Chicken or Fish Curry + Spinach Sabzi + Salad.")
+                st.write("**Evening:** Chicken Soup OR 2 Boiled Egg Whites.")
+                st.write("**Dinner:** Grilled Fish OR Egg Curry + 1 Roti + Steamed Veggies.")
 
         elif "PCOS" in st.session_state.stat:
             st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
             if pref == "Vegetarian":
-                st.write("**Early Morning:** Warm water with Cinnamon (Dalchini) OR 1 tsp Apple Cider Vinegar in warm water.")
-                st.write("**Breakfast:** Besan Chilla with added grated vegetables OR Vegetable Oats with Flax seeds.")
-                st.write("**Mid-Morning:** 1 Apple or Pear + 2-3 Walnuts.")
-                st.write("**Lunch:** 2 Missi Roti (Besan-Wheat mix) + 1 bowl Dal + 1 Cup Curd + Large Seasonal Salad.")
-                st.write("**Evening Snack:** Green Tea + Roasted Chana OR Buttermilk (Chaas).")
-                st.write("**Dinner:** Soya Chunks Curry OR Tofu Stir-fry with Broccoli, Capsicum, and Mushrooms.")
-            else:
-                st.write("**Early Morning:** Lemon water OR Fenugreek (Methi) water.")
-                st.write("**Breakfast:** 2 Egg White Omelet with Spinach, Mushrooms, and Onions.")
-                st.write("**Mid-Morning:** 1 bowl Papaya OR Handful of Flax seeds and Pumpkin seeds.")
-                st.write("**Lunch:** Grilled Chicken + 1 small portion Brown Rice + Huge Mixed Green Salad.")
-                st.write("**Evening Snack:** Clear Chicken Soup OR 10 Almonds.")
-                st.write("**Dinner:** Baked Fish (Salmon/Mackerel/Trout) OR Chicken Salad with Olive Oil dressing.")
-
-        elif "L
+                st.write("**Early Morning:** Warm water with Cinnamon OR 1 tsp Apple Cider Vinegar.")
+                st.write("**Breakfast:** Besan Chilla with

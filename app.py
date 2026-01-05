@@ -1,17 +1,16 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import base64, io
 from PIL import Image
 
-# --- 1. CONFIG & STYLE ---
+# --- 1. CONFIG ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; border-bottom:5px solid #ff4b6b; }
     .stButton>button { border-radius:10px; background:#ff4b6b; color:white; font-weight:bold; width:100%; }
-    .vax-card { background:white; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:10px; }
     .timing-card { background:#f0f7ff; padding:10px; border-radius:10px; border-left:4px solid #003366; font-size:0.9em; }
     </style>
     """, unsafe_allow_html=True)
@@ -40,9 +39,10 @@ if not st.session_state.logged_in:
     with t1:
         with st.form("p_l"):
             n = st.text_input("Full Name")
+            age = st.number_input("Age", min_value=1, max_value=100, value=25)
             s = st.radio("Status", ["Pregnant", "PCOS/Gynae"])
             if st.form_submit_button("Enter"):
-                st.session_state.update({"logged_in":True, "name":n, "stat":s, "role":"P"})
+                st.session_state.update({"logged_in":True, "name":n, "age":age, "stat":s, "role":"P"})
                 st.rerun()
     with t2:
         with st.form("d_l"):
@@ -52,30 +52,23 @@ if not st.session_state.logged_in:
 
 # --- 3. MAIN ---
 else:
-    # CLINIC TIMINGS IN SIDEBAR
+    st.sidebar.markdown(f"**Patient:** {st.session_state.get('name', 'Admin')}")
+    if st.session_state.get('role') == 'P':
+        st.sidebar.markdown(f"**Age:** {st.session_state.get('age')}")
+    
     st.sidebar.markdown("### 🕒 Clinic Timings")
-    st.sidebar.markdown("""
-    <div class='timing-card'>
-    <b>Mon - Sat:</b><br>11:00 AM - 2:00 PM<br>6:00 PM - 8:00 PM<br><br>
-    <b>Sunday:</b><br>11:00 AM - 2:00 PM
-    </div>
-    """, unsafe_allow_html=True)
+    st.sidebar.markdown("<div class='timing-card'><b>Mon-Sat:</b> 11AM-2PM & 6PM-8PM<br><b>Sun:</b> 11AM-2PM</div>", unsafe_allow_html=True)
     
     if st.sidebar.button("Logout", key="logout"):
         st.session_state.logged_in = False
         st.rerun()
 
     df = conn.read(ttl=0)
-    
-    # Get Blocked Dates
-    blocked_dates = []
-    if not df.empty:
-        blocked_dates = df[df['Type'] == "BLOCK"]['Details'].tolist()
+    blocked_dates = df[df['Type'] == "BLOCK"]['Details'].tolist() if not df.empty else []
 
     if st.session_state.role == "D":
         st.title("👨‍⚕️ Admin Dashboard")
-        t_adm = st.tabs(["Patient Submissions", "Manage Availability"])
-        
+        t_adm = st.tabs(["Submissions", "Manage Availability"])
         with t_adm[0]:
             if not df.empty:
                 for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
@@ -83,64 +76,60 @@ else:
                     with st.expander(f"{row['Name']} - {row['Timestamp']}"):
                         st.write(f"**Type:** {row.get('Type','')} | **Details:** {row.get('Details','')}")
                         if 'Attachment' in row and str(row['Attachment']) != "nan": show_img(row['Attachment'])
-        
         with t_adm[1]:
-            st.subheader("📅 Block/Unblock Dates")
-            col1, col2 = st.columns(2)
-            with col1:
-                block_dt = st.date_input("Select Date to Block", min_value=date.today())
-                if st.button("Block Date"):
-                    new = pd.DataFrame([{"Name":"ADMIN","Type":"BLOCK","Details":str(block_dt),"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"Date {block_dt} blocked!")
-                    st.rerun()
-            with col2:
-                if blocked_dates:
-                    to_unblock = st.selectbox("Blocked Dates", blocked_dates)
-                    if st.button("Unblock Date"):
-                        df_new = df[~((df['Type'] == "BLOCK") & (df['Details'] == to_unblock))]
-                        conn.update(data=df_new)
-                        st.success("Date unblocked!")
-                        st.rerun()
-                else:
-                    st.write("No dates currently blocked.")
+            st.subheader("📅 Block Dates")
+            block_dt = st.date_input("Select Date", min_value=date.today())
+            if st.button("Block Date"):
+                new = pd.DataFrame([{"Name":"ADMIN","Type":"BLOCK","Details":str(block_dt),"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                conn.update(data=pd.concat([df, new], ignore_index=True)); st.rerun()
 
     else:
-        st.sidebar.title(f"Hi, {st.session_state.name}")
-        m = st.sidebar.radio("Menu", ["Vitals", "Vaccines", "Diet & Yoga", "Reports", "Booking"])
+        m = st.sidebar.radio("Menu", ["Vitals", "Vaccines & Screening", "Diet & Yoga", "Reports", "Booking"])
         
-        if m == "Vitals":
-            with st.form("v"):
-                h = st.number_input("Ht (cm)", 100, 250, 160)
-                w = st.number_input("Wt (kg)", 30, 200, 60)
-                p = st.number_input("Pulse", 40, 200, 72)
-                bp = st.text_input("BP", "120/80")
-                if st.form_submit_button("Save"):
-                    bmi = round(w/((h/100)**2), 1)
-                    det = f"BMI:{bmi}, BP:{bp}, P:{p}"
-                    new = pd.DataFrame([{"Name":st.session_state.name,"Type":"VITALS","Details":det,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success(f"Saved! BMI: {bmi}")
+        if m == "Vaccines & Screening":
+            st.header("💉 Preventive Care")
+            if "PCOS" in st.session_state.stat:
+                st.subheader("Gynae Wellness")
+                st.write("**1. HPV Vaccination:** Recommended to prevent cervical cancer. Usually 3 doses (0, 1, 6 months).")
+                st.write("**2. Pap Smear Test:** Screening for cervical health. Recommended every 3 years for women aged 21-65.")
+                
+            else:
+                st.info("T-Dap: 27-36 weeks | Flu: Anytime | Tetanus: Confirmation")
 
-        elif m == "Reports":
-            with st.form("u"):
-                f = st.file_uploader("Image", type=['jpg', 'png', 'jpeg'])
-                n = st.text_input("Note")
-                if st.form_submit_button("Upload"):
-                    b64 = process_img(f)
-                    new = pd.DataFrame([{"Name":st.session_state.name,"Type":"UPLOAD","Details":n,"Attachment":b64,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                    conn.update(data=pd.concat([df, new], ignore_index=True))
-                    st.success("Sent!")
+        elif m == "Diet & Yoga":
+            st.header("🥗 Nutrition & Lifestyle")
+            if "PCOS" in st.session_state.stat:
+                v, nv = st.tabs(["Vegetarian Diet", "Non-Vegetarian Diet"])
+                with v:
+                    st.write("**Breakfast:** Oats with seeds/nuts or Moong Dal Chilla.")
+                    st.write("**Lunch:** Brown rice/Multigrain roti with dal and leafy vegetables.")
+                    st.write("**Dinner:** Soya chunks or Paneer stir-fry with broccoli.")
+                with nv:
+                    st.write("**Breakfast:** Boiled eggs (2) with sautéed spinach.")
+                    st.write("**Lunch:** Grilled Chicken/Fish with a large salad and quinoa.")
+                    st.write("**Dinner:** Lean meat soup or Grilled fish with asparagus.")
+                st.warning("Limit: Sugar, Maida, and Processed snacks.")
+                
+            else:
+                st.write("Balanced Trimester-wise Diet with Folic Acid, Iron, and Calcium.")
 
         elif m == "Booking":
-            st.subheader("📅 Book Appointment")
-            sel_dt = st.date_input("Select Date", min_value=date.today())
-            if str(sel_dt) in blocked_dates:
-                st.error("The clinic is closed on this date. Please select another day.")
+            st.header("📅 Appointment")
+            sel_dt = st.date_input("Date", min_value=date.today())
+            if str(sel_dt) in blocked_dates: st.error("Clinic Closed")
             else:
                 with st.form("b_f"):
-                    tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "01:00 PM", "06:00 PM", "07:00 PM"])
-                    if st.form_submit_button("Confirm Booking"):
-                        new = pd.DataFrame([{"Name":st.session_state.name,"Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
-                        conn.update(data=pd.concat([df, new], ignore_index=True))
-                        st.success(f"Booked for {sel_dt} at {tm}")
+                    # Generate 15-min slots
+                    slots = []
+                    curr = datetime.strptime("11:00", "%H:%M")
+                    while curr <= datetime.strptime("13:45", "%H:%M"):
+                        slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    if sel_dt.weekday() != 6: # Evening slots if not Sunday
+                        curr = datetime.strptime("18:00", "%H:%M")
+                        while curr <= datetime.strptime("19:45", "%H:%M"):
+                            slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    
+                    tm = st.selectbox("15-Min Slot", slots)
+                    if st.form_submit_button("Confirm"):
+                        new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age: {st.session_state.age})","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                        conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")

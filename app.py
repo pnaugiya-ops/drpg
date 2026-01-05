@@ -5,7 +5,6 @@ from datetime import datetime, date, timedelta
 # --- 1. CONFIG, STYLE & SECURITY ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide")
 
-# This block hides the 'Edit' and 'Menu' options from patients to keep it professional
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -169,14 +168,3 @@ elif st.session_state.get('role') == "P":
             st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
             if pref == "Vegetarian":
                 st.write("**Early Morning:** Warm water with soaked fenugreek seeds or cumin water.")
-                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa OR Methi paratha with curd.")
-                st.write("**Mid-Morning:** 1 seasonal fruit (papaya/pomegranate) + soaked almonds and dates.")
-                st.write("**Lunch:** 2-3 Whole wheat rotis + 1 bowl Dal + Green leafy vegetable + 1 cup Curd + Salad.")
-                st.write("**Evening Snack:** Roasted Makhana OR Paneer tikka OR 1 Methi/Gond ladoo with milk.")
-                st.write("**Dinner:** Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.")
-                st.write("**Before Bed:** Warm milk with turmeric and saffron.")
-            else:
-                st.write("**Early Morning:** Fenugreek water OR Milk with soaked almonds.")
-                st.write("**Breakfast:** 2 Scrambled/Boiled eggs with toast OR Oats porridge with seeds.")
-                st.write("**Mid-Morning:** Fruit salad OR 1 bowl of sprouted moong chaat.")
-                st.write("**Lunch:** 2-3 Rotis or brown rice + Grilled Chicken or Fish + 1 bowl Spinach +

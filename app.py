@@ -71,7 +71,7 @@ else:
                 
             elif "Lactating" in st.session_state.stat:
                 st.header("🤱 Postpartum Recovery")
-                st.info("Focus on hydration (8-12 glasses/day) and rest to support recovery and milk production.")
+                st.info("Focus on hydration (8-12 glasses/day) and galactagogues like fenugreek (methi) and fennel (saunf) to support milk production.")
             else:
                 st.header("🗓️ Period Tracker")
                 lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
@@ -84,22 +84,73 @@ else:
             
             if "Lactating" in st.session_state.stat:
                 st.header("🤱 Lactation Diet Plan")
-                st.info("Goal: Additional 300-500 calories per day to support milk production.")
+                st.info("Goal: Additional 300–500 calories per day for milk production.")
                 if pref == "Vegetarian":
-                    st.markdown("<div class='diet-box'><b>Early Morning:</b> Warm water with soaked fenugreek seeds or cumin water.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Breakfast:</b> Oats porridge with nuts OR Ragi dosa OR Methi/Palak paratha with curd.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Lunch:</b> 2-3 Rotis + 1 bowl Dal + Green leafy vegetable + Curd + Salad.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Evening:</b> Roasted Makhana OR Paneer tikka OR Methi/Gond ladoo with milk.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Dinner:</b> Vegetable Khichdi with ghee OR Brown rice with mixed veg curry.</div>", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Early Morning:</b> Soaked fenugreek seeds or cumin water.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Breakfast:</b> Oats porridge with almonds/walnuts OR Ragi dosa OR Methi/Palak paratha.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2-3 Rotis + 1 bowl Dal + Green leafy vegetable + Curd + Salad.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Evening:</b> Roasted Makhana OR Paneer tikka OR Methi/Gond ladoo with milk.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Dinner:</b> Vegetable Khichdi with ghee OR Brown rice with mixed vegetable curry.</div>""", unsafe_allow_html=True)
                 else:
-                    st.markdown("<div class='diet-box'><b>Early Morning:</b> Fenugreek water OR Milk with soaked almonds.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Breakfast:</b> 2 Scrambled/Boiled eggs with toast OR Oats porridge with seeds.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Lunch:</b> 2-3 Rotis or brown rice + Grilled/Curried Chicken or Fish + Spinach.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Evening:</b> Chicken/Lentil soup OR Walnuts and raisins OR 1 Methi ladoo.</div>", unsafe_allow_html=True)
-                    st.markdown("<div class='diet-box'><b>Dinner:</b> 2 Rotis + Fish curry (low mercury) OR Lean meat stir-fry.</div>", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Early Morning:</b> Fenugreek water OR Milk with soaked almonds.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Breakfast:</b> 2 Scrambled/Boiled eggs with whole-wheat toast.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2-3 Rotis or brown rice + Grilled/Curried Chicken or Fish + Spinach.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Evening:</b> Chicken/Lentil soup OR Walnuts and raisins OR 1 Methi ladoo.</div>""", unsafe_allow_html=True)
+                    st.markdown("""<div class='diet-box'><b>Dinner:</b> 2 Rotis + Fish curry (low mercury) OR Lean meat stir-fry.</div>""", unsafe_allow_html=True)
             
             elif "Pregnant" in st.session_state.stat:
                 st.header("🥗 Pregnancy Diet Chart")
-                st.markdown("<div class='diet-box'><b>Morning:</b> Soaked Almonds + Warm Water</div>", unsafe_allow_html=True)
+                st.markdown("""<div class='diet-box'><b>Morning:</b> 5 Soaked Almonds + Warm Water.</div>""", unsafe_allow_html=True)
                 if pref == "Non-Vegetarian":
-                    st.markdown("<div class='diet
+                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2 Roti + Chicken/Fish Curry + Bowl of Salad.</div>""", unsafe_allow_html=True)
+                else:
+                    st.markdown("""<div class='diet-box'><b>Lunch:</b> 2 Roti + Dal Tadka + Seasonal Veggie + Curd.</div>""", unsafe_allow_html=True)
+                st.markdown("""<div class='diet-box'><b>Dinner:</b> 1 Roti + Paneer Curry / Dal / Egg + Warm Milk.</div>""", unsafe_allow_html=True)
+            
+            else:
+                st.header("🌸 Detailed PCOS Diet Plan")
+                st.markdown("""<div class='diet-box'><b>Breakfast:</b> Sprouted Salad / Vegetable Oats / Vegetable Dalia.</div>""", unsafe_allow_html=True)
+                st.markdown("""<div class='diet-box'><b>Lunch:</b> 2 Missi Roti + 1 Bowl Dal + Green Veggie + Salad.</div>""", unsafe_allow_html=True)
+                st.markdown("""<div class='diet-box'><b>Dinner:</b> Clear Soup + Soya / Tofu / Grilled Veggies. (Walk 15 mins after).</div>""", unsafe_allow_html=True)
+
+        # 3.3 EXERCISE
+        elif m == "Exercise & Yoga":
+            if "Pregnant" in st.session_state.stat:
+                st.header("🧘 Trimester Fitness")
+                tri = st.selectbox("Select Trimester", ["1st Trimester", "2nd Trimester", "3rd Trimester"])
+                if "1st" in tri: st.write("✅ Walking (20 mins), Prenatal Yoga, Kegels.")
+                elif "2nd" in tri: st.write("✅ Swimming, Wall Squats, Side-Lying Leg Lifts, Cat-Cow Stretch.")
+                else: st.write("✅ Butterfly Stretch, Pelvic Tilts, Deep Breathing, Birthing Ball.")
+                
+            else:
+                st.header("🏋️ Detailed PCOS Exercise Plan")
+                st.write("✅ **Strength Training (3x/Week):** Squats, Lunges, Planks to improve insulin sensitivity.")
+                st.write("✅ **HIIT/Cardio:** 15 mins HIIT or 45 mins Brisk Walking daily.")
+                st.write("✅ **Yoga:** Surya Namaskar and Cobra Pose for hormonal balance.")
+
+        # 3.4 HEALTH VITALS
+        elif m == "Health Vitals":
+            st.header("📈 Health Vitals")
+            c1, c2 = st.columns(2)
+            with c1:
+                h = st.number_input("Height (cm)", 100, 250, 160)
+                w = st.number_input("Weight (kg)", 30, 200, 60)
+            with c2:
+                bp = st.text_input("Blood Pressure (e.g., 120/80)")
+                pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+            if st.button("Calculate and Save"):
+                bmi = round(w/((h/100)**2), 1)
+                st.success(f"BMI: {bmi} | BP: {bp} | Pulse: {pls}")
+                
+
+[Image of BMI category chart]
+
+
+        # 3.5 VACCINATIONS
+        elif m == "Vaccinations":
+            if "Pregnant" in st.session_state.stat:
+                st.header("💉 Pregnancy Vaccinations")
+                st.info("Essential: 1. Tetanus (TT) | 2. Tdap | 3. Influenza (Flu)")
+            else:
+                st.header("💉 PCOS / Gynae Vaccinations")
+                st.info("Essential: HPV Vaccination (Cervical Cancer Prevention) - 3 Doses")

@@ -56,7 +56,7 @@ else:
     st.sidebar.markdown("### 🕒 Clinic Timings")
     st.sidebar.markdown("<div class='timing-card'><b>Mon-Sat:</b> 11AM-2PM & 6PM-8PM<br><b>Sun:</b> 11AM-2PM</div>", unsafe_allow_html=True)
     
-    if st.sidebar.button("Logout", key="logout_btn"):
+    if st.sidebar.button("Logout", key="logout_final"):
         st.session_state.logged_in = False
         st.rerun()
 
@@ -66,7 +66,6 @@ else:
     if st.session_state.role == "D":
         st.title("👨‍⚕️ Admin Dashboard")
         t_adm = st.tabs(["Submissions & Reports", "Manage Availability"])
-        
         with t_adm[0]:
             if not df.empty:
                 for i, row in df.sort_values(by='Timestamp', ascending=False).iterrows():
@@ -74,7 +73,6 @@ else:
                     with st.expander(f"{row['Name']} - {row['Timestamp']}"):
                         st.write(f"**Type:** {row.get('Type','')} | **Details:** {row.get('Details','')}")
                         if 'Attachment' in row and str(row['Attachment']) != "nan": show_img(row['Attachment'])
-        
         with t_adm[1]:
             st.subheader("📅 Block Appointment Dates")
             block_dt = st.date_input("Select Date", min_value=date.today())
@@ -86,14 +84,75 @@ else:
     else:
         m = st.sidebar.radio("Menu", ["Vitals & BMI", "Vaccines & Screening", "Diet & Yoga", "Upload Reports", "Book Appointment"])
         
-        # --- VITALS SECTION ---
         if m == "Vitals & BMI":
             st.header("📊 Health Tracker")
-            with st.form("vitals_form"):
+            with st.form("v_form"):
                 c1, c2, c3 = st.columns(3)
                 hi = c1.number_input("Height (cm)", 100, 250, 160)
                 wi = c2.number_input("Weight (kg)", 30, 200, 60)
                 pu = c3.number_input("Pulse (bpm)", 40, 200, 72)
                 bp = st.text_input("Blood Pressure", "120/80")
                 if st.form_submit_button("Save Vitals"):
-                    bmi = round(wi/((hi/100)**2),
+                    bmi = round(wi / ((hi/100)**2), 1)
+                    if bmi < 18.5: status = "Underweight"
+                    elif 18.5 <= bmi < 25: status = "Normal"
+                    else: status = "Overweight"
+                    det = f"BMI: {bmi} ({status}), BP: {bp}, Pulse: {pu}"
+                    new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"VITALS","Details":det,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success(f"Recorded! BMI: {bmi} ({status})")
+
+        elif m == "Vaccines & Screening":
+            st.header("💉 Preventive Care")
+            if "PCOS" in st.session_state.stat:
+                st.subheader("Gynae Wellness")
+                st.write("**HPV Vaccination:** 3 doses (0, 1, 6 months) for cervical cancer prevention.")
+                st.write("**Pap Smear:** Routine screening every 3 years recommended for women.")
+                
+            else:
+                st.info("Maternal Vaccines: T-Dap (27-36 weeks), Flu (Anytime), Tetanus (Confirmation).")
+
+        elif m == "Diet & Yoga":
+            st.header("🥗 Nutrition & Lifestyle")
+            if "PCOS" in st.session_state.stat:
+                vt, nvt = st.tabs(["Vegetarian PCOS Diet", "Non-Vegetarian PCOS Diet"])
+                with vt:
+                    st.write("**Breakfast:** Moong dal chilla/Oats. **Lunch:** Brown rice, dal & greens. **Dinner:** Paneer stir-fry.")
+                with nvt:
+                    st.write("**Breakfast:** 2 Boiled eggs & spinach. **Lunch:** Grilled Fish/Chicken & salad. **Dinner:** Chicken soup.")
+                
+            else:
+                st.write("**Pregnancy Diet:** High Folic Acid, Iron, and Calcium intake.")
+
+        elif m == "Upload Reports":
+            st.header("🧪 Send Reports")
+            with st.form("u_form"):
+                f = st.file_uploader("Select Image", type=['jpg', 'png', 'jpeg'])
+                n = st.text_input("Note")
+                if st.form_submit_button("Upload"):
+                    b64 = process_img(f)
+                    new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"REPORT","Details":n,"Attachment":b64,"Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    conn.update(data=pd.concat([df, new], ignore_index=True))
+                    st.success("Sent!")
+
+        elif m == "Book Appointment":
+            st.header("📅 15-Min Slots")
+            sel_dt = st.date_input("Date", min_value=date.today())
+            if str(sel_dt) in blocked_dates: st.error("Clinic Closed")
+            else:
+                with st.form("b_form"):
+                    slots = []
+                    # Morning Slots
+                    curr = datetime.strptime("11:00", "%H:%M")
+                    while curr <= datetime.strptime("13:45", "%H:%M"):
+                        slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    # Evening Slots (except Sun)
+                    if sel_dt.weekday() != 6:
+                        curr = datetime.strptime("18:00", "%H:%M")
+                        while curr <= datetime.strptime("19:45", "%H:%M"):
+                            slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    tm = st.selectbox("Slot", slots)
+                    if st.form_submit_button("Book Now"):
+                        new = pd.DataFrame([{"Name":f"{st.session_state.name} (Age:{st.session_state.age})","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                        conn.update(data=pd.concat([df, new], ignore_index=True))
+                        st.success("Booked!")

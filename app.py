@@ -135,74 +135,57 @@ else:
         if m == "Diet & Yoga":
             if "Pregnant" in st.session_state.stat:
                 st.header("🤰 Pregnancy Wellness Hub")
-                
                 tab_diet, tab_exercise = st.tabs(["🥗 Nutrition Plan", "🧘 Trimester Exercises"])
-                
                 with tab_diet:
                     st.markdown("""<div class='diet-box'>
                     <b>General Safety:</b><br>
-                    - 🥛 <b>Milk:</b> 3–4 servings daily[cite: 4].<br>
-                    - 💧 <b>Hydration:</b> 2.5–3 Liters of water daily[cite: 19].<br>
-                    - ☕ <b>Caffeine:</b> Limit to < 200mg/day[cite: 18].
+                    - 🥛 <b>Milk:</b> 3–4 servings daily.<br>
+                    - 💧 <b>Hydration:</b> 2.5–3 Liters of water daily.<br>
+                    - ☕ <b>Caffeine:</b> Limit to < 200mg/day.
                     </div>""", unsafe_allow_html=True)
-                    
                     tri = st.selectbox("Select Trimester (Nutrition)", ["1st Trimester (Weeks 1-12)", "2nd Trimester (Weeks 13-26)", "3rd Trimester (Weeks 27-40)"])
-                    
                     if "1st" in tri:
-                        st.success("**Focus:** Folic acid & Vitamin B6[cite: 8].")
-                        st.write("**Early Morning:** Warm water + 4–5 soaked almonds[cite: 9].")
-                        st.write("**Breakfast:** Veggie Poha/Upma + milk OR Whole grain toast + 2 eggs[cite: 9].")
+                        st.success("**Focus:** Folic acid & B6.")
+                        st.write("**Early Morning:** Warm water + 4–5 soaked almonds.")
+                        st.write("**Breakfast:** Veggie Poha/Upma + milk OR Whole grain toast + 2 eggs.")
                     elif "2nd" in tri:
-                        st.success("**Focus:** Calcium & Iron[cite: 11].")
-                        st.write("**Breakfast:** Veg paratha + curd OR Oats porridge[cite: 12].")
-                        st.write("**Lunch:** Brown rice + dal + mixed veggies OR Chicken curry[cite: 12].")
+                        st.success("**Focus:** Calcium & Iron.")
+                        st.write("**Breakfast:** Veg paratha + curd OR Oats porridge.")
+                        st.write("**Lunch:** Brown rice + dal + mixed veggies OR Chicken curry.")
                     elif "3rd" in tri:
-                        st.success("**Focus:** High Fiber & Healthy Fats[cite: 14].")
-                        st.write("**Breakfast:** Besan chilla + mint chutney OR Oats + 2 eggs[cite: 15].")
-                        st.write("**Lunch:** Millet khichdi + dal + salad OR Grilled salmon + rice[cite: 15].")
-
+                        st.success("**Focus:** High Fiber & Healthy Fats.")
+                        st.write("**Breakfast:** Besan chilla + mint chutney OR Oats + 2 eggs.")
+                        st.write("**Lunch:** Millet khichdi + dal + salad OR Grilled salmon + rice.")
                 with tab_exercise:
                     tri_ex = st.selectbox("Select Trimester (Exercises)", ["1st Trimester: Gentle Adaptation", "2nd Trimester: Building Strength", "3rd Trimester: Mobility & Labor Prep"])
-                    
                     if "1st" in tri_ex:
-                        st.info("**Focus:** Managing fatigue and morning sickness with low-impact movements[cite: 36].")
-                        st.write("- **Walking:** Improves circulation and mood[cite: 37].")
-                        st.write("- **Prenatal Yoga:** Stretching and breath awareness[cite: 38].")
-                        st.write("- **Kegels:** Strengthens pelvic floor[cite: 39].")
-                        st.write("- **Cat-Cow Stretch:** Relieves lower back tension[cite: 40].")
+                        st.write("- **Walking:** Low-impact cardio.\n- **Prenatal Yoga:** Flexibility.\n- **Kegels:** Pelvic floor strength.")
                     elif "2nd" in tri_ex:
-                        st.info("**Focus:** Moderate resistance and balance training[cite: 43].")
-                        st.write("- **Swimming:** Reduces joint pressure and prevents overheating[cite: 44].")
-                        st.write("- **Stationary Cycling:** Safer than outdoor biking to avoid falls[cite: 45].")
-                        st.write("- **Side-Lying Leg Lifts:** Strengthens hip stabilizers[cite: 46].")
-                        st.write("- **Wall Squats:** Prepares thighs for delivery[cite: 47].")
-                        st.warning("**Note:** Avoid lying flat on your back for more than a few minutes.")
+                        st.write("- **Swimming:** Joint pressure relief.\n- **Stationary Cycling:** Fall safety.\n- **Wall Squats:** Delivery prep.")
                     elif "3rd" in tri_ex:
-                        st.info("**Focus:** Flexibility, pelvic opening, and relaxation[cite: 51].")
-                        st.write("- **Butterfly Stretch:** Opens hips and inner thighs.")
-                        st.write("- **Deep Supported Squats:** Encourages optimal baby positioning[cite: 53].")
-                        st.write("- **Birthing Ball Exercises:** Gently rocking to keep hips fluid[cite: 55].")
-                        st.write("- **Diaphragmatic Breathing:** Critical tool for labor pain management.")
-                    
-                    st.markdown("""<div class='diet-box'>
-                    <b>⚠️ Exercise Safety (2026):</b><br>
-                    - <b>Talk Test:</b> You should be able to hold a conversation while exercising.<br>
-                    - <b>Hydration:</b> Drink water before, during, and after every session[cite: 59].<br>
-                    - <b>Avoid Risks:</b> No contact sports, jumping, or heavy lifting[cite: 60].<br>
-                    - <b>Consultation:</b> Always get medical clearance before starting a new routine[cite: 61].
-                    </div>""", unsafe_allow_html=True)
+                        st.write("- **Butterfly Stretch:** Hip opening.\n- **Deep Squats:** Labor prep.\n- **Diaphragmatic Breathing:** Pain management.")
             else:
-                st.header("🥗 Core PCOS Dietary Principles")
-                st.markdown("""<div class='diet-box'>
-                - <b>Protein:</b> 50–60g daily. <b>Fiber:</b> >25g daily.<br>
-                - <b>Dairy:</b> 1–2 servings (Limit full-fat).<br>
-                - <b>Avoid:</b> Maida, Sugary sodas, Fried/Processed meats.
-                </div>""", unsafe_allow_html=True)
-                p_type = st.radio("Diet Type", ["Vegetarian", "Non-Vegetarian"])
-                if p_type == "Vegetarian":
-                    st.info("**Breakfast:** Moong dal chilla. **Lunch:** Jowar rotis + veg + dal.")
-                else:
-                    st.info("**Breakfast:** 2 Boiled egg whites + toast. **Lunch:** Grilled chicken + brown rice.")
+                st.header("🌸 PCOS Wellness Hub")
+                tab_pcos_diet, tab_pcos_exercise = st.tabs(["🥗 Nutrition Plan", "🏋️ Exercise Routine"])
+                with tab_pcos_diet:
+                    st.markdown("""<div class='diet-box'>
+                    - <b>Protein:</b> 50–60g daily. <b>Fiber:</b> >25g daily.<br>
+                    - <b>Dairy:</b> 1–2 servings (Limit full-fat).<br>
+                    - <b>Avoid:</b> Maida, Sugary sodas, Fried/Processed meats.
+                    </div>""", unsafe_allow_html=True)
+                    p_type = st.radio("Diet Type", ["Vegetarian", "Non-Vegetarian"])
+                    if p_type == "Vegetarian":
+                        st.info("**Breakfast:** Moong dal chilla. **Lunch:** Jowar rotis + veg + dal.")
+                    else:
+                        st.info("**Breakfast:** 2 Boiled egg whites + toast. **Lunch:** Grilled chicken + brown rice.")
+                with tab_pcos_exercise:
+                    st.markdown("""<div class='diet-box'>
+                    <b>💪 Strength Training (3–4x/week):</b> Focus on Squats, Lunges, Push-ups, and Glute Bridges (3 sets of 12-15 reps).<br>
+                    <b>🏃 Strategic Cardio:</b> 30–45 min brisk walking (LISS). Limit HIIT to 2 sessions per week.<br>
+                    <b>🧘 Mind-Body:</b> Child's Pose, Cobra, and Butterfly Stretch to lower cortisol.
+                    </div>""", unsafe_allow_html=True)
+                    st.subheader("🗓️ Weekly PCOS Schedule")
+                    st.write("- **Mon:** 45m Walk + Core\n- **Tue/Fri:** Strength Training\n- **Wed:** Gentle Yoga\n- **Thu:** Short HIIT/Cycling\n- **Sat:** Fun Cardio (Zumba)\n- **Sun:** Nature Walk")
 
         elif m == "Vaccine & Screening Portal":
             st.header("💉 Preventive Care")

@@ -16,7 +16,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-conn = st.connection("gsheets", type=GSheetsConnection)
+conn = st.connection("gsheets", type=)
 if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 
 # --- HELPERS ---
@@ -28,7 +28,7 @@ def process_img(f):
         buf = io.BytesIO()
         img.convert("RGB").save(buf, format="JPEG", quality=40)
         return base64.b64encode(buf.getvalue()).decode()
-    except: return ""
+    except Exception: return ""
 
 def show_img(b):
     if b: st.image(io.BytesIO(base64.b64decode(b)), use_container_width=True)
@@ -55,7 +55,6 @@ if not st.session_state.logged_in:
 # --- 3. MAIN APP ---
 else:
     df = conn.read(ttl=0)
-    # Safety fix for the search error
     if not df.empty:
         df['Name'] = df['Name'].fillna('').astype(str)
         df['Type'] = df['Type'].fillna('').astype(str)
@@ -82,11 +81,11 @@ else:
         with t_adm[2]:
             st.dataframe(df[df['Type'] == 'VITALS'], use_container_width=True)
 
-        with t_adm[3]: # BROADCAST SECTION
+        with t_adm[3]:
             st.subheader("Post Social Media Links for Patients")
             with st.form("broadcast_form"):
-                b_title = st.text_input("Title (e.g., New Video on PCOS)")
-                b_link = st.text_input("Paste URL (YouTube/Instagram)")
+                b_title = st.text_input("Title")
+                b_link = st.text_input("URL")
                 if st.form_submit_button("Post Update"):
                     new = pd.DataFrame([{"Name":"DR_PRIYANKA","Type":"BROADCAST","Details":f"{b_title}|{b_link}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True))
@@ -101,7 +100,6 @@ else:
         if st.sidebar.button("Logout"): st.session_state.logged_in = False; st.rerun()
 
     else: # Patient View
-        # Broadcast Notification
         updates = df[df['Type'] == 'BROADCAST'].sort_values(by='Timestamp', ascending=False)
         if not updates.empty:
             latest = updates.iloc[0]['Details'].split('|')
@@ -113,17 +111,45 @@ else:
         if m == "Diet & Yoga":
             st.header("🥗 Nutritional Guidelines")
             if "Pregnant" in st.session_state.stat:
-                st.subheader("Pregnancy Daily Diet Chart")
-                st.markdown("""<div class='diet-box'>
-                <b>1. Cereals & Grains:</b> 60g per serving (6 servings per day)<br>
-                <b>2. Pulses & Beans:</b> 30g per serving (3 servings per day)<br>
-                <b>3. Milk & Milk Products:</b> 150ml per serving (2 servings per day)<br>
-                <b>4. Vegetables:</b> Green leafy, roots & others - 100g serving (4 servings per day)<br>
-                <b>5. Fruits:</b> 50g per serving (4 servings per day)
-                </div>""", unsafe_allow_html=True)
+                # --- PREGNANCY DIET CONTENT FROM UPLOADED FILE ---
+                diet_full_text = """
+                PREGNANCY DIET CHART (BY TRIMESTER)
+
+                IMPORTANT SAFETY[cite: 16]:
+                - Avoid: Raw/undercooked eggs and meat, unpasteurized dairy, high-mercury fish[cite: 17].
+                - Limit: Caffeine to under 200mg/day (approx. 1 cup)[cite: 18].
+                - Hydration: 2.5–3 liters of water daily[cite: 19].
+
+                GENERAL MILK GUIDELINES[cite: 2]:
+                - Target: 3–4 servings per day[cite: 4].
+                - Type: Pasteurized, low-fat, or toned[cite: 6].
+
+                TRIMESTER FOCUS:
+                1. First Trimester: Folic acid and Vitamin B6[cite: 8].
+                2. Second Trimester: Calcium and iron[cite: 11].
+                3. Third Trimester: High fiber and healthy fats[cite: 14].
+                """
+                st.markdown(f"<div class='diet-box'>{diet_full_text.replace('', '<br>')}</div>", unsafe_allow_html=True)
+                
+                # Download Button for Patients
+                st.download_button("📥 Download Full Pregnancy Diet Chart", diet_full_text, file_name="Pregnancy_Diet_Chart.txt")
+                
+                st.subheader("Trimester-Specific Meal Plans")
+                tri = st.selectbox("Select Your Trimester", ["First Trimester (Weeks 1–12)", "Second Trimester (Weeks 13–26)", "Third Trimester (Weeks 27–40)"])
+                
+                if "First" in tri:
+                    st.write("**Focus:** Neural tube development & managing nausea[cite: 8].")
+                    st.markdown("Early Morning: Warm water + 4–5 soaked almonds [cite: 9]")
+                    st.markdown("Breakfast: Veggie Poha or Whole grain toast + boiled eggs [cite: 9]")
+                elif "Second" in tri:
+                    st.write("**Focus:** Bone growth & blood volume[cite: 11].")
+                    st.markdown("Lunch: Brown rice + dal + mixed veggies OR mutton/chicken curry [cite: 12]")
+                elif "Third" in tri:
+                    st.write("**Focus:** Preventing constipation & final baby weight gain[cite: 14].")
+                    st.markdown("Dinner: Chapati + rajma/chole OR fish curry + steamed broccoli [cite: 15]")
             else:
                 st.subheader("PCOS Diet & Lifestyle")
-                st.write("Focus on High Fiber, Low GI foods. Daily physical activity like Yoga (Surya Namaskar) is recommended.")
+                st.write("Focus on High Fiber, Low GI foods. Surya Namaskar is recommended.")
 
         elif m == "Vitals & BMI":
             with st.form("v_form"):
@@ -131,9 +157,9 @@ else:
                 wi = st.number_input("Weight (kg)", 30, 200, 60)
                 pu = st.number_input("Pulse", 40, 200, 72)
                 bp = st.text_input("BP", "120/80")
-                if st.form_submit_button("Save Vitals"):
+                if st.form_submit_button("Save"):
                     bmi = round(wi / ((hi/100)**2), 1)
-                    new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}, Pulse:{pu}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
+                    new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"VITALS","Details":f"BMI:{bmi}, BP:{bp}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                     conn.update(data=pd.concat([df, new], ignore_index=True)); st.success(f"BMI: {bmi}")
 
         elif m == "Book Appointment":
@@ -143,14 +169,9 @@ else:
                 with st.form("b_form"):
                     slots = []
                     curr = datetime.strptime("11:00", "%H:%M")
-                    while curr <= datetime.strptime("13:45", "%H:%M"):
-                        slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
-                    if sel_dt.weekday() != 6:
-                        curr = datetime.strptime("18:00", "%H:%M")
-                        while curr <= datetime.strptime("19:45", "%H:%M"):
-                            slots.append(curr.strftime("%I:%M %p")); curr += timedelta(minutes=15)
+                    while curr <= datetime.strptime("13:45", "%H:%M") : slots.append(curr.strftime("%I:%M %p")) ; curr += timedelta(minutes=15)
                     tm = st.selectbox("Slot", slots)
-                    if st.form_submit_button("Book Now"):
+                    if st.form_submit_button("Book"):
                         new = pd.DataFrame([{"Name":f"{st.session_state.name}","Type":"APP","Details":f"{sel_dt} {tm}","Timestamp":datetime.now().strftime("%Y-%m-%d %H:%M")}])
                         conn.update(data=pd.concat([df, new], ignore_index=True)); st.success("Booked!")
 

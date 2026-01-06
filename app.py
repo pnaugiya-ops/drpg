@@ -153,50 +153,119 @@ elif st.session_state.get('role') == "P":
         pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
         if "Pregnant" in st.session_state.stat:
             st.header(f"🤰 Detailed {pref} Pregnancy Diet (Trimester-Wise)")
-            d1, d2, d3 = st.tabs(["Trimester 1 (Weeks 1-12)", "Trimester 2 (Weeks 13-26)", "Trimester 3 (Weeks 27-40)"])
+            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
             with d1:
                 if pref == "Vegetarian":
                     st.write("""**Early Morning:** 5 soaked almonds + 2 walnuts.
-                    **Breakfast:** Veggie Poha OR Moong Dal Chilla with Mint Chutney.
-                    **Mid-Morning:** Coconut water + 1 Citrus fruit (Orange/Sweet lime).
-                    **Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Seasonal Green Veggie + Curd.
-                    **Dinner:** Bottle Gourd (Lauki) Sabzi + 1 Roti + 1 cup warm Milk before bed.""")
+                    **Breakfast:** Veggie Poha OR Moong Dal Chilla.
+                    **Mid-Morning:** Coconut water + 1 Citrus fruit.
+                    **Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd.
+                    **Dinner:** Lauki Sabzi + 1 Roti + Warm Milk.""")
                 else:
-                    st.write("""**Early Morning:** 1 Boiled Egg + 5 soaked almonds.
-                    **Breakfast:** Egg Omelet with veggies OR Chicken Keema wrap.
-                    **Mid-Morning:** Fresh Orange juice OR 1 Apple.
-                    **Lunch:** Grilled Fish/Chicken + 1 bowl Spinach + Small portion Brown rice.
-                    **Dinner:** Chicken Soup + 1 Roti OR Stir-fry Chicken with veggies.""")
+                    st.write("""**Early Morning:** 1 Boiled Egg + 5 almonds.
+                    **Breakfast:** Egg Omelet with veggies.
+                    **Mid-Morning:** Orange juice OR 1 Apple.
+                    **Lunch:** Grilled Fish/Chicken + Spinach + Brown rice.
+                    **Dinner:** Chicken Soup + 1 Roti.""")
             with d2:
                 if pref == "Vegetarian":
-                    st.write("""**Early Morning:** Soaked nuts + 1 Fig (Anjeer).
-                    **Breakfast:** Ragi Dosa OR Stuffed Paneer Paratha (less oil).
-                    **Mid-Morning:** Buttermilk (Chaas) + 1 seasonal fruit.
-                    **Lunch:** 2 Rotis + Chickpea (Chole) OR Rajma + Large bowl of Salad + Curd.
-                    **Dinner:** Paneer Bhurji + Veggie Pulao OR 2 Rotis + Mixed Dal.""")
+                    st.write("""**Early Morning:** Soaked nuts + 1 Fig.
+                    **Breakfast:** Ragi Dosa OR Stuffed Paneer Paratha.
+                    **Lunch:** 2 Rotis + Chole/Rajma + Salad + Curd.
+                    **Dinner:** Paneer Bhurji + Veggie Pulao.""")
                 else:
                     st.write("""**Early Morning:** 1 Boiled Egg + 2 Walnuts.
-                    **Breakfast:** Egg Bhurji with 2 Brown bread slices.
-                    **Mid-Morning:** 1 bowl Pomegranate OR Fruit salad.
-                    **Lunch:** 2 Rotis + Fish Curry OR Chicken Curry + Sprouted salad.
-                    **Dinner:** Lean Meat stir-fry OR 1 bowl Chicken Khichdi + Curd.""")
+                    **Breakfast:** Egg Bhurji + 2 Brown bread slices.
+                    **Lunch:** 2 Rotis + Fish Curry + Sprouted salad.
+                    **Dinner:** Lean Meat stir-fry OR Chicken Khichdi.""")
             with d3:
                 if pref == "Vegetarian":
                     st.write("""**Early Morning:** Milk with 1 tsp Ghee + 2 Dates.
-                    **Breakfast:** Oats Porridge with nuts OR Veggie Upma.
-                    **Mid-Morning:** Coconut water + 1 Banana.
+                    **Breakfast:** Oats Porridge OR Veggie Upma.
                     **Lunch:** 2 Rotis + Dal + Green leafy vegetable + Curd.
-                    **Dinner:** Light Vegetable Khichdi + 1 tsp Ghee + Warm Milk before bed.""")
+                    **Dinner:** Vegetable Khichdi + Ghee + Warm Milk.""")
                 else:
                     st.write("""**Early Morning:** Milk with dates + 5 almonds.
                     **Breakfast:** 2 Boiled eggs OR Egg pancakes.
-                    **Mid-Morning:** 1 Apple OR 1 Guava.
-                    **Lunch:** 2 Rotis + Grilled Fish/Chicken + Steamed Broccoli/Carrots.
-                    **Dinner:** Chicken Soup OR 1 Roti + Egg Curry (1 egg).""")
+                    **Lunch:** 2 Rotis + Grilled Fish/Chicken + Steamed Broccoli.
+                    **Dinner:** Chicken Soup OR Egg Curry.""")
             
         elif "PCOS" in st.session_state.stat:
             st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
-            st.write("""**Early Morning:** Warm water with Cinnamon powder OR Apple Cider Vinegar (1 tsp in water).
-            **Breakfast:** High fiber - Besan Chilla with lots of veggies OR Vegetable Oats.
+            st.write("""**Early Morning:** Warm water with Cinnamon OR ACV (1 tsp).
+            **Breakfast:** Besan Chilla with veggies OR Vegetable Oats.
             **Mid-Morning:** 1 bowl Papaya OR 5-10 Almonds.
-            **Lunch:** 1-2 Missi Rotis (Ch
+            **Lunch:** 1-2 Missi Rotis + 1 bowl Dal + 1 bowl Curd + Salad.
+            **Evening:** Green Tea + Roasted Makhana.
+            **Dinner:** Soya chunks curry OR Grilled Protein + 1 Roti.""")
+        elif "Lactating" in st.session_state.stat:
+            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
+            st.write("""**Early Morning:** Soaked Methi seeds water.
+            **Breakfast:** Ragi Porridge OR Methi Paratha.
+            **Mid-Morning:** 1 fruit + Buttermilk.
+            **Lunch:** 2-3 Rotis + Masoor Dal + Green leafy veg + Curd.
+            **Evening:** Warm Milk with 1 Methi/Gond Ladoo.
+            **Dinner:** Vegetable Khichdi with Ghee.""")
+            
+
+    elif m == "Exercise & Yoga":
+        if "Pregnant" in st.session_state.stat:
+            st.header("🧘 Detailed Trimester-Wise Pregnancy Exercise")
+            et1, et2, et3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
+            with et1:
+                st.write("- Walking (20 mins), Pelvic Tilts, Deep Breathing.")
+            with et2:
+                st.write("- Butterfly Pose, Wall Squats, Cat-Cow Stretch.")
+            with et3:
+                st.write("- Birthing Ball, Kegels, Slow Walking.")
+            
+        elif "Lactating" in st.session_state.stat:
+            st.header("🤱 Postpartum Recovery")
+            st.write("- Deep breathing, Kegels, and light walking.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("- Surya Namaskar, Squats, and 45 mins Brisk walking.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure (e.g. 120/80)")
+            pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+        if st.button("Save Vitals"):
+            st.success("Vitals saved.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV", "Hepatitis B"])
+        v_date = st.date_input("Date Administered")
+        if st.button("Log Vaccine"):
+            st.success(f"Logged {v_name} for {v_date}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment (15-Min Slots)")
+        dt = st.date_input("Select Date", min_value=date.today())
+        slots = []
+        start_m = datetime.strptime("11:00", "%H:%M")
+        for i in range(9): slots.append((start_m + timedelta(minutes=i*15)).strftime("%I:%M %p"))
+        start_e = datetime.strptime("18:00", "%H:%M")
+        for i in range(9): slots.append((start_e + timedelta(minutes=i*15)).strftime("%I:%M %p"))
+
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("The clinic is closed on this day.")
+        else:
+            tm = st.selectbox("Available Slots", slots)
+            if st.button("Confirm Appointment"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success(f"Confirmed for {dt} at {tm}")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        if not st.session_state.broadcasts:
+            st.info("No updates yet.")
+        for b in st.session_state.broadcasts:
+            st.video(b['url'])
+            st.write(b['desc'])

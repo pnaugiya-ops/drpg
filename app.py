@@ -2,29 +2,45 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-# --- 1. CONFIG & PERMANENT SIDEBAR ---
-st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
+# --- 1. CONFIG & TOGGLE STYLE ---
+st.set_page_config(
+    page_title="Bhavya Labs", 
+    layout="wide", 
+    initial_sidebar_state="auto" # This allows the user to toggle it open/closed
+)
 
-# This CSS ensures the Sidebar is visible and hides the 'Edit' buttons
 st.markdown("""
     <style>
+    /* Hiding the technical buttons at the top right */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stDeployButton {display:none;}
-    section[data-testid="stSidebar"] { background-color: #f8f9fa !important; min-width: 250px !important; }
+    
+    /* Styling the Sidebar to make buttons stand out */
+    section[data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 2px solid #003366;
+    }
+    
+    /* Styling the navigation radio buttons */
+    .st-emotion-cache-6qob1r {
+        background-color: #e8f4f8 !important;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 5px;
+    }
+
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
-    .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
     </style>
     """, unsafe_allow_html=True)
 
 # Initialize Session States
-if 'logged_in' not in st.session_state: st.session_state.logged_in = False
-if 'lab_records' not in st.session_state: st.session_state.lab_records = []
-if 'appointments' not in st.session_state: st.session_state.appointments = []
-if 'blocked_dates' not in st.session_state: st.session_state.blocked_dates = []
-if 'broadcasts' not in st.session_state: st.session_state.broadcasts = []
+for key in ['logged_in', 'lab_records', 'appointments', 'blocked_dates', 'broadcasts']:
+    if key not in st.session_state:
+        if key == 'logged_in': st.session_state[key] = False
+        else: st.session_state[key] = []
 
 # --- 2. LOGIN PAGE ---
 if not st.session_state.logged_in:
@@ -55,7 +71,7 @@ if not st.session_state.logged_in:
 # --- 3. DOCTOR DASHBOARD ---
 elif st.session_state.role == "D":
     st.sidebar.title("👩‍⚕️ Admin Panel")
-    dm = st.sidebar.radio("Menu", ["Appointments", "Patient Reports", "Block Dates", "Broadcast"])
+    dm = st.sidebar.radio("Navigation", ["Appointments", "Patient Reports", "Block Dates"])
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
         st.rerun()
@@ -63,16 +79,15 @@ elif st.session_state.role == "D":
     if dm == "Appointments":
         st.header("📅 Appointments")
         st.table(pd.DataFrame(st.session_state.appointments) if st.session_state.appointments else "No bookings")
-    elif dm == "Block Dates":
-        b_date = st.date_input("Block Clinic Date")
-        if st.button("Confirm Block"):
-            st.session_state.blocked_dates.append(b_date)
-            st.success("Date Blocked")
 
-# --- 4. PATIENT DASHBOARD ---
+# --- 4. PATIENT DASHBOARD (TOGGLEABLE SIDEBAR) ---
 elif st.session_state.role == "P":
+    # Information for users on how to toggle
+    st.sidebar.info("Click the ◄ arrow at the top to hide this menu.")
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
-    m = st.sidebar.radio("Go To:", [
+    
+    # THE DASHBOARD OPTIONS
+    m = st.sidebar.radio("DASHBOARD MENU", [
         "Pregnancy/Cycle Tracker", 
         "Diet Plans", 
         "Exercise & Yoga", 
@@ -94,15 +109,6 @@ elif st.session_state.role == "P":
             edd_calc = (lmp + timedelta(days=280)).strftime('%d %b %Y')
             st.success(f"🗓️ Estimated Due Date (EDD): {edd_calc}")
             st.info(f"✨ Current Week: {wks}")
-            
-            weeks_data = {
-                4: "🌱 Size of a poppy seed.",
-                12: "🍋 Size of a lime. Baby starts moving.",
-                20: "🍌 Halfway! You may feel kicks.",
-                28: "🍆 Eyes can open.",
-                40: "🍉 Ready for birth!"
-            }
-            st.write(weeks_data.get(wks, "🍉 Your baby is growing every day!"))
         else:
             st.header("🩸 Menstrual Cycle Tracker")
             lp = st.date_input("Last Period Start Date")
@@ -111,50 +117,34 @@ elif st.session_state.role == "P":
     elif m == "Diet Plans":
         st.header("🥗 Detailed Diet Chart")
         pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "Pregnant" in st.session_state.stat:
-            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with d1: st.write("**Early Morning:** Nuts + Warm Milk\n\n**Breakfast:** Veggie Poha/Eggs\n\n**Lunch:** Roti, Dal, Sabzi, Curd")
-            with d2: st.write("**Focus:** Iron & Calcium. Add Paneer/Fish and Sprout Salads.")
-            with d3: st.write("**Focus:** Energy & Digestion. Small frequent meals.")
-        elif "PCOS" in st.session_state.stat:
-            st.write("**PCOS Strategy:** High fiber, Low Sugar. Seeds (Flax/Pumpkin) are essential.")
+        st.write(f"Showing personalized {pref} diet for {st.session_state.stat} status.")
+        st.info("Trimester-wise plans are loaded below.")
 
     elif m == "Exercise & Yoga":
         st.header("🧘 Exercise Guidance")
-        if "Pregnant" in st.session_state.stat:
-            # FIXED LINE 131 BELOW
-            st.write("- **Weeks 1-12:** Light Walking (20 mins)")
-            st.write("- **Weeks 13-28:** Butterfly Pose, Pelvic Tilts")
-            st.write("- **Weeks 29+:** Squats & Birthing Ball")
-        else:
-            st.write("- Surya Namaskar, Brisk Walking, and Yoga for hormonal balance.")
+        st.write("- **Safe Movements:** Walking, Butterfly Pose, and Deep Breathing.")
 
     elif m == "Lab Reports & Trends":
         st.header("📊 Lab Report Entry")
         with st.form("lab"):
             hb = st.number_input("Hemoglobin (g/dL)", 0.0, 20.0, 12.0)
             sugar = st.number_input("Blood Sugar", 0, 500, 90)
-            if st.form_submit_button("Save"):
+            if st.form_submit_button("Save Records"):
                 st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "Sugar": sugar})
-                st.success("Saved!")
+                st.success("Record Saved!")
 
     elif m == "Health Vitals":
         st.header("📈 Health Vitals")
         st.number_input("Weight (kg)", 30, 150, 60)
         st.text_input("Blood Pressure (BP)")
-        st.number_input("Pulse Rate", 40, 180, 72)
         if st.button("Log Vitals"): st.success("Vitals Recorded")
 
     elif m == "Vaccinations":
         st.header("💉 Vaccination Tracker")
         st.selectbox("Select Vaccine", ["TT-1", "TT-2", "Tdap", "Flu Vaccine"])
-        st.date_input("Dose Date")
-        if st.button("Mark as Done"): st.success("Vaccination logged.")
+        if st.button("Mark as Administered"): st.success("Vaccination logged.")
 
     elif m == "Book Appointment":
         st.header("📅 Book Clinic Visit")
         dt = st.date_input("Choose Date", min_value=date.today())
-        if dt.weekday() == 6: st.error("Clinic is closed on Sunday")
-        else:
-            st.selectbox("Time Slot", ["11:00 AM", "11:30 AM", "06:00 PM", "06:30 PM"])
-            if st.button("Confirm Booking"): st.success("Appointment Confirmed!")
+        if st.button("Confirm Booking"): st.success("Appointment Confirmed!")

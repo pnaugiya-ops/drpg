@@ -193,4 +193,39 @@ elif st.session_state.role == "P":
         st.header("📈 Record Vitals")
         c1, c2 = st.columns(2)
         with c1:
-            h = st.number_input("Height (cm)", 100, 250, 160
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure (e.g. 120/80)")
+            pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+        if st.button("Save Vitals"): st.success("Vitals saved.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV", "Hepatitis B"])
+        v_date = st.date_input("Date Administered")
+        if st.button("Log Vaccine"): st.success(f"Logged {v_name} for {v_date}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment (15-Min Slots)")
+        dt = st.date_input("Select Date", min_value=date.today())
+        slots = []
+        start_m = datetime.strptime("11:00", "%H:%M")
+        for i in range(9): slots.append((start_m + timedelta(minutes=i*15)).strftime("%I:%M %p"))
+        start_e = datetime.strptime("18:00", "%H:%M")
+        for i in range(9): slots.append((start_e + timedelta(minutes=i*15)).strftime("%I:%M %p"))
+
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("The clinic is closed on this day.")
+        else:
+            tm = st.selectbox("Available Slots", slots)
+            if st.button("Confirm Appointment"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success(f"Confirmed for {dt} at {tm}")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        if not st.session_state.broadcasts: st.info("No updates yet.")
+        for b in st.session_state.broadcasts:
+            st.video(b['url'])
+            st.write(b['desc'])

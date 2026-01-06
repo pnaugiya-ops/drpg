@@ -5,41 +5,55 @@ from datetime import datetime, date, timedelta
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
-# This block ensures the sidebar is visible and the navigation buttons are clear
+# This CSS ensures the Sidebar is visible, the branding is clean, and code-menus are hidden
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Force Sidebar to be visible and stylize buttons */
+    /* Force Sidebar to be visible with a professional look */
     section[data-testid="stSidebar"] {
         background-color: #f8f9fa !important;
-        min-width: 250px !important;
+        min-width: 260px !important;
+        border-right: 1px solid #ddd;
     }
     
-    /* Ensure the radio buttons/navigation options are visible */
-    .st-emotion-cache-16q9sum.e1nzilvr4 {
-        color: #003366 !important;
+    .dr-header { 
+        background:#003366; 
+        color:white; 
+        padding:25px; 
+        border-radius:15px; 
+        text-align:center; 
+        margin-bottom:20px; 
     }
-
-    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
-    .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
-    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
+    .clinic-badge { 
+        background:#e8f4f8; 
+        color:#003366; 
+        padding:5px 12px; 
+        border-radius:5px; 
+        font-weight:bold; 
+        display:inline-block; 
+        margin:3px; 
+        font-size:12px; 
+        border:1px solid #003366; 
+    }
+    .stButton>button { 
+        background:#ff4b6b; 
+        color:white; 
+        border-radius:10px; 
+        font-weight:bold; 
+        width: 100%; 
+        height: 45px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# Initialize Session States
-if 'logged_in' not in st.session_state: 
-    st.session_state.logged_in = False
-if 'lab_records' not in st.session_state:
-    st.session_state.lab_records = []
-if 'appointments' not in st.session_state:
-    st.session_state.appointments = []
-if 'blocked_dates' not in st.session_state:
-    st.session_state.blocked_dates = []
-if 'broadcasts' not in st.session_state:
-    st.session_state.broadcasts = []
+# Initialize Session States for Data Persistence
+for key in ['logged_in', 'lab_records', 'appointments', 'blocked_dates', 'broadcasts']:
+    if key not in st.session_state:
+        if key == 'logged_in': st.session_state[key] = False
+        else: st.session_state[key] = []
 
 # --- 2. LOGIN & BRANDING ---
 if not st.session_state.logged_in:
@@ -75,7 +89,7 @@ if not st.session_state.logged_in:
 
 # --- 3. DOCTOR DASHBOARD ---
 elif st.session_state.role == "D":
-    st.sidebar.markdown(f"### 👩‍⚕️ Welcome, {st.session_state.name}")
+    st.sidebar.markdown(f"## 👩‍⚕️ Dr. Priyanka")
     dm = st.sidebar.radio("Doctor Panel", ["Manage Appointments", "Review Patient Reports", "Block Clinic Dates", "Broadcast Media"])
     
     if st.sidebar.button("Logout"): 
@@ -114,7 +128,7 @@ elif st.session_state.role == "D":
 # --- 4. PATIENT DASHBOARD ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
-    m = st.sidebar.radio("Go To:", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
+    m = st.sidebar.radio("Navigation", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
     
     if st.sidebar.button("Logout"): 
         st.session_state.logged_in = False
@@ -122,14 +136,13 @@ elif st.session_state.role == "P":
 
     if m == "Health Tracker":
         if "Pregnant" in st.session_state.stat:
-            st.header("🤰 Pregnancy Week-by-Week Tracker")
+            st.header("🤰 Pregnancy Tracker")
             lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
             edd_calc = (lmp + timedelta(days=280)).strftime('%d %b %Y')
             st.success(f"🗓️ EDD: {edd_calc} | Current Week: {wks}")
             
             weeks_data = {
-                # FIXED LINE 133 BELOW
                 4: "🌱 Size of a poppy seed. Implantation is occurring.",
                 8: "🍇 Size of a raspberry. Heart is beating regularly.",
                 12: "🍋 Size of a lime. Baby starts moving fingers and toes.",
@@ -141,13 +154,64 @@ elif st.session_state.role == "P":
                 36: "🍈 Size of a papaya. Baby is dropping into the pelvis.",
                 40: "🍉 Week 40: Full term! Ready for birth."
             }
-            current_info = next((v for k, v in weeks_data.items() if wks <= k), "🍉 Reaching full term!")
+            current_info = weeks_data.get(wks, "🍉 You are progressing beautifully through your journey!")
             st.info(current_info)
         else:
             lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
             st.success(f"🩸 Next Expected Period: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
 
     elif m == "Lab Reports & Trends":
-        st.header("📊 Comprehensive Lab Report Tracker")
+        st.header("📊 Lab Report Tracker")
         with st.form("lab_entry"):
-            c1, c2 =
+            c1, c2 = st.columns(2)
+            with c1:
+                hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
+                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
+            with c2:
+                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
+                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+            if st.form_submit_button("Save Records"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "Sugar": sugar, "Pulse": pulse})
+                st.success("Record Saved!")
+
+    elif m == "Diet Plans":
+        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
+        if "Pregnant" in st.session_state.stat:
+            st.header(f"🤰 {pref} Pregnancy Diet")
+            st.write(f"**Focus:** High Folic Acid, Iron, and Calcium for {st.session_state.stat} status.")
+            st.info("Early Morning: Nuts + Milk | Breakfast: High Protein | Lunch: Balanced Thali | Dinner: Light & Early.")
+        elif "PCOS" in st.session_state.stat:
+            st.header(f"🌸 {pref} PCOS Diet")
+            st.write("**Focus:** Low Glycemic Index foods to manage insulin.")
+        else:
+            st.header(f"🤱 {pref} Lactation Diet")
+            st.write("**Focus:** Galactagogues like Methi, Fennel, and hydration.")
+
+    elif m == "Exercise & Yoga":
+        st.header("🧘 Wellness & Movement")
+        if "Pregnant" in st.session_state.stat:
+            st.write("- **Trimester 1:** Walking & Deep Breathing.")
+            st.write("- **Trimester 2:** Butterfly pose & Cat-Cow.")
+            st.write("- **Trimester 3:** Squats & Pelvic tilts.")
+        else:
+            st.write("- Brisk walking (45 mins) and Surya Namaskar.")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Slot")
+        dt = st.date_input("Date", min_value=date.today())
+        if dt.weekday() == 6 or dt in st.session_state.blocked_dates:
+            st.error("Clinic is closed on this day.")
+        else:
+            tm = st.selectbox("Time Slot", ["11:00 AM", "11:30 AM", "06:00 PM", "06:30 PM"])
+            if st.button("Confirm"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success("Appointment Booked!")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Clinic Broadcasts")
+        if st.session_state.broadcasts:
+            for b in st.session_state.broadcasts:
+                st.video(b['url'])
+                st.write(b['desc'])
+        else:
+            st.info("No new video updates from Dr. Priyanka.")

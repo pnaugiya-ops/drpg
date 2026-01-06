@@ -5,8 +5,12 @@ from datetime import datetime, date, timedelta
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
+# This block hides the top right menu and footer for security
 st.markdown("""
     <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
     .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
@@ -154,7 +158,6 @@ elif st.session_state.role == "P":
             d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
             with d1:
                 if pref == "Vegetarian":
-                    # FIXED LINE 158 BELOW
                     st.write("""**Early Morning:** 5 soaked almonds + 2 walnuts.  
                     **Breakfast:** Veggie Poha OR Moong Dal Chilla.  
                     **Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd.  
@@ -217,6 +220,9 @@ elif st.session_state.role == "P":
             with et3:
                 st.write("- Birthing Ball, Kegels, Slow Walking.")
             
+
+[Image of prenatal yoga stretches]
+
         elif "Lactating" in st.session_state.stat:
             st.header("🤱 Postpartum Recovery")
             st.write("- Deep breathing, Kegels, and light walking.")

@@ -151,27 +151,16 @@ elif st.session_state.get('role') == "P":
     elif m == "Diet Plans":
         pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
         if "Pregnant" in st.session_state.stat:
-            st.header(f"🤰 Detailed {pref} Pregnancy Diet")
-            if pref == "Vegetarian":
-                st.write("**Early Morning:** 5 Soaked Almonds + Warm Milk.\n**Breakfast:** Veggie Poha OR Moong Dal Chilla.\n**Mid-Morning:** 1 Fruit + Coconut Water.\n**Lunch:** 2 Roti + Dal + Green Veggie + Salad.\n**Dinner:** 2 Roti + Paneer Bhurji + Warm Milk.")
-            else:
-                st.write("**Early Morning:** 1 Boiled Egg + 5 Soaked Almonds.\n**Breakfast:** Egg Omelet OR Chicken Keema Paratha.\n**Lunch:** 2 Roti + Chicken/Fish Curry + Spinach + Salad.\n**Dinner:** Grilled Fish OR Egg Curry + 1 Roti.")
-
-        elif "PCOS" in st.session_state.stat:
-            st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
-            if pref == "Vegetarian":
-                st.write("**Early Morning:** Cinnamon Water.\n**Breakfast:** Besan Chilla with added vegetables.\n**Mid-Morning:** 1 Fruit.\n**Lunch:** 2 Missi Roti + Dal + Curd + Salad.\n**Dinner:** Soya Chunks Curry OR Tofu Stir-fry.")
-            else:
-                st.write("**Early Morning:** Lemon water.\n**Breakfast:** 2 Egg White Omelet with Mushrooms.\n**Lunch:** Grilled Chicken + Brown Rice + Salad.\n**Dinner:** Baked Fish OR Chicken Salad.")
-
-        elif "Lactating" in st.session_state.stat:
-            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
-            if pref == "Vegetarian":
-                st.write("**Early Morning:** Warm water with soaked fenugreek seeds.")
-                st.write("**Breakfast:** Oats porridge with nuts OR Ragi dosa.")
-                st.write("**Mid-Morning:** 1 seasonal fruit + soaked almonds.")
-                st.write("**Lunch:** 2-3 Rotis + 1 bowl Dal + Green vegetable + Curd.")
-                st.write("**Evening:** Roasted Makhana + Warm Milk.")
-                st.write("**Dinner:** Vegetable Khichdi with ghee.")
-            else:
-                st.write
+            st.header(f"🤰 Detailed {pref} Pregnancy Diet (Trimester-Wise)")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.subheader("Trimester 1")
+                if pref == "Vegetarian":
+                    st.write("Focus on Folate.\n- Soaked Almonds\n- Spinach Dal\n- Citrus fruits\n- Ginger tea for nausea.")
+                else:
+                    st.write("Focus on Protein.\n- Boiled Eggs\n- Chicken Soup\n- Small frequent meals\n- Citrus juices.")
+            
+            with col2:
+                st.subheader("Trimester 2")
+                if pref == "

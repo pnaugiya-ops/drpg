@@ -112,8 +112,8 @@ elif st.session_state.get('role') == "P":
             st.header("🤰 Pregnancy Week-by-Week Tracker")
             lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
-            edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
-            st.success(f"🗓️ EDD: {edd} | Current Week: {wks}")
+            edd_calc = (lmp + timedelta(days=280)).strftime('%d %b %Y')
+            st.success(f"🗓️ EDD: {edd_calc} | Current Week: {wks}")
             
             weeks_data = {
                 4: "🌱 Size of a poppy seed. Implantation is occurring.",
@@ -144,18 +144,4 @@ elif st.session_state.get('role') == "P":
             with c2:
                 sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
                 urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
-                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-            if st.form_submit_button("Save Records"):
-                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
-                st.success("Record Saved!")
-
-    elif m == "Diet Plans":
-        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "Pregnant" in st.session_state.stat:
-            st.header(f"🤰 Detailed {pref} Pregnancy Diet (Trimester-Wise)")
-            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with d1:
-                if pref == "Vegetarian":
-                    st.write("**Focus:** Folate & Ginger for nausea. Leafy greens, citrus, and nuts.")
-                else:
-                    st.write("**Focus:** Vitamin B12 & Protein. Boiled
+                pulse = st.number

@@ -154,12 +154,4 @@ elif st.session_state.role == "P":
                 if pref == "Vegetarian":
                     st.write("**Early Morning:** 5 soaked almonds + 2 walnuts. \n\n**Breakfast:** Veggie Poha OR Moong Dal Chilla. \n\n**Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd. \n\n**Dinner:** Lauki Sabzi + 1 Roti + Warm Milk.")
                 else:
-                    st.write("**Early Morning:** 1 Boiled Egg + 5 almonds. \n\n**Breakfast:** Egg Omelet with veggies. \n\n**Lunch:** Grilled Fish/Chicken + Spinach + Brown rice. \n\n**Dinner:** Chicken Soup + 1 Roti.")
-            with d2:
-                if pref == "Vegetarian":
-                    st.write("**Early Morning:** Soaked nuts + 1 Fig. \n\n**Breakfast:** Ragi Dosa OR Stuffed Paneer Paratha. \n\n**Lunch:** 2 Rotis + Chole/Rajma + Salad + Curd. \n\n**Dinner:** Paneer Bhurji + Veggie Pulao.")
-                else:
-                    st.write("**Early Morning:** 1 Boiled Egg + 2 Walnuts. \n\n**Breakfast:** Egg Bhurji + 2 Brown bread slices. \n\n**Lunch:** 2 Rotis + Fish Curry + Sprouted salad. \n\n**Dinner:** Lean Meat stir-fry OR Chicken Khichdi.")
-            with d3:
-                if pref == "Vegetarian":
-                    st.write("**Early Morning:** Milk with 1 tsp Ghee + 2 Dates. \n\n**
+                    st.write("**Early Morning:** 1 Boiled Egg + 5 almonds. \n\n**

@@ -141,25 +141,4 @@ elif st.session_state.role == "P":
             c1, c2 = st.columns(2)
             with c1:
                 hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
-                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
-                cbc = st.number_input("WBC Count (CBC)", 1000, 20000, 7000)
-            with c2:
-                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
-                urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
-                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-            if st.form_submit_button("Save Records"):
-                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
-                st.success("Record Saved!")
-
-    elif m == "Diet Plans":
-        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "Pregnant" in st.session_state.stat:
-            st.header(f"🤰 Detailed {pref} Pregnancy Diet")
-            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with d1:
-                if pref == "Vegetarian":
-                    st.write("""**Early Morning:** 5 soaked almonds + 2 walnuts.  
-                    **Breakfast:** Veggie Poha OR Moong Dal Chilla.  
-                    **Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd.  
-                    **Dinner:** Lauki Sabzi + 1 Roti + Warm Milk.""")
-                else
+                tsh = st.number

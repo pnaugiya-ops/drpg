@@ -118,4 +118,28 @@ elif st.session_state.role == "P":
                 8: "🍇 Size of a raspberry. Heart is beating regularly.",
                 12: "🍋 Size of a lime. Baby starts moving fingers and toes.",
                 16: "🥑 Size of an avocado. Eyes and ears are moving to position.",
-                20: "🍌 Size of a banana. Halfway! You may feel kicks
+                20: "🍌 Size of a banana. Halfway! You may feel kicks.",
+                24: "🌽 Size of an ear of corn. Lungs are beginning to form.",
+                28: "🍆 Size of an eggplant. Eyes can open and see light.",
+                32: "🥬 Size of a squash. Baby is practicing breathing.",
+                36: "🍈 Size of a papaya. Baby is dropping into the pelvis.",
+                40: "🍉 Week 40: Full term! Ready for birth."
+            }
+            current_info = next((v for k, v in weeks_data.items() if wks <= k), "🍉 Reaching full term!")
+            st.info(current_info)
+        else:
+            lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
+            st.success(f"🩸 Next Expected Period: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
+
+    elif m == "Lab Reports & Trends":
+        st.header("📊 Comprehensive Lab Report Tracker")
+        with st.form("lab_entry"):
+            c1, c2 = st.columns(2)
+            with c1:
+                hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
+                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
+                cbc = st.number_input("WBC Count (CBC)", 1000, 20000, 7000)
+            with c2:
+                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
+                urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
+                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72

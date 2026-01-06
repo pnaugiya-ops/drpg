@@ -1,26 +1,20 @@
 import streamlit as st
-import pd as pd
+import pandas as pd
 from datetime import datetime, date, timedelta
 
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
-# Hides code buttons but ensures the Navigation Menu is bright and visible
+# This block hides the top right menu and footer for security
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-    
-    /* Make the Sidebar Navigation clearly visible */
-    [data-testid="stSidebar"] {
-        background-color: #f0f4f8;
-        border-right: 2px solid #003366;
-    }
-    
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
     .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
+    [data-testid="stSidebarNav"] { background-color: #f8f9fa; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -95,115 +89,4 @@ elif st.session_state.role == "D":
         st.header("🚫 Date Management")
         b_date = st.date_input("Select Date to Block")
         if st.button("Block Date for All Bookings"):
-            st.session_state.blocked_dates.append(b_date)
-            st.success(f"Clinic bookings disabled for {b_date}")
-
-    elif dm == "Broadcast Media":
-        st.header("📢 Video Broadcast")
-        v_url = st.text_input("Enter YouTube Video Link")
-        v_desc = st.text_area("Video Title/Description")
-        if st.button("Broadcast to Dashboard"):
-            st.session_state.broadcasts.append({"url": v_url, "desc": v_desc})
-            st.success("Video successfully broadcasted.")
-
-# --- 4. PATIENT DASHBOARD ---
-elif st.session_state.role == "P":
-    st.sidebar.markdown(f"### 👤 {st.session_state.name}")
-    m = st.sidebar.radio("Go To:", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
-    
-    if st.sidebar.button("Logout"): 
-        st.session_state.logged_in = False
-        st.rerun()
-
-    if m == "Health Tracker":
-        if "Pregnant" in st.session_state.stat:
-            st.header("🤰 Pregnancy Week-by-Week Tracker")
-            lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
-            wks = (date.today()-lmp).days // 7
-            edd_calc = (lmp + timedelta(days=280)).strftime('%d %b %Y')
-            st.success(f"🗓️ EDD: {edd_calc} | Current Week: {wks}")
-            
-            weeks_data = {
-                4: "🌱 Size of a poppy seed. Implantation is occurring.",
-                8: "🍇 Size of a raspberry. Heart is beating regularly.",
-                12: "🍋 Size of a lime. Baby starts moving fingers and toes.",
-                16: "🥑 Size of an avocado. Eyes and ears are moving to position.",
-                20: "🍌 Size of a banana. Halfway! You may feel kicks.",
-                24: "🌽 Size of an ear of corn. Lungs are beginning to form.",
-                28: "🍆 Size of an eggplant. Eyes can open and see light.",
-                32: "🥬 Size of a squash. Baby is practicing breathing.",
-                36: "🍈 Size of a papaya. Baby is dropping into the pelvis.",
-                40: "🍉 Week 40: Full term! Ready for birth."
-            }
-            current_info = next((v for k, v in weeks_data.items() if wks <= k), "🍉 Reaching full term!")
-            st.info(current_info)
-        else:
-            lp = st.date_input("Last Period Start", value=date.today()-timedelta(days=14))
-            st.success(f"🩸 Next Expected Period: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
-
-    elif m == "Lab Reports & Trends":
-        st.header("📊 Comprehensive Lab Report Tracker")
-        with st.form("lab_entry"):
-            c1, c2 = st.columns(2)
-            with c1:
-                hb = st.number_input("Hemoglobin (g/dL)", 5.0, 20.0, 12.0)
-                tsh = st.number_input("TSH (mIU/L)", 0.0, 20.0, 2.5)
-                cbc = st.number_input("WBC Count (CBC)", 1000, 20000, 7000)
-            with c2:
-                sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
-                urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
-                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-            if st.form_submit_button("Save Records"):
-                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
-                st.success("Record Saved!")
-
-    elif m == "Diet Plans":
-        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
-        if "Pregnant" in st.session_state.stat:
-            st.header(f"🤰 Detailed {pref} Pregnancy Diet")
-            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with d1:
-                if pref == "Vegetarian":
-                    st.write("""**Early Morning:** 5 soaked almonds + 2 walnuts.  
-                    **Breakfast:** Veggie Poha OR Moong Dal Chilla.  
-                    **Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd.  
-                    **Dinner:** Lauki Sabzi + 1 Roti + Warm Milk.""")
-                else:
-                    st.write("""**Early Morning:** 1 Boiled Egg + 5 almonds.  
-                    **Breakfast:** Egg Omelet with veggies.  
-                    **Lunch:** Grilled Fish/Chicken + Spinach + Brown rice.  
-                    **Dinner:** Chicken Soup + 1 Roti.""")
-            with d2:
-                if pref == "Vegetarian":
-                    st.write("""**Early Morning:** Soaked nuts + 1 Fig.  
-                    **Breakfast:** Ragi Dosa OR Stuffed Paneer Paratha.  
-                    **Lunch:** 2 Rotis + Chole/Rajma + Salad + Curd.  
-                    **Dinner:** Paneer Bhurji + Veggie Pulao.""")
-                else:
-                    st.write("""**Early Morning:** 1 Boiled Egg + 2 Walnuts.  
-                    **Breakfast:** Egg Bhurji + 2 Brown bread slices.  
-                    **Lunch:** 2 Rotis + Fish Curry + Sprouted salad.  
-                    **Dinner:** Lean Meat stir-fry OR Chicken Khichdi.""")
-            with d3:
-                if pref == "Vegetarian":
-                    st.write("""**Early Morning:** Milk with 1 tsp Ghee + 2 Dates.  
-                    **Breakfast:** Oats Porridge OR Veggie Upma.  
-                    **Lunch:** 2 Rotis + Dal + Green leafy vegetable + Curd.  
-                    **Dinner:** Vegetable Khichdi + Ghee + Warm Milk.""")
-                else:
-                    st.write("""**Early Morning:** Milk with dates + 5 almonds.  
-                    **Breakfast:** 2 Boiled eggs OR Egg pancakes.  
-                    **Lunch:** 2 Rotis + Grilled Fish/Chicken + Steamed Broccoli.  
-                    **Dinner:** Chicken Soup OR Egg Curry.""")
-
-        elif "PCOS" in st.session_state.stat:
-            st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
-            st.write("""**Early Morning:** Warm water with Cinnamon OR ACV (1 tsp).  
-            **Breakfast:** Besan Chilla with veggies OR Vegetable Oats.  
-            **Mid-Morning:** 1 bowl Papaya OR 5-10 Almonds.  
-            **Lunch:** 1-2 Missi Rotis + 1 bowl Dal + 1 bowl Curd + Salad.  
-            **Evening:** Green Tea + Roasted Makhana.  
-            **Dinner:** Soya chunks curry OR Grilled Protein + 1 Roti.""")
-
-        elif "Lactating" in st.session_state.stat:
-            st.header(f"🤱 Detailed
+            st.session_state.

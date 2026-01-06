@@ -1,20 +1,26 @@
 import streamlit as st
-import pandas as pd
+import pd as pd
 from datetime import datetime, date, timedelta
 
 # --- 1. CONFIG & STYLE ---
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
-# This block hides the top right menu and footer for security
+# Hides code buttons but ensures the Navigation Menu is bright and visible
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+    
+    /* Make the Sidebar Navigation clearly visible */
+    [data-testid="stSidebar"] {
+        background-color: #f0f4f8;
+        border-right: 2px solid #003366;
+    }
+    
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
     .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
-    [data-testid="stSidebarNav"] { background-color: #f8f9fa; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -185,7 +191,6 @@ elif st.session_state.role == "P":
                     **Lunch:** 2 Rotis + Dal + Green leafy vegetable + Curd.  
                     **Dinner:** Vegetable Khichdi + Ghee + Warm Milk.""")
                 else:
-                    # FIXED LINE 189 BELOW
                     st.write("""**Early Morning:** Milk with dates + 5 almonds.  
                     **Breakfast:** 2 Boiled eggs OR Egg pancakes.  
                     **Lunch:** 2 Rotis + Grilled Fish/Chicken + Steamed Broccoli.  
@@ -201,71 +206,4 @@ elif st.session_state.role == "P":
             **Dinner:** Soya chunks curry OR Grilled Protein + 1 Roti.""")
 
         elif "Lactating" in st.session_state.stat:
-            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
-            st.write("""**Early Morning:** Soaked Methi seeds water.  
-            **Breakfast:** Ragi Porridge OR Methi Paratha.  
-            **Mid-Morning:** 1 fruit + Buttermilk.  
-            **Lunch:** 2-3 Rotis + Masoor Dal + Green leafy veg + Curd.  
-            **Evening:** Warm Milk with 1 Methi/Gond Ladoo.  
-            **Dinner:** Vegetable Khichdi with Ghee.""")
-
-    elif m == "Exercise & Yoga":
-        if "Pregnant" in st.session_state.stat:
-            st.header("🧘 Detailed Pregnancy Exercise")
-            et1, et2, et3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with et1:
-                st.write("- Walking (20 mins), Pelvic Tilts, Deep Breathing.")
-            with et2:
-                st.write("- Butterfly Pose, Wall Squats, Cat-Cow Stretch.")
-            with et3:
-                st.write("- Birthing Ball, Kegels, Slow Walking.")
-        elif "Lactating" in st.session_state.stat:
-            st.header("🤱 Postpartum Recovery")
-            st.write("- Deep breathing, Kegels, and light walking.")
-        else:
-            st.header("🏋️ PCOS Strength & Cardio")
-            st.write("- Surya Namaskar, Squats, and 45 mins Brisk walking.")
-
-    elif m == "Health Vitals":
-        st.header("📈 Record Vitals")
-        c1, c2 = st.columns(2)
-        with c1:
-            h = st.number_input("Height (cm)", 100, 250, 160)
-            w = st.number_input("Weight (kg)", 30, 200, 60)
-        with c2:
-            bp = st.text_input("Blood Pressure (e.g. 120/80)")
-            pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
-        if st.button("Save Vitals"):
-            st.success("Vitals saved.")
-
-    elif m == "Vaccinations":
-        st.header("💉 Vaccination Tracker")
-        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV", "Hepatitis B"])
-        v_date = st.date_input("Date Administered")
-        if st.button("Log Vaccine"):
-            st.success(f"Logged {v_name} for {v_date}")
-
-    elif m == "Book Appointment":
-        st.header("📅 Book Appointment (15-Min Slots)")
-        dt = st.date_input("Select Date", min_value=date.today())
-        slots = []
-        start_m = datetime.strptime("11:00", "%H:%M")
-        for i in range(9): slots.append((start_m + timedelta(minutes=i*15)).strftime("%I:%M %p"))
-        start_e = datetime.strptime("18:00", "%H:%M")
-        for i in range(9): slots.append((start_e + timedelta(minutes=i*15)).strftime("%I:%M %p"))
-
-        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
-            st.error("The clinic is closed on this day.")
-        else:
-            tm = st.selectbox("Available Slots", slots)
-            if st.button("Confirm Appointment"):
-                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
-                st.success(f"Confirmed for {dt} at {tm}")
-
-    elif m == "Doctor's Updates":
-        st.header("📢 Video Guidance")
-        if not st.session_state.broadcasts:
-            st.info("No updates yet.")
-        for b in st.session_state.broadcasts:
-            st.video(b['url'])
-            st.write(b['desc'])
+            st.header(f"🤱 Detailed

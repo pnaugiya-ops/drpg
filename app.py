@@ -144,4 +144,91 @@ elif st.session_state.get('role') == "P":
             with c2:
                 sugar = st.number_input("Blood Sugar (mg/dL)", 50, 500, 90)
                 urine = st.selectbox("Urine Test (Protein/Sugar)", ["Nil", "Trace", "1+", "2+", "3+"])
-                pulse = st.number
+                pulse = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+            if st.form_submit_button("Save Records"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "TSH": tsh, "CBC": cbc, "Sugar": sugar, "Urine": urine, "Pulse": pulse})
+                st.success("Record Saved!")
+
+    elif m == "Diet Plans":
+        pref = st.radio("Select Preference", ["Vegetarian", "Non-Vegetarian"])
+        if "Pregnant" in st.session_state.stat:
+            st.header(f"🤰 Detailed {pref} Pregnancy Diet (Trimester-Wise)")
+            d1, d2, d3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
+            with d1:
+                if pref == "Vegetarian":
+                    st.write("""**Focus:** Folate & Nausea relief. Include soaked almonds, spinach dal, and ginger tea.""")
+                else:
+                    st.write("""**Focus:** Vitamin B12 & Protein. Include boiled eggs, chicken broth, and citrus fruits.""")
+            with d2:
+                if pref == "Vegetarian":
+                    st.write("""**Focus:** Calcium & Iron. Include Paneer, Ragi, Curd, and Pomegranate.""")
+                else:
+                    st.write("""**Focus:** Iron & Omega-3. Include lean meat, grilled fish, and green leafy vegetables.""")
+            with d3:
+                if pref == "Vegetarian":
+                    st.write("""**Focus:** Energy & Digestion. Include Ghee with milk, dates, and light khichdi.""")
+                else:
+                    st.write("""**Focus:** Sustained Energy. Include egg omelets, grilled protein, and mixed fruits.""")
+            
+        elif "PCOS" in st.session_state.stat:
+            st.header(f"🌸 {pref} PCOS Diet")
+            st.write("Morning: Cinnamon water. Breakfast: Besan chilla. Lunch: Missi roti + Dal.")
+        elif "Lactating" in st.session_state.stat:
+            st.header(f"🤱 {pref} Lactation Diet")
+            st.write("Morning: Methi water. Breakfast: Ragi porridge. Snacks: Gond Ladoo.")
+
+    elif m == "Exercise & Yoga":
+        if "Pregnant" in st.session_state.stat:
+            st.header("🧘 Detailed Trimester-Wise Pregnancy Exercise")
+            et1, et2, et3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
+            with et1:
+                st.write("- Walking (20 min), Pelvic tilts, and Deep breathing.")
+            with et2:
+                st.write("- Butterfly Pose, Wall squats, and Prenatal yoga.")
+            with et3:
+                st.write("- Birthing ball rotations and gentle pelvic stretches.")
+            
+        elif "Lactating" in st.session_state.stat:
+            st.header("🤱 Postpartum Recovery")
+            st.write("- Kegels, Walking, and Pelvic bridges.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("- Surya Namaskar, Squats, and Brisk walking.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160)
+            w = st.number_input("Weight (kg)", 30, 200, 60)
+        with c2:
+            bp = st.text_input("Blood Pressure (e.g. 120/80)")
+            pls = st.number_input("Pulse Rate (BPM)", 40, 200, 72)
+        if st.button("Save Vitals"):
+            st.success("Vitals saved successfully.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v_name = st.selectbox("Select Vaccine", ["TT Dose 1", "TT Dose 2", "Tdap", "Flu", "HPV", "Hepatitis B"])
+        v_date = st.date_input("Date Administered")
+        if st.button("Log Vaccine"):
+            st.success(f"Logged {v_name} for {v_date}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment")
+        dt = st.date_input("Select Date", min_value=date.today())
+        if dt in st.session_state.blocked_dates or dt.weekday() == 6:
+            st.error("Clinic Closed.")
+        else:
+            tm = st.selectbox("Slot", ["11:00 AM", "12:00 PM", "06:00 PM", "07:00 PM"])
+            if st.button("Confirm Appointment"):
+                st.session_state.appointments.append({"Patient": st.session_state.name, "Date": dt, "Time": tm})
+                st.success(f"Confirmed for {dt} at {tm}")
+
+    elif m == "Doctor's Updates":
+        st.header("📢 Video Guidance")
+        if not st.session_state.broadcasts:
+            st.info("No updates yet.")
+        for b in st.session_state.broadcasts:
+            st.video(b['url'])
+            st.write(b['desc'])

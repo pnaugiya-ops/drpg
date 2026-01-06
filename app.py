@@ -154,4 +154,43 @@ elif st.session_state.role == "P":
                 if pref == "Vegetarian":
                     st.write("**Early Morning:** 5 soaked almonds + 2 walnuts. \n\n**Breakfast:** Veggie Poha OR Moong Dal Chilla. \n\n**Lunch:** 2 Multigrain Rotis + 1 bowl Dal + Green Veggie + Curd. \n\n**Dinner:** Lauki Sabzi + 1 Roti + Warm Milk.")
                 else:
-                    st.write("**Early Morning:** 1 Boiled Egg + 5 almonds. \n\n**
+                    # FIXED LINE 157
+                    st.write("**Early Morning:** 1 Boiled Egg + 5 almonds. \n\n**Breakfast:** Egg Omelet with veggies. \n\n**Lunch:** Grilled Fish/Chicken + Spinach + Brown rice. \n\n**Dinner:** Chicken Soup + 1 Roti.")
+            with d2:
+                if pref == "Vegetarian":
+                    st.write("**Early Morning:** Soaked nuts + 1 Fig. \n\n**Breakfast:** Ragi Dosa OR Stuffed Paneer Paratha. \n\n**Lunch:** 2 Rotis + Chole/Rajma + Salad + Curd. \n\n**Dinner:** Paneer Bhurji + Veggie Pulao.")
+                else:
+                    st.write("**Early Morning:** 1 Boiled Egg + 2 Walnuts. \n\n**Breakfast:** Egg Bhurji + 2 Brown bread slices. \n\n**Lunch:** 2 Rotis + Fish Curry + Sprouted salad. \n\n**Dinner:** Lean Meat stir-fry OR Chicken Khichdi.")
+            with d3:
+                if pref == "Vegetarian":
+                    st.write("**Early Morning:** Milk with 1 tsp Ghee + 2 Dates. \n\n**Breakfast:** Oats Porridge OR Veggie Upma. \n\n**Lunch:** 2 Rotis + Dal + Green leafy vegetable + Curd. \n\n**Dinner:** Vegetable Khichdi + Ghee + Warm Milk.")
+                else:
+                    st.write("**Early Morning:** Milk with dates + 5 almonds. \n\n**Breakfast:** 2 Boiled eggs OR Egg pancakes. \n\n**Lunch:** 2 Rotis + Grilled Fish/Chicken + Steamed Broccoli. \n\n**Dinner:** Chicken Soup OR Egg Curry.")
+
+        elif "PCOS" in st.session_state.stat:
+            st.header(f"🌸 Detailed {pref} PCOS Diet Chart")
+            st.write("**Early Morning:** Warm water with Cinnamon OR ACV (1 tsp). \n\n**Breakfast:** Besan Chilla with veggies OR Vegetable Oats. \n\n**Mid-Morning:** 1 bowl Papaya OR 5-10 Almonds. \n\n**Lunch:** 1-2 Missi Rotis + 1 bowl Dal + 1 bowl Curd + Salad. \n\n**Evening:** Green Tea + Roasted Makhana. \n\n**Dinner:** Soya chunks curry OR Grilled Protein + 1 Roti.")
+
+        elif "Lactating" in st.session_state.stat:
+            st.header(f"🤱 Detailed {pref} Lactation Diet Plan")
+            st.write("**Early Morning:** Soaked Methi seeds water. \n\n**Breakfast:** Ragi Porridge OR Methi Paratha. \n\n**Mid-Morning:** 1 fruit + Buttermilk. \n\n**Lunch:** 2-3 Rotis + Masoor Dal + Green leafy veg + Curd. \n\n**Evening:** Warm Milk with 1 Methi/Gond Ladoo. \n\n**Dinner:** Vegetable Khichdi with Ghee.")
+
+    elif m == "Exercise & Yoga":
+        if "Pregnant" in st.session_state.stat:
+            st.header("🧘 Detailed Pregnancy Exercise")
+            et1, et2, et3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
+            with et1: st.write("- Walking (20 mins), Pelvic Tilts, Deep Breathing.")
+            with et2: st.write("- Butterfly Pose, Wall Squats, Cat-Cow Stretch.")
+            with et3: st.write("- Birthing Ball, Kegels, Slow Walking.")
+        elif "Lactating" in st.session_state.stat:
+            st.header("🤱 Postpartum Recovery")
+            st.write("- Deep breathing, Kegels, and light walking.")
+        else:
+            st.header("🏋️ PCOS Strength & Cardio")
+            st.write("- Surya Namaskar, Squats, and 45 mins Brisk walking.")
+
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        c1, c2 = st.columns(2)
+        with c1:
+            h = st.number_input("Height (cm)", 100, 250, 160

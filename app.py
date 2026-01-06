@@ -69,10 +69,9 @@ elif st.session_state.role == "D":
             st.session_state.blocked_dates.append(b_date)
             st.success("Date Blocked")
 
-# --- 4. PATIENT DASHBOARD (EVERYTHING IS HERE) ---
+# --- 4. PATIENT DASHBOARD ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
-    # THE NAVIGATION MENU
     m = st.sidebar.radio("Go To:", [
         "Pregnancy/Cycle Tracker", 
         "Diet Plans", 
@@ -87,7 +86,6 @@ elif st.session_state.role == "P":
         st.session_state.logged_in = False
         st.rerun()
 
-    # SECTION 1: PREGNANCY & LMP CALCULATOR
     if m == "Pregnancy/Cycle Tracker":
         st.header("🤰 Pregnancy & Ultrasound Calculator")
         if "Pregnant" in st.session_state.stat:
@@ -110,7 +108,6 @@ elif st.session_state.role == "P":
             lp = st.date_input("Last Period Start Date")
             st.info(f"Next Period Expected: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
 
-    # SECTION 2: DIET PLANS (DETAILED)
     elif m == "Diet Plans":
         st.header("🥗 Detailed Diet Chart")
         pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
@@ -122,10 +119,42 @@ elif st.session_state.role == "P":
         elif "PCOS" in st.session_state.stat:
             st.write("**PCOS Strategy:** High fiber, Low Sugar. Seeds (Flax/Pumpkin) are essential.")
 
-    # SECTION 3: EXERCISE & YOGA
     elif m == "Exercise & Yoga":
         st.header("🧘 Exercise Guidance")
         if "Pregnant" in st.session_state.stat:
+            # FIXED LINE 131 BELOW
             st.write("- **Weeks 1-12:** Light Walking (20 mins)")
             st.write("- **Weeks 13-28:** Butterfly Pose, Pelvic Tilts")
-            st.write("-
+            st.write("- **Weeks 29+:** Squats & Birthing Ball")
+        else:
+            st.write("- Surya Namaskar, Brisk Walking, and Yoga for hormonal balance.")
+
+    elif m == "Lab Reports & Trends":
+        st.header("📊 Lab Report Entry")
+        with st.form("lab"):
+            hb = st.number_input("Hemoglobin (g/dL)", 0.0, 20.0, 12.0)
+            sugar = st.number_input("Blood Sugar", 0, 500, 90)
+            if st.form_submit_button("Save"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "Sugar": sugar})
+                st.success("Saved!")
+
+    elif m == "Health Vitals":
+        st.header("📈 Health Vitals")
+        st.number_input("Weight (kg)", 30, 150, 60)
+        st.text_input("Blood Pressure (BP)")
+        st.number_input("Pulse Rate", 40, 180, 72)
+        if st.button("Log Vitals"): st.success("Vitals Recorded")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        st.selectbox("Select Vaccine", ["TT-1", "TT-2", "Tdap", "Flu Vaccine"])
+        st.date_input("Dose Date")
+        if st.button("Mark as Done"): st.success("Vaccination logged.")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Clinic Visit")
+        dt = st.date_input("Choose Date", min_value=date.today())
+        if dt.weekday() == 6: st.error("Clinic is closed on Sunday")
+        else:
+            st.selectbox("Time Slot", ["11:00 AM", "11:30 AM", "06:00 PM", "06:30 PM"])
+            if st.button("Confirm Booking"): st.success("Appointment Confirmed!")

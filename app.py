@@ -3,21 +3,18 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 
 # --- 1. CONFIG & STYLE ---
-# Removed 'initial_sidebar_state="collapsed"' to ensure the menu is visible
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
-# Custom CSS to ensure the sidebar is prominent and the branding is clear
 st.markdown("""
     <style>
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
     .clinic-badge { background:#e8f4f8; color:#003366; padding:5px 10px; border-radius:5px; font-weight:bold; display:inline-block; margin:2px; font-size:11px; border:1px solid #003366; }
     .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
-    /* Ensure sidebar stays visible on mobile */
     [data-testid="stSidebarNav"] { background-color: #f8f9fa; }
     </style>
     """, unsafe_allow_html=True)
 
-# Initialize Session States (Persistent login)
+# Initialize Session States
 if 'logged_in' not in st.session_state: 
     st.session_state.logged_in = False
 if 'lab_records' not in st.session_state:
@@ -101,7 +98,6 @@ elif st.session_state.role == "D":
 
 # --- 4. PATIENT DASHBOARD ---
 elif st.session_state.role == "P":
-    # Navigation menu is placed in the sidebar to ensure it's always accessible
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
     m = st.sidebar.radio("Go To:", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
     
@@ -121,10 +117,4 @@ elif st.session_state.role == "P":
                 4: "🌱 Size of a poppy seed. Implantation is occurring.",
                 8: "🍇 Size of a raspberry. Heart is beating regularly.",
                 12: "🍋 Size of a lime. Baby starts moving fingers and toes.",
-                16: "🥑 Size of an avocado. Eyes and ears are moving to position.",
-                20: "🍌 Size of a banana. Halfway! You may feel kicks.",
-                24: "🌽 Size of an ear of corn. Lungs are beginning to form.",
-                28: "🍆 Size of an eggplant. Eyes can open and see light.",
-                32: "🥬 Size of a squash. Baby is practicing breathing.",
-                36: "🍈 Size of a papaya. Baby is dropping into the pelvis.",
-                40: "
+                16: "🥑

@@ -99,22 +99,4 @@ elif st.session_state.role == "D":
 # --- 4. PATIENT DASHBOARD ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 👤 {st.session_state.name}")
-    m = st.sidebar.radio("Go To:", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise & Yoga", "Health Vitals", "Vaccinations", "Book Appointment", "Doctor's Updates"])
-    
-    if st.sidebar.button("Logout"): 
-        st.session_state.logged_in = False
-        st.rerun()
-
-    if m == "Health Tracker":
-        if "Pregnant" in st.session_state.stat:
-            st.header("🤰 Pregnancy Week-by-Week Tracker")
-            lmp = st.date_input("Select LMP Date", value=date.today()-timedelta(days=70))
-            wks = (date.today()-lmp).days // 7
-            edd_calc = (lmp + timedelta(days=280)).strftime('%d %b %Y')
-            st.success(f"🗓️ EDD: {edd_calc} | Current Week: {wks}")
-            
-            weeks_data = {
-                4: "🌱 Size of a poppy seed. Implantation is occurring.",
-                8: "🍇 Size of a raspberry. Heart is beating regularly.",
-                12: "🍋 Size of a lime. Baby starts moving fingers and toes.",
-                16: "🥑
+    m = st.sidebar.radio("Go To:", ["Health Tracker", "Lab Reports & Trends", "Diet Plans", "Exercise &

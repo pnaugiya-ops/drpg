@@ -56,49 +56,60 @@ if not st.session_state.logged_in:
 
 # --- 3. PATIENT PORTAL ---
 elif st.session_state.role == "P":
-    st.sidebar.markdown(f"### 📋 {st.session_state.name} ({st.session_state.age})")
-    st.sidebar.info(f"Status: {st.session_state.stat}")
-    
-    m = st.sidebar.radio("MENU", ["Health Tracker", "Detailed Diet Plans", "Exercise Routine", "Lab Reports", "Vitals & BMI", "Social Feed", "Book Appointment"])
-    
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    # Header with Name on Left and Logout on Right
+    head_l, head_r = st.columns([3, 1])
+    with head_l:
+        st.markdown(f"### 📋 Patient: {st.session_state.name} ({st.session_state.age} yrs)")
+        st.caption(f"Status: {st.session_state.stat}")
+    with head_r:
+        if st.button("Log Out", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.role = None
+            st.rerun()
+
+    # --- TOP NAVIGATION BAR ---
+    # This replaces the sidebar menu and puts it on the main page
+    m = st.segmented_control(
+        "SELECT VIEW", 
+        options=["Health Tracker", "Diet Plans", "Exercise", "Lab Reports", "Vitals", "Social", "Book Slot"],
+        default="Health Tracker"
+    )
+    st.divider()
 
     if m == "Health Tracker":
         if st.session_state.stat == "Pregnant":
             st.header("🤰 Pregnancy Milestone Tracker")
+            # Calculate dates
             lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
             edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
+            
             st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
+            
+            # Developmental Milestones
             weeks_info = {4: "🌱 Implantation stage.", 12: "🍋 End of 1st Trimester.", 20: "🍌 Halfway point!", 28: "🍆 3rd Trimester begins.", 40: "🍉 Full term."}
             st.info(weeks_info.get(wks, "🍉 Your baby is growing beautifully every single day!"))
         else:
             st.header("📋 Health Progress")
-            st.info("Log your daily vitals and reports to see your health trends.")
+            st.info("Please use the 'Vitals' or 'Lab Reports' tabs to track your clinical progress.")
 
-    elif m == "Detailed Diet Plans":
+    elif m == "Diet Plans":
         st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
         if st.session_state.stat == "Pregnant":
             t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with t1:
-                st.markdown("<div class='diet-card'><b>T1 Focus: Folic Acid.</b><br>• Early Morning: 5 Almonds + 2 Walnuts.<br>• Breakfast: Poha/Oats/Dal Chilla.<br>• Lunch: 2 Roti, Dal, Green Sabzi, Fresh Curd.<br>• Evening: Roasted Makhana/Milk.</div>", unsafe_allow_html=True)
-            with t2:
-                st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.<br>• Include Spinach, Paneer, and Sprouted salads.<br>• Focus on high-protein intake for baby's muscle development.</div>", unsafe_allow_html=True)
-            with t3:
-                st.markdown("<div class='diet-card'><b>T3 Focus: Energy & Digestion.</b><br>• Eat 6 small meals instead of 3 large ones.<br>• Milk with 1 tsp Ghee.<br>• Bedtime Milk with 2 Dates. Stay highly hydrated.</div>", unsafe_allow_html=True)
+            with t1: st.markdown("<div class='diet-card'><b>T1 Focus: Folic Acid.</b><br>• Early Morning: 5 Almonds + 2 Walnuts.<br>• Breakfast: Poha/Oats/Dal Chilla.<br>• Lunch: 2 Roti, Dal, Green Sabzi, Fresh Curd.</div>", unsafe_allow_html=True)
+            with t2: st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.<br>• Include Spinach, Paneer, and Sprouted salads.</div>", unsafe_allow_html=True)
+            with t3: st.markdown("<div class='diet-card'><b>T3 Focus: Energy & Digestion.</b><br>• Eat 6 small meals instead of 3 large ones.<br>• Bedtime Milk with 2 Dates. Stay hydrated.</div>", unsafe_allow_html=True)
         elif st.session_state.stat == "PCOS/Gynae":
-            st.markdown("<div class='diet-card'><b>PCOS Protocol:</b><br>• Low GI Foods (Brown Rice/Millets).<br>• 1 tsp Flax seeds daily. Cinnamon water in morning.<br>• High protein (Sprouts/Soya). Avoid refined sugar and Maida.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='diet-card'><b>PCOS Protocol:</b><br>• Low GI Foods (Brown Rice/Millets).<br>• 1 tsp Flax seeds daily. Cinnamon water in morning.<br>• Avoid refined sugar and Maida.</div>", unsafe_allow_html=True)
         else:
-            st.markdown("<div class='diet-card'><b>Lactation Boosters:</b><br>• Soaked Methi seeds, Jeera-water.<br>• Garlic, Gond Ladoo, Shatavari granules with milk.<br>• Minimum 4 Liters of fluids daily for milk supply.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='diet-card'><b>Lactation Boosters:</b><br>• Soaked Methi seeds, Jeera-water.<br>• Garlic, Gond Ladoo, Shatavari granules with milk.</div>", unsafe_allow_html=True)
 
-    elif m == "Exercise Routine":
+    elif m == "Exercise":
         st.header("🧘 Therapeutic Movement")
-        st.write("1. **Baddha Konasana (Butterfly Pose):** To improve pelvic flexibility.")
-        st.write("2. **Marjaryasana (Cat-Cow Stretch):** To relieve back strain.")
-        st.write("3. **Walking:** 20-30 mins daily walking on a flat surface.")
-        st.write("4. **Deep Breathing:** 10 mins of Anulom Vilom for relaxation.")
+        st.write("1. **Baddha Konasana (Butterfly Pose):** Pelvic flexibility.")
+        st.write("2. **Marjaryasana (Cat-Cow Stretch):** Relief for back strain.")
+        st.write("3. **Walking:** 20-30 mins daily walking.")
 
     elif m == "Lab Reports":
         st.header("📊 Lab Tracking")
@@ -109,11 +120,12 @@ elif st.session_state.role == "P":
             urine = st.selectbox("Urine Test", ["Normal", "Trace", "+1", "+2"])
             if st.form_submit_button("Save Report"):
                 st.session_state.labs.append({"User": st.session_state.name, "Date": date.today(), "Hb": hb, "Sugar": sugar, "TSH": tsh, "Urine": urine})
+                st.rerun()
         df = pd.DataFrame([r for r in st.session_state.labs if r['User'] == st.session_state.name])
         if not df.empty:
             st.line_chart(df.set_index('Date')[['Hb', 'Sugar', 'TSH']])
 
-    elif m == "Vitals & BMI":
+    elif m == "Vitals":
         st.header("📈 Vitals & BMI")
         with st.form("vital_form"):
             p, bp = st.number_input("Pulse Rate", 40, 150, 72), st.text_input("Blood Pressure", "120/80")
@@ -121,64 +133,21 @@ elif st.session_state.role == "P":
             if st.form_submit_button("Update Vitals"):
                 bmi = round(wt / ((ht/100)**2), 2)
                 st.session_state.vitals.append({"User": st.session_state.name, "Date": date.today(), "BMI": bmi, "Pulse": p, "BP": bp})
-                st.info(f"Calculated BMI: {bmi}")
+                st.rerun()
 
-    elif m == "Social Feed":
+    elif m == "Social":
         st.header("📺 Health Feed")
         if st.session_state.social["yt"]: st.video(st.session_state.social["yt"])
         if st.session_state.social["ig"]: st.info(f"Latest Update: {st.session_state.social['ig']}")
 
-    elif m == "Book Appointment":
+    elif m == "Book Slot":
         st.header("📅 Select Time Slot")
-        slots = [f"{h}:{m:02d} AM" for h in [11] for m in [15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [12, 1] for m in [0, 15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [6, 7] for m in [0, 15, 30, 45]]
+        slots = [f"{h}:{m:02d} AM" for h in [11] for m in [15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [12, 1, 6, 7] for m in [0, 15, 30, 45]]
         d = st.date_input("Date", min_value=date.today())
         t = st.selectbox("Slot", slots)
         if st.button("Request Booking"):
             if d in st.session_state.blocked: st.error("Clinic Closed on this date.")
             else:
                 st.session_state.apts.append({"Patient": st.session_state.name, "Date": d, "Time": t})
-                st.success("Requested!")
+                st.success("Booking Request Sent!")
 
-# --- 4. ADMIN PORTAL ---
-elif st.session_state.role == "D":
-    st.sidebar.title("👩‍⚕️ Admin Master")
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-    
-    t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Clinic Availability", "Social Media"])
-    
-    with t1:
-        # FIXED: Check if apts exists before trying to make a table
-        if st.session_state.apts:
-            st.table(pd.DataFrame(st.session_state.apts))
-        else:
-            st.info("No Bookings recorded.")
-
-    with t2:
-        st.subheader("Lab Reports")
-        if st.session_state.labs:
-            st.dataframe(pd.DataFrame(st.session_state.labs))
-        else:
-            st.write("No lab reports submitted.")
-            
-        st.subheader("Vitals")
-        if st.session_state.vitals:
-            st.dataframe(pd.DataFrame(st.session_state.vitals))
-        else:
-            st.write("No vitals recorded.")
-
-    with t3:
-        bd = st.date_input("Block a date")
-        if st.button("Mark Clinic Closed"):
-            st.session_state.blocked.append(bd)
-            st.success(f"{bd} Blocked")
-        st.write("Blocked Dates:", st.session_state.blocked)
-
-    with t4:
-        with st.form("social_form"):
-            yt_link = st.text_input("YouTube URL", value=st.session_state.social["yt"])
-            ig_link = st.text_input("Instagram URL", value=st.session_state.social["ig"])
-            if st.form_submit_button("Save Feed Updates"):
-                st.session_state.social.update({"yt": yt_link, "ig": ig_link})
-                st.success("Feed Updated!")

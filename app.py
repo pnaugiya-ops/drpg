@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-# --- 1. CONFIG & STYLE ---
+# --- 1. CONFIG & PERMANENT SIDEBAR ---
+# Setting initial_sidebar_state to "expanded" forces the dashboard to be visible
 st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
@@ -11,10 +12,15 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stDeployButton {display:none;}
+    
+    /* Ensuring the sidebar is clearly visible */
     [data-testid="stSidebarNav"] { background-color: #f8f9fa; }
+    section[data-testid="stSidebar"] { background-color: #f8f9fa !important; border-right: 2px solid #ddd; }
+    
     .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
+    .clinic-badge { background:#ff4b6b; color:white; padding:5px 15px; border-radius:20px; font-weight:bold; display:inline-block; margin:5px; font-size:14px; }
     .diet-card { background:#ffffff; padding:15px; border-radius:10px; border:1px solid #e0e0e0; border-left:5px solid #ff4b6b; margin-bottom:10px; }
-    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; }
+    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -23,12 +29,18 @@ if 'logged_in' not in st.session_state: st.session_state.logged_in = False
 if 'lab_records' not in st.session_state: st.session_state.lab_records = []
 if 'appointments' not in st.session_state: st.session_state.appointments = []
 
-# --- 2. LOGIN PAGE ---
+# --- 2. LOGIN PAGE & BRANDING ---
 if not st.session_state.logged_in:
     st.markdown("""<div class='dr-header'>
         <h1>BHAVYA LABS & CLINICS</h1>
         <h3>Dr. Priyanka Gupta - MS (Obs & Gynae)</h3>
-        <p>Infertility Specialist | Ultrasound | Laparoscopic Surgery</p>
+        <div>
+            <span class='clinic-badge'>Infertility Specialist</span>
+            <span class='clinic-badge'>Ultrasound</span>
+            <span class='clinic-badge'>Laparoscopic Surgery</span>
+            <span class='clinic-badge'>Pharmacy</span>
+            <span class='clinic-badge'>Thyrocare Franchise Lab</span>
+        </div>
     </div>""", unsafe_allow_html=True)
     
     t1, t2 = st.tabs(["Patient Portal", "Doctor Access"])
@@ -52,6 +64,8 @@ if not st.session_state.logged_in:
 # --- 3. PATIENT DASHBOARD ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 👤 Patient: {st.session_state.name}")
+    
+    # THE DASHBOARD MENU (FORCED VISIBLE)
     m = st.sidebar.radio("DASHBOARD MENU", [
         "Health Tracker", 
         "Detailed Diet Plans", 
@@ -148,19 +162,4 @@ elif st.session_state.role == "P":
         if st.button("Log Vitals"): st.success("Vitals Recorded.")
 
     # --- VACCINATIONS ---
-    elif m == "Vaccinations":
-        st.header("💉 Vaccination Tracker")
-        v = st.selectbox("Select Dose", ["TT-1", "TT-2", "Tdap", "Flu Vaccine"])
-        if st.button("Mark Administered"): st.success(f"Logged {v}")
-
-    # --- BOOKING ---
-    elif m == "Book Appointment":
-        st.header("📅 Book Appointment")
-        d = st.date_input("Select Date", min_value=date.today())
-        if st.button("Confirm"): st.success("Requested!")
-
-# --- 4. DOCTOR VIEW ---
-elif st.session_state.role == "D":
-    st.sidebar.title("👩‍⚕️ Admin View")
-    if st.sidebar.button("Logout"): 
-        st.session_state.logged_in = False
+    elif m == "

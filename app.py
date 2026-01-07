@@ -89,8 +89,25 @@ elif st.session_state.role == "P":
             # Developmental Milestones
             weeks_info = {4: "🌱 Implantation stage.", 12: "🍋 End of 1st Trimester.", 20: "🍌 Halfway point!", 28: "🍆 3rd Trimester begins.", 40: "🍉 Full term."}
             st.info(weeks_info.get(wks, "🍉 Your baby is growing beautifully every single day!"))
-        else:
-            st.header("📋 Health Progress")
+        
+           else:
+            st.header("📋 Health Progress & Family Planning")
+            if st.session_state.stat == "Lactating Mother":
+                st.info("### 🛡️ Postpartum Contraception Options")
+                st.write("As a lactating mother, spacing your next pregnancy is vital. Discuss these options with Dr. Priyanka Gupta:")
+                
+                exp1 = st.expander("Explore Contraceptive Methods")
+                with exp1:
+                    st.markdown("""
+                    * **OCPs (Oral Contraceptive Pills):** Progestogen-only pills (Mini-pills) are preferred during breastfeeding.
+                    * **Copper T (IUCD):** Long-term reversible protection, can be inserted post-delivery.
+                    * **DMPA Injection:** 3-monthly hormonal injection for highly effective prevention.
+                    * **Family Planning Operation:** Permanent tubal ligation for those who have completed their family.
+                    * **Barrier Methods:** Condoms are safe and do not affect milk supply.
+                    """)
+                st.warning("Note: Avoid combined estrogen pills in the first 6 months of breastfeeding as they may reduce milk supply.")
+            else:
+                st.info("Log your daily vitals and reports to see your health trends.")
             st.info("Please use the 'Vitals' or 'Lab Reports' tabs to track your clinical progress.")
 
     elif m == "Diet Plans":
@@ -101,11 +118,53 @@ elif st.session_state.role == "P":
             with t2: st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.<br>• Include Spinach, Paneer, and Sprouted salads.</div>", unsafe_allow_html=True)
             with t3: st.markdown("<div class='diet-card'><b>T3 Focus: Energy & Digestion.</b><br>• Eat 6 small meals instead of 3 large ones.<br>• Bedtime Milk with 2 Dates. Stay hydrated.</div>", unsafe_allow_html=True)
         elif st.session_state.stat == "PCOS/Gynae":
-            st.markdown("<div class='diet-card'><b>PCOS Protocol:</b><br>• Low GI Foods (Brown Rice/Millets).<br>• 1 tsp Flax seeds daily. Cinnamon water in morning.<br>• Avoid refined sugar and Maida.</div>", unsafe_allow_html=True)
-        else:
-            st.markdown("<div class='diet-card'><b>Lactation Boosters:</b><br>• Soaked Methi seeds, Jeera-water.<br>• Garlic, Gond Ladoo, Shatavari granules with milk.</div>", unsafe_allow_html=True)
+            # --- Menstrual Cycle Calculator ---
+            st.subheader("📅 Menstrual Cycle Regulator")
+            c1, c2 = st.columns(2)
+            with c1:
+                last_p = st.date_input("First Day of Last Period", value=date.today()-timedelta(days=28))
+            with c2:
+                cycle_len = st.number_input("Average Cycle Length (Days)", 21, 45, 28)
+            
+            next_p = last_p + timedelta(days=cycle_len)
+            ovulation = last_p + timedelta(days=cycle_len - 14)
+            st.success(f"**Expected Next Period:** {next_p.strftime('%d %b %Y')} | **Estimated Ovulation:** {ovulation.strftime('%d %b %Y')}")
+            
+            # --- Detailed Diet Chart from Documents ---
+            st.markdown("### 🥗 PCOS Clinical Diet Principles (2026) [cite: 1]")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write("**Core Goals:**")
+                st.write("• **Protein:** 50–60g daily ")
+                st.write("• **Fiber:** At least 25g daily ")
+                st.write("• **Dairy:** Limit to 1–2 servings (Low-fat) [cite: 3, 4]")
+            with col_b:
+                st.write("**Foods to Avoid[cite: 10]:**")
+                st.write("• Refined Carbs (White Rice/Maida) [cite: 11]")
+                st.write("• Sugary Items & Sodas [cite: 12]")
+                st.write("• Starchy Veggies (Potato/Corn) [cite: 14]")
 
-    elif m == "Exercise":
+            vt, nvt = st.tabs(["Vegetarian Plan [cite: 6]", "Non-Vegetarian Plan [cite: 8]"])
+            with vt:
+                st.markdown("""
+                | Meal | Food Item | Notes [cite: 7] |
+                | :--- | :--- | :--- |
+                | **Early Morning** | Warm lemon water + 5 soaked almonds | Or methi water |
+                | **Breakfast** | Moong dal chilla OR Veg Upma | High protein & fiber |
+                | **Lunch** | 2 Jowar/Bajra rotis + Dal + Salad | Use millets |
+                | **Evening** | Roasted makhana OR Walnuts | Avoid biscuits |
+                | **Dinner** | Tofu/Paneer stir-fry with veggies | Light digestion |
+                """)
+            with nvt:
+                st.markdown("""
+                | Meal | Food Item | Notes [cite: 9] |
+                | :--- | :--- | :--- |
+                | **Early Morning** | Warm water + soaked chia seeds | Metabolism kickstart |
+                | **Breakfast** | 2 Boiled egg whites + grain toast | Stabilizes sugar |
+                | **Lunch** | Grilled chicken/Fish + Brown rice | Fatty fish 2x weekly |
+                | **Dinner** | Grilled fish + Mediterranean veggies | Avoid heavy curries |
+                | **Bedtime** | Cinnamon-infused warm water | Improves lipid profile |
+                """)    elif m == "Exercise":
         st.header("🧘 Therapeutic Movement")
         st.write("1. **Baddha Konasana (Butterfly Pose):** Pelvic flexibility.")
         st.write("2. **Marjaryasana (Cat-Cow Stretch):** Relief for back strain.")

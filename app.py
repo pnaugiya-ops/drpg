@@ -61,7 +61,6 @@ if not st.session_state.logged_in:
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 👤 Patient: {st.session_state.name}")
     
-    # THE DASHBOARD MENU
     m = st.sidebar.radio("DASHBOARD MENU", [
         "Health Tracker", 
         "Detailed Diet Plans", 
@@ -112,8 +111,57 @@ elif st.session_state.role == "P":
         if st.session_state.stat == "Pregnant":
             t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
             with t1:
-                st.markdown("<div class='diet-card'><b>Breakfast:</b> Veggie Poha/Eggs.<br><b>Lunch:</b> Dal, Roti, Sabzi, Curd.</div>", unsafe_allow_html=True)
+                st.markdown("<div class='diet-card'><b>Breakfast:</b> Veggie Poha or Boiled Eggs.<br><b>Lunch:</b> Dal, Roti, Sabzi, Curd.</div>", unsafe_allow_html=True)
             with t2:
                 st.markdown("<div class='diet-card'><b>Mid-Morning:</b> Seasonal fruit.<br><b>Evening:</b> Roasted Makhana + Milk.</div>", unsafe_allow_html=True)
             with t3:
-                st.markdown("<div class='diet-card
+                st.markdown("<div class='diet-card'><b>Dinner:</b> Light Khichdi or Soup.<br><b>Note:</b> High calcium focus.</div>", unsafe_allow_html=True)
+        
+        elif st.session_state.stat == "PCOS/Gynae":
+            st.markdown("<div class='diet-card'><b>Focus:</b> High fiber, Low sugar.<br><b>Morning:</b> Cinnamon water + Nuts.</div>", unsafe_allow_html=True)
+
+        elif st.session_state.stat == "Lactating Mother":
+            st.markdown("<div class='diet-card'><b>Essentials:</b> Methi water, Garlic, Gond Ladoo.</div>", unsafe_allow_html=True)
+
+    elif m == "Exercise & Yoga":
+        st.header(f"🧘 {st.session_state.stat} Wellness")
+        if st.session_state.stat == "Pregnant":
+            st.write("1. Butterfly Pose\n2. Cat-Cow Stretch\n3. Walking (20 mins)")
+        elif st.session_state.stat == "PCOS/Gynae":
+            st.write("1. Surya Namaskar\n2. Strength Training")
+        else:
+            st.write("1. Pelvic Floor (Kegels)\n2. Deep Breathing")
+
+    elif m == "Lab Reports & Trends":
+        st.header("📊 Clinical Lab Trends")
+        with st.form("lab_form"):
+            hb = st.number_input("Hemoglobin (g/dL)", 0.0, 20.0, 12.0)
+            sugar = st.number_input("Blood Sugar", 0, 500, 90)
+            if st.form_submit_button("Save Report"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "Sugar": sugar})
+                st.success("Record Saved!")
+
+    elif m == "Health Vitals":
+        st.header("📈 Health Vitals")
+        st.number_input("Weight (kg)", 30, 150, 60)
+        st.text_input("Blood Pressure")
+        if st.button("Log Vitals"): st.success("Vitals Recorded.")
+
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v = st.selectbox("Select Dose", ["TT-1", "TT-2", "Tdap", "Flu Vaccine"])
+        if st.button("Mark Administered"): st.success(f"Logged {v}")
+
+    elif m == "Book Appointment":
+        st.header("📅 Book Appointment")
+        d = st.date_input("Select Date", min_value=date.today())
+        if st.button("Confirm"): st.success("Requested!")
+
+# --- 4. DOCTOR VIEW ---
+elif st.session_state.role == "D":
+    st.sidebar.title("👩‍⚕️ Admin View")
+    if st.sidebar.button("Logout"): 
+        st.session_state.logged_in = False
+        st.rerun()
+    st.header("Doctor's Dashboard")
+    st.table(pd.DataFrame(st.session_state.appointments) if st.session_state.appointments else "No appointments.")

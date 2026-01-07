@@ -151,3 +151,48 @@ elif st.session_state.role == "P":
                 st.session_state.apts.append({"Patient": st.session_state.name, "Date": d, "Time": t})
                 st.success("Booking Request Sent!")
 
+# --- 4. ADMIN PORTAL ---
+elif st.session_state.role == "D":
+    # Header with Logout on Right
+    adm_l, adm_r = st.columns([3, 1])
+    with adm_l:
+        st.title("👩‍⚕️ Admin Master")
+    with adm_r:
+        if st.button("Log Out", key="admin_logout"):
+            st.session_state.logged_in = False
+            st.session_state.role = None
+            st.rerun()
+
+    t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Clinic Availability", "Social Media"])
+    
+    with t1:
+        # FIXED: Checking if list is empty before showing table
+        if st.session_state.apts:
+            st.table(pd.DataFrame(st.session_state.apts))
+        else:
+            st.info("No Bookings available.")
+
+    with t2:
+        if st.session_state.labs:
+            st.subheader("Lab Data")
+            st.dataframe(pd.DataFrame(st.session_state.labs))
+        if st.session_state.vitals:
+            st.subheader("Vitals Data")
+            st.dataframe(pd.DataFrame(st.session_state.vitals))
+        if not st.session_state.labs and not st.session_state.vitals:
+            st.info("No records found.")
+
+    with t3:
+        bd = st.date_input("Block a date")
+        if st.button("Mark Clinic Closed"):
+            st.session_state.blocked.append(bd)
+            st.success(f"{bd} Blocked")
+        st.write("Current Blocked Dates:", st.session_state.blocked)
+
+    with t4:
+        with st.form("social_form"):
+            yt_link = st.text_input("YouTube URL", value=st.session_state.social["yt"])
+            ig_link = st.text_input("Instagram URL", value=st.session_state.social["ig"])
+            if st.form_submit_button("Save Feed Updates"):
+                st.session_state.social.update({"yt": yt_link, "ig": ig_link})
+                st.success("Social Feed Updated!")

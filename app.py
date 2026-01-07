@@ -56,7 +56,6 @@ if not st.session_state.logged_in:
 
 # --- 3. PATIENT PORTAL ---
 elif st.session_state.role == "P":
-    # Header with Name on Left and Logout on Right
     head_l, head_r = st.columns([3, 1])
     with head_l:
         st.markdown(f"### 📋 Patient: {st.session_state.name} ({st.session_state.age} yrs)")
@@ -67,8 +66,6 @@ elif st.session_state.role == "P":
             st.session_state.role = None
             st.rerun()
 
-    # --- TOP NAVIGATION BAR ---
-    # This replaces the sidebar menu and puts it on the main page
     m = st.segmented_control(
         "SELECT VIEW", 
         options=["Health Tracker", "Diet Plans", "Exercise", "Lab Reports", "Vitals", "Social", "Book Slot"],
@@ -79,36 +76,32 @@ elif st.session_state.role == "P":
     if m == "Health Tracker":
         if st.session_state.stat == "Pregnant":
             st.header("🤰 Pregnancy Milestone Tracker")
-            # Calculate dates
             lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
             edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
-            
             st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
-            
-            # Developmental Milestones
             weeks_info = {4: "🌱 Implantation stage.", 12: "🍋 End of 1st Trimester.", 20: "🍌 Halfway point!", 28: "🍆 3rd Trimester begins.", 40: "🍉 Full term."}
             st.info(weeks_info.get(wks, "🍉 Your baby is growing beautifully every single day!"))
         
-           else:
+        elif st.session_state.stat == "Lactating Mother":
             st.header("📋 Health Progress & Family Planning")
-            if st.session_state.stat == "Lactating Mother":
-                st.info("### 🛡️ Postpartum Contraception Options")
-                st.write("As a lactating mother, spacing your next pregnancy is vital. Discuss these options with Dr. Priyanka Gupta:")
-                
-                exp1 = st.expander("Explore Contraceptive Methods")
-                with exp1:
-                    st.markdown("""
-                    * **OCPs (Oral Contraceptive Pills):** Progestogen-only pills (Mini-pills) are preferred during breastfeeding.
-                    * **Copper T (IUCD):** Long-term reversible protection, can be inserted post-delivery.
-                    * **DMPA Injection:** 3-monthly hormonal injection for highly effective prevention.
-                    * **Family Planning Operation:** Permanent tubal ligation for those who have completed their family.
-                    * **Barrier Methods:** Condoms are safe and do not affect milk supply.
-                    """)
-                st.warning("Note: Avoid combined estrogen pills in the first 6 months of breastfeeding as they may reduce milk supply.")
-            else:
-                st.info("Log your daily vitals and reports to see your health trends.")
-            st.info("Please use the 'Vitals' or 'Lab Reports' tabs to track your clinical progress.")
+            st.info("### 🛡️ Postpartum Contraception Options")
+            st.write("As a lactating mother, spacing your next pregnancy is vital. Discuss these options with Dr. Priyanka Gupta:")
+            
+            exp1 = st.expander("View Contraceptive Methods")
+            with exp1:
+                st.markdown("""
+                * **OCPs (Oral Contraceptive Pills):** Progestogen-only pills (Mini-pills) are preferred during breastfeeding.
+                * **Copper T (IUCD):** Long-term reversible protection, can be inserted post-delivery.
+                * **DMPA Injection:** 3-monthly hormonal injection for highly effective prevention.
+                * **Family Planning Operation:** Permanent tubal ligation for those who have completed their family.
+                * **Barrier Methods:** Condoms are safe and do not affect milk supply.
+                """)
+            st.warning("Note: Avoid combined estrogen pills in the first 6 months of breastfeeding as they may reduce milk supply.")
+        
+        else:
+            st.header("📋 Health Progress")
+            st.info("Log your daily vitals and reports to see your health trends.")
 
     elif m == "Diet Plans":
         st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
@@ -117,6 +110,7 @@ elif st.session_state.role == "P":
             with t1: st.markdown("<div class='diet-card'><b>T1 Focus: Folic Acid.</b><br>• Early Morning: 5 Almonds + 2 Walnuts.<br>• Breakfast: Poha/Oats/Dal Chilla.<br>• Lunch: 2 Roti, Dal, Green Sabzi, Fresh Curd.</div>", unsafe_allow_html=True)
             with t2: st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.<br>• Include Spinach, Paneer, and Sprouted salads.</div>", unsafe_allow_html=True)
             with t3: st.markdown("<div class='diet-card'><b>T3 Focus: Energy & Digestion.</b><br>• Eat 6 small meals instead of 3 large ones.<br>• Bedtime Milk with 2 Dates. Stay hydrated.</div>", unsafe_allow_html=True)
+        
         elif st.session_state.stat == "PCOS/Gynae":
             # --- Menstrual Cycle Calculator ---
             st.subheader("📅 Menstrual Cycle Regulator")
@@ -131,7 +125,7 @@ elif st.session_state.role == "P":
             st.success(f"**Expected Next Period:** {next_p.strftime('%d %b %Y')} | **Estimated Ovulation:** {ovulation.strftime('%d %b %Y')}")
             
             # --- Detailed Diet Chart from Documents ---
-            st.markdown("### 🥗 PCOS Clinical Diet Principles (2026) [cite: 1]")
+            st.markdown("### 🥗 PCOS Clinical Diet Principles (2026) ")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.write("**Core Goals:**")
@@ -160,11 +154,16 @@ elif st.session_state.role == "P":
                 | Meal | Food Item | Notes [cite: 9] |
                 | :--- | :--- | :--- |
                 | **Early Morning** | Warm water + soaked chia seeds | Metabolism kickstart |
-                | **Breakfast** | 2 Boiled egg whites + grain toast | Stabilizes sugar |
+                | **Breakfast** | 2 Boiled egg whites + grain toast | Protein stabilizes sugar |
                 | **Lunch** | Grilled chicken/Fish + Brown rice | Fatty fish 2x weekly |
                 | **Dinner** | Grilled fish + Mediterranean veggies | Avoid heavy curries |
                 | **Bedtime** | Cinnamon-infused warm water | Improves lipid profile |
-                """)    elif m == "Exercise":
+                """)
+        
+        else: # Lactation Diet
+            st.markdown("<div class='diet-card'><b>Lactation Boosters:</b><br>• Soaked Methi seeds, Jeera-water.<br>• Garlic, Gond Ladoo, Shatavari granules with milk.<br>• Minimum 4 Liters of fluids daily for milk supply.</div>", unsafe_allow_html=True)
+
+    elif m == "Exercise":
         st.header("🧘 Therapeutic Movement")
         st.write("1. **Baddha Konasana (Butterfly Pose):** Pelvic flexibility.")
         st.write("2. **Marjaryasana (Cat-Cow Stretch):** Relief for back strain.")
@@ -212,7 +211,6 @@ elif st.session_state.role == "P":
 
 # --- 4. ADMIN PORTAL ---
 elif st.session_state.role == "D":
-    # Header with Logout on Right
     adm_l, adm_r = st.columns([3, 1])
     with adm_l:
         st.title("👩‍⚕️ Admin Master")
@@ -225,7 +223,6 @@ elif st.session_state.role == "D":
     t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Clinic Availability", "Social Media"])
     
     with t1:
-        # FIXED: Checking if list is empty before showing table
         if st.session_state.apts:
             st.table(pd.DataFrame(st.session_state.apts))
         else:

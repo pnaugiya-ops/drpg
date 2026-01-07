@@ -2,134 +2,166 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-# --- 1. CONFIG & UI ---
-st.set_page_config(page_title="Bhavya Labs", layout="wide")
+# --- 1. CONFIG & UI STYLING ---
+st.set_page_config(page_title="Bhavya Labs", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
-    .dr-header { background:#003366; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; }
-    .diet-card { background:#ffffff; padding:15px; border-radius:10px; border-left:5px solid #ff4b6b; margin-bottom:10px; color: #333; }
-    .stButton>button { background:#ff4b6b !important; color:white !important; border-radius:8px; font-weight:bold; width: 100%; }
+    .dr-header { background:#003366; color:white; padding:25px; border-radius:15px; text-align:center; margin-bottom:20px; }
+    .clinic-badge { background:#ff4b6b; color:white; padding:6px 18px; border-radius:20px; font-weight:bold; display:inline-block; margin:5px; font-size:14px; border: 1px solid white; }
+    .diet-card { background:#ffffff; padding:20px; border-radius:12px; border:1px solid #e0e0e0; border-left:6px solid #ff4b6b; margin-bottom:15px; line-height: 1.6; color: #333; }
+    .stButton>button { background:#ff4b6b; color:white; border-radius:10px; font-weight:bold; width: 100%; height: 3em; }
+    section[data-testid="stSidebar"] { background-color: #f8f9fa !important; border-right: 2px solid #003366; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. SESSION STATE ---
+# Initialize Session States
 for key in ['logged_in', 'labs', 'vitals', 'apts', 'blocked']:
-    if key not in st.session_state: st.session_state[key] = False if key=='logged_in' else []
+    if key not in st.session_state: st.session_state[key] = False if key == 'logged_in' else []
 if 'social' not in st.session_state: st.session_state.social = {"yt": "", "ig": ""}
 
-# --- 3. LOGIN ---
+# --- 2. LOGIN & BRANDING ---
 if not st.session_state.logged_in:
-    st.markdown("<div class='dr-header'><h1>BHAVYA LABS & CLINICS</h1><h2>Dr. Priyanka Gupta</h2><p>MS (Obs & Gynae)</p></div>", unsafe_allow_html=True)
-    t1, t2 = st.tabs(["Patient Login", "Admin Login"])
+    st.markdown("""<div class='dr-header'>
+        <h1>BHAVYA LABS & CLINICS</h1>
+        <h2 style='margin:0;'>Dr. Priyanka Gupta</h2>
+        <p style='font-size:1.2em;'>MS (Obs & Gynae)</p>
+        <div style='margin-top:10px;'>
+            <span class='clinic-badge'>Infertility Specialist</span>
+            <span class='clinic-badge'>Ultrasound</span>
+            <span class='clinic-badge'>Laparoscopic Surgery</span>
+            <span class='clinic-badge'>Pharmacy</span>
+            <span class='clinic-badge'>Thyrocare Franchise Lab</span>
+        </div>
+    </div>""", unsafe_allow_html=True)
+    
+    t1, t2 = st.tabs(["Patient Access", "Admin Login"])
     with t1:
         with st.form("p_login"):
-            n = st.text_input("Name")
-            s = st.radio("Status", ["Pregnant", "PCOS/Gynae", "Lactating Mother"])
-            if st.form_submit_button("Enter") and n:
-                st.session_state.update({"logged_in":True, "name":n, "stat":s, "role":"P"})
-                st.rerun()
+            n = st.text_input("Patient Full Name")
+            age = st.number_input("Age", 18, 100, 25)
+            s = st.radio("Clinical Status", ["Pregnant", "PCOS/Gynae", "Lactating Mother"])
+            if st.form_submit_button("Enter My Dashboard"):
+                if n:
+                    st.session_state.update({"logged_in":True,"name":n,"age":age,"stat":s,"role":"P"})
+                    st.rerun()
     with t2:
         with st.form("d_login"):
-            if st.text_input("Password", type="password") == "clinicadmin786" and st.form_submit_button("Login"):
-                st.session_state.update({"logged_in":True, "role":"D"})
-                st.rerun()
+            p = st.text_input("Clinic Admin Password", type="password")
+            if st.form_submit_button("Login to Clinic Master"):
+                if p == "clinicadmin786":
+                    st.session_state.update({"logged_in":True,"role":"D"})
+                    st.rerun()
 
-# --- 4. PATIENT PORTAL ---
+# --- 3. PATIENT PORTAL ---
 elif st.session_state.role == "P":
-    st.sidebar.markdown(f"### 📋 {st.session_state.name}\n**{st.session_state.stat}**")
-    m = st.sidebar.radio("MENU", ["Tracker", "Diet Plans", "Exercises", "Blood Reports", "Vitals & BMI", "Social Feed", "Book Appointment"])
+    st.sidebar.markdown(f"### 📋 {st.session_state.name} ({st.session_state.age})")
+    st.sidebar.info(f"Status: {st.session_state.stat}")
+    
+    m = st.sidebar.radio("MENU", ["Health Tracker", "Detailed Diet Plans", "Exercise Routine", "Lab Reports", "Vitals & BMI", "Social Feed", "Book Appointment"])
+    
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-    if m == "Tracker":
-        st.header("📈 Health Tracker")
+    if m == "Health Tracker":
         if st.session_state.stat == "Pregnant":
+            st.header("🤰 Pregnancy Milestone Tracker")
             lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
             wks = (date.today()-lmp).days // 7
-            st.success(f"Due Date: {(lmp + timedelta(days=280)).strftime('%d %b %Y')} | Week: {wks}")
-        else: st.info("Welcome to your dashboard.")
+            edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
+            st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
+            weeks_info = {4: "🌱 Implantation stage.", 12: "🍋 End of 1st Trimester.", 20: "🍌 Halfway point!", 28: "🍆 3rd Trimester begins.", 40: "🍉 Full term."}
+            st.info(weeks_info.get(wks, "🍉 Your baby is growing beautifully every single day!"))
+        else:
+            st.header("📋 Health Progress")
+            st.info("Log your daily vitals and reports to see your health trends.")
 
-    elif m == "Diet Plans":
-        st.header(f"🥗 Diet: {st.session_state.stat}")
+    elif m == "Detailed Diet Plans":
+        st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
         if st.session_state.stat == "Pregnant":
             t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with t1: st.markdown("<div class='diet-card'><b>T1:</b> 5 Almonds morning. Poha/Oats. Roti, Dal, Curd. Roasted Makhana.</div>", unsafe_allow_html=True)
-            with t2: st.markdown("<div class='diet-card'><b>T2:</b> Coconut Water, Fruits, Spinach, Paneer, Sprouts. High protein.</div>", unsafe_allow_html=True)
-            with t3: st.markdown("<div class='diet-card'><b>T3:</b> 6 small meals. Milk with Ghee/Dates. Focus on hydration.</div>", unsafe_allow_html=True)
+            with t1:
+                st.markdown("<div class='diet-card'><b>T1 Focus: Folic Acid.</b><br>• Early Morning: 5 Almonds + 2 Walnuts.<br>• Breakfast: Poha/Oats/Dal Chilla.<br>• Lunch: 2 Roti, Dal, Green Sabzi, Fresh Curd.<br>• Evening: Roasted Makhana/Milk.</div>", unsafe_allow_html=True)
+            with t2:
+                st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.<br>• Include Spinach, Paneer, and Sprouted salads.<br>• Focus on high-protein intake for baby's muscle development.</div>", unsafe_allow_html=True)
+            with t3:
+                st.markdown("<div class='diet-card'><b>T3 Focus: Energy & Digestion.</b><br>• Eat 6 small meals instead of 3 large ones.<br>• Milk with 1 tsp Ghee.<br>• Bedtime Milk with 2 Dates. Stay highly hydrated.</div>", unsafe_allow_html=True)
         elif st.session_state.stat == "PCOS/Gynae":
-            st.markdown("<div class='diet-card'><b>PCOS:</b> Low GI. Flax seeds. Cinnamon water. High protein. No sugar/Maida.</div>", unsafe_allow_html=True)
-        else: st.markdown("<div class='diet-card'><b>Lactation:</b> Soaked Methi, Jeera, Garlic, Gond Ladoo, Shatavari.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='diet-card'><b>PCOS Protocol:</b><br>• Low GI Foods (Brown Rice/Millets).<br>• 1 tsp Flax seeds daily. Cinnamon water in morning.<br>• High protein (Sprouts/Soya). Avoid refined sugar and Maida.</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div class='diet-card'><b>Lactation Boosters:</b><br>• Soaked Methi seeds, Jeera-water.<br>• Garlic, Gond Ladoo, Shatavari granules with milk.<br>• Minimum 4 Liters of fluids daily for milk supply.</div>", unsafe_allow_html=True)
 
-    elif m == "Exercises":
-        st.header("🧘 Exercises")
-        st.write("- **Butterfly Pose:** For pelvic flexibility.\n- **Cat-Cow:** For back relief.\n- **Walking:** 20 mins daily.")
+    elif m == "Exercise Routine":
+        st.header("🧘 Therapeutic Movement")
+        st.write("1. **Baddha Konasana (Butterfly Pose):** To improve pelvic flexibility.")
+        st.write("2. **Marjaryasana (Cat-Cow Stretch):** To relieve back strain.")
+        st.write("3. **Walking:** 20-30 mins daily walking on a flat surface.")
+        st.write("4. **Deep Breathing:** 10 mins of Anulom Vilom for relaxation.")
 
-    elif m == "Blood Reports":
-        st.header("📊 Blood Reports Tracking")
-        with st.form("lab_f"):
-            h = st.number_input("Hemoglobin (Hb)", 5.0, 18.0, 12.0)
-            s = st.number_input("Blood Sugar", 50, 400, 90)
-            t = st.number_input("Thyroid (TSH)", 0.0, 50.0, 2.5)
-            u = st.selectbox("Urine Test", ["Normal", "Trace", "+1", "+2"])
-            if st.form_submit_button("Save & Update"):
-                st.session_state.labs.append({"User":st.session_state.name, "Date":date.today(), "Hb":h, "Sugar":s, "TSH":t, "Urine":u})
-        df = pd.DataFrame([r for r in st.session_state.labs if r['User']==st.session_state.name])
-        if not df.empty: st.line_chart(df.set_index('Date')[['Hb', 'Sugar', 'TSH']])
+    elif m == "Lab Reports":
+        st.header("📊 Lab Tracking")
+        with st.form("lab_form"):
+            hb = st.number_input("Hemoglobin (g/dL)", 5.0, 18.0, 12.0)
+            sugar = st.number_input("Blood Sugar (mg/dL)", 50, 400, 90)
+            tsh = st.number_input("Thyroid TSH (mIU/L)", 0.0, 50.0, 2.5)
+            urine = st.selectbox("Urine Test", ["Normal", "Trace", "+1", "+2"])
+            if st.form_submit_button("Save Report"):
+                st.session_state.labs.append({"User": st.session_state.name, "Date": date.today(), "Hb": hb, "Sugar": sugar, "TSH": tsh, "Urine": urine})
+        df = pd.DataFrame([r for r in st.session_state.labs if r['User'] == st.session_state.name])
+        if not df.empty:
+            st.line_chart(df.set_index('Date')[['Hb', 'Sugar', 'TSH']])
 
     elif m == "Vitals & BMI":
         st.header("📈 Vitals & BMI")
-        with st.form("v_f"):
-            p, bp = st.number_input("Pulse", 40, 150, 72), st.text_input("BP", "120/80")
+        with st.form("vital_form"):
+            p, bp = st.number_input("Pulse Rate", 40, 150, 72), st.text_input("Blood Pressure", "120/80")
             wt, ht = st.number_input("Weight (kg)", 30.0, 150.0, 60.0), st.number_input("Height (cm)", 100.0, 220.0, 160.0)
-            if st.form_submit_button("Log Vitals"):
+            if st.form_submit_button("Update Vitals"):
                 bmi = round(wt / ((ht/100)**2), 2)
-                st.session_state.vitals.append({"User":st.session_state.name, "Date":date.today(), "BMI":bmi, "Pulse":p, "BP":bp})
-                st.info(f"BMI: {bmi}")
+                st.session_state.vitals.append({"User": st.session_state.name, "Date": date.today(), "BMI": bmi, "Pulse": p, "BP": bp})
+                st.info(f"Calculated BMI: {bmi}")
 
     elif m == "Social Feed":
-        st.header("📺 Social Media Updates")
+        st.header("📺 Health Feed")
         if st.session_state.social["yt"]: st.video(st.session_state.social["yt"])
-        if st.session_state.social["ig"]: st.info(f"Instagram: {st.session_state.social['ig']}")
+        if st.session_state.social["ig"]: st.info(f"Latest Update: {st.session_state.social['ig']}")
 
     elif m == "Book Appointment":
-        st.header("📅 Schedule")
-        # 15-min slots: 11:15-2:00 and 6:00-8:00
-        slots = [f"11:{m:02d} AM" for m in [15, 30, 45]] + [f"12:{m:02d} PM" for m in [0, 15, 30, 45]] + [f"1:{m:02d} PM" for m in [0, 15, 30, 45]] + ["2:00 PM"]
-        slots += [f"{h}:{m:02d} PM" for h in [6, 7] for m in [0, 15, 30, 45]] + ["8:00 PM"]
+        st.header("📅 Select Time Slot")
+        slots = [f"{h}:{m:02d} AM" for h in [11] for m in [15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [12, 1] for m in [0, 15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [6, 7] for m in [0, 15, 30, 45]]
         d = st.date_input("Date", min_value=date.today())
         t = st.selectbox("Slot", slots)
-        if st.button("Request"):
-            if d in st.session_state.blocked: st.error("Closed today.")
+        if st.button("Request Booking"):
+            if d in st.session_state.blocked: st.error("Clinic Closed on this date.")
             else:
-                st.session_state.apts.append({"Patient":st.session_state.name, "Date":d, "Time":t})
+                st.session_state.apts.append({"Patient": st.session_state.name, "Date": d, "Time": t})
                 st.success("Requested!")
 
-# --- 5. ADMIN PORTAL ---
+# --- 4. ADMIN PORTAL ---
 elif st.session_state.role == "D":
-    st.sidebar.title("👩‍⚕️ Admin")
+    st.sidebar.title("👩‍⚕️ Admin Master")
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
-    t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Manage Dates", "Social Media"])
+    t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Clinic Availability", "Social Media"])
+    
     with t1:
         st.table(pd.DataFrame(st.session_state.apts) if st.session_state.apts else "No Bookings.")
     with t2:
-        st.subheader("Lab Data")
         st.dataframe(pd.DataFrame(st.session_state.labs))
-        st.subheader("Vital Data")
         st.dataframe(pd.DataFrame(st.session_state.vitals))
     with t3:
-        bd = st.date_input("Block Date")
-        if st.button("Block"):
+        bd = st.date_input("Block a date")
+        if st.button("Mark Clinic Closed"):
             st.session_state.blocked.append(bd)
             st.success(f"{bd} Blocked")
         st.write("Blocked:", st.session_state.blocked)
     with t4:
-        yt = st.text_input("YouTube Link", st.session_state.social["yt"])
-        ig = st.text_input("Instagram Link", st.session_state.social["ig"])
-        if st.button("Save Feed"):
-            st.session_state.social.update({"yt":yt, "ig":ig})
-            st.success("Updated!")
+        with st.form("social_form"):
+            yt_link = st.text_input("YouTube URL", value=st.session_state.social["yt"])
+            ig_link = st.text_input("Instagram URL", value=st.session_state.social["ig"])
+            if st.form_submit_button("Save Feed Updates"):
+                st.session_state.social.update({"yt": yt_link, "ig": ig_link})
+                st.success("Feed Updated!")

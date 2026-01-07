@@ -145,19 +145,36 @@ elif st.session_state.role == "D":
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
+    
     t1, t2, t3, t4 = st.tabs(["Appointments", "Patient Records", "Clinic Availability", "Social Media"])
     
     with t1:
-        st.table(pd.DataFrame(st.session_state.apts) if st.session_state.apts else "No Bookings.")
+        # FIXED: Check if apts exists before trying to make a table
+        if st.session_state.apts:
+            st.table(pd.DataFrame(st.session_state.apts))
+        else:
+            st.info("No Bookings recorded.")
+
     with t2:
-        st.dataframe(pd.DataFrame(st.session_state.labs))
-        st.dataframe(pd.DataFrame(st.session_state.vitals))
+        st.subheader("Lab Reports")
+        if st.session_state.labs:
+            st.dataframe(pd.DataFrame(st.session_state.labs))
+        else:
+            st.write("No lab reports submitted.")
+            
+        st.subheader("Vitals")
+        if st.session_state.vitals:
+            st.dataframe(pd.DataFrame(st.session_state.vitals))
+        else:
+            st.write("No vitals recorded.")
+
     with t3:
         bd = st.date_input("Block a date")
         if st.button("Mark Clinic Closed"):
             st.session_state.blocked.append(bd)
             st.success(f"{bd} Blocked")
-        st.write("Blocked:", st.session_state.blocked)
+        st.write("Blocked Dates:", st.session_state.blocked)
+
     with t4:
         with st.form("social_form"):
             yt_link = st.text_input("YouTube URL", value=st.session_state.social["yt"])

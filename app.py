@@ -63,7 +63,7 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True,"role":"D"})
                     st.rerun()
 
-# --- 3. PATIENT PORTAL (FULL MENU LOGIC) ---
+# --- 3. PATIENT PORTAL (FULL CONTENT) ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 📋 {st.session_state.name}")
     st.sidebar.info(f"Status: {st.session_state.stat}")
@@ -82,7 +82,7 @@ elif st.session_state.role == "P":
         st.session_state.logged_in = False
         st.rerun()
 
-    # SECTION 1: TRACKER
+    # --- TRACKER SECTION ---
     if m == "Health & Pregnancy Tracker":
         if st.session_state.stat == "Pregnant":
             st.header("🤰 Pregnancy Milestone Tracker")
@@ -92,24 +92,3 @@ elif st.session_state.role == "P":
             st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
             
             weeks_info = {
-                4: "🌱 **Week 4:** Implantation stage. Embryo is size of a poppy seed.",
-                12: "🍋 **Week 12:** Organs are fully formed. Risk of miscarriage drops significantly.",
-                20: "🍌 **Week 20:** Halfway point! You may start feeling 'quickening' (kicks).",
-                28: "🍆 **Week 28:** Third Trimester begins. Baby can open eyes.",
-                36: "🍈 **Week 36:** Baby is gaining weight rapidly for birth.",
-                40: "🍉 **Week 40:** Full term milestone."
-            }
-            st.info(weeks_info.get(wks, "🍉 Your baby is reaching new milestones every day!"))
-        elif st.session_state.stat == "PCOS/Gynae":
-            st.header("🩸 Menstrual Cycle Tracking")
-            lp = st.date_input("Start Date of Last Period")
-            st.info(f"Next Predicted Cycle: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
-        elif st.session_state.stat == "Lactating Mother":
-            st.header("🤱 Postpartum Recovery")
-            birth_date = st.date_input("Date of Delivery")
-            days_post = (date.today() - birth_date).days
-            st.success(f"Day {days_post} of recovery. Focus on nutrition and rest.")
-
-    # SECTION 2: DIET PLANS
-    elif m == "Detailed Diet Plans":
-        st.header(f"🥗 Clinical Diet Chart: {st.session_

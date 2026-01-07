@@ -9,7 +9,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# FIXED CSS BLOCK
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -64,7 +63,7 @@ if not st.session_state.logged_in:
                     st.session_state.update({"logged_in":True,"role":"D"})
                     st.rerun()
 
-# --- 3. PATIENT PORTAL ---
+# --- 3. PATIENT PORTAL (FULL MENU LOGIC) ---
 elif st.session_state.role == "P":
     st.sidebar.markdown(f"### 📋 {st.session_state.name}")
     st.sidebar.info(f"Status: {st.session_state.stat}")
@@ -83,7 +82,7 @@ elif st.session_state.role == "P":
         st.session_state.logged_in = False
         st.rerun()
 
-    # --- TRACKER ---
+    # SECTION 1: TRACKER
     if m == "Health & Pregnancy Tracker":
         if st.session_state.stat == "Pregnant":
             st.header("🤰 Pregnancy Milestone Tracker")
@@ -101,26 +100,16 @@ elif st.session_state.role == "P":
                 40: "🍉 **Week 40:** Full term milestone."
             }
             st.info(weeks_info.get(wks, "🍉 Your baby is reaching new milestones every day!"))
-        
         elif st.session_state.stat == "PCOS/Gynae":
             st.header("🩸 Menstrual Cycle Tracking")
             lp = st.date_input("Start Date of Last Period")
             st.info(f"Next Predicted Cycle: {(lp+timedelta(days=28)).strftime('%d %b %Y')}")
-
         elif st.session_state.stat == "Lactating Mother":
             st.header("🤱 Postpartum Recovery")
             birth_date = st.date_input("Date of Delivery")
             days_post = (date.today() - birth_date).days
             st.success(f"Day {days_post} of recovery. Focus on nutrition and rest.")
 
-    # --- DETAILED DIET PLANS ---
+    # SECTION 2: DIET PLANS
     elif m == "Detailed Diet Plans":
-        st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
-        pref = st.radio("Preference", ["Vegetarian", "Non-Vegetarian"])
-        
-        if st.session_state.stat == "Pregnant":
-            t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with t1:
-                st.markdown("<div class='diet-card'><b>Trimester 1: Folic Acid & Nausea Control</b><br><b>Early Morning:</b> 5 soaked almonds + 2 walnuts.<br><b>Breakfast:</b> Veggie Poha / Oats / Moong Dal Chilla.<br><b>Lunch:</b> 2 Roti, Dal, Green Sabzi, Fresh Curd.<br><b>Evening:</b> Roasted Makhana + Milk.</div>", unsafe_allow_html=True)
-            with t2:
-                st
+        st.header(f"🥗 Clinical Diet Chart: {st.session_

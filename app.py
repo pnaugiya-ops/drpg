@@ -127,4 +127,57 @@ elif st.session_state.role == "P":
             
 
         elif st.session_state.stat == "Lactating Mother":
-            st.markdown("<div class='diet-card'><b>Galactagogues (Milk Boosters):</b><br>1. Soaked Methi Seeds
+            st.markdown("<div class='diet-card'><b>Galactagogues (Milk Boosters):</b><br>1. Soaked Methi Seeds.<br>2. Garlic & Cumin (Jeera).<br>3. Plenty of Water & Milk.<br>4. Gond/Methi Ladoo.</div>", unsafe_allow_html=True)
+
+    # --- EXERCISE & YOGA ---
+    elif m == "Exercise & Yoga":
+        st.header(f"🧘 Wellness for {st.session_state.stat}")
+        if st.session_state.stat == "Pregnant":
+            st.write("1. **Butterfly Pose:** For pelvic floor health.\n2. **Cat-Cow:** For back pain relief.\n3. **Walking:** 20-30 mins daily.")
+        elif st.session_state.stat == "PCOS/Gynae":
+            st.write("1. **Surya Namaskar:** 5-10 rounds for hormonal balance.\n2. **Strength Training:** To improve insulin sensitivity.")
+        else:
+            st.write("1. **Pelvic Floor (Kegels):** For recovery.\n2. **Slow Walking:** Do not overexert.")
+
+    # --- LAB REPORTS ---
+    elif m == "Lab Reports & Trends":
+        st.header("📊 Clinical Lab Trends")
+        with st.form("lab_form"):
+            hb = st.number_input("Hemoglobin (g/dL)", 0.0, 20.0, 12.0)
+            sugar = st.number_input("Blood Sugar", 0, 500, 90)
+            if st.form_submit_button("Save Report"):
+                st.session_state.lab_records.append({"Date": date.today(), "Hb": hb, "Sugar": sugar})
+                st.success("Record Saved!")
+        if st.session_state.lab_records:
+            st.line_chart(pd.DataFrame(st.session_state.lab_records).set_index("Date"))
+
+    # --- VITALS ---
+    elif m == "Health Vitals":
+        st.header("📈 Record Vitals")
+        st.number_input("Weight (kg)", 30, 150, 60)
+        st.text_input("Blood Pressure")
+        if st.button("Log Vitals"): st.success("Vitals Recorded Successfully.")
+
+    # --- VACCINATIONS ---
+    elif m == "Vaccinations":
+        st.header("💉 Vaccination Tracker")
+        v = st.selectbox("Select Dose", ["TT-1", "TT-2", "Tdap", "Flu Vaccine", "Hepatitis B"])
+        if st.button("Mark as Administered"):
+            st.success(f"Logged {v} on {date.today()}")
+
+    # --- BOOKING ---
+    elif m == "Book Appointment":
+        st.header("📅 Book Clinic Slot")
+        d = st.date_input("Select Date", min_value=date.today())
+        if st.button("Confirm Appointment"):
+            st.success(f"Appointment requested for {d}")
+
+# --- 4. DOCTOR VIEW ---
+elif st.session_state.role == "D":
+    st.sidebar.title("👩‍⚕️ Admin View")
+    if st.sidebar.button("Logout"): 
+        st.session_state.logged_in = False
+        st.rerun()
+    st.header("Doctor's Master Dashboard")
+    st.write("Current Patient Appointments:")
+    st.table(pd.DataFrame(st.session_state.appointments) if st.session_state.appointments else "No appointments booked.")

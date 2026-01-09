@@ -333,7 +333,7 @@ elif st.session_state.role == "P":
                 save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}")
                 st.success("Booking Request Sent!")
 
-# --- 5. ADMIN PORTAL (SYNCED) ---
+# --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master")
     if st.button("🔄 Refresh Data from Cloud"): 
@@ -347,7 +347,6 @@ elif st.session_state.role == "D":
     with t1:
         st.subheader("Live Appointment Bookings")
         if not df_global.empty:
-            # Filters to show only Appointments
             apts = df_global[df_global['Type'] == "Appointment"]
             st.dataframe(apts, use_container_width=True)
         else:

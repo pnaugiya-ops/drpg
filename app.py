@@ -125,16 +125,30 @@ elif st.session_state.role == "P":
         if st.button("Request Booking"):
             if save_to_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}"):
                 st.success("Booking Sent!")
-
 # --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master (Bhavya Labs)")
-    if st.button("Refresh Data"): st.rerun()
+    if st.button("Refresh Data"): 
+        st.rerun()
 
     # Pull everything from Google Sheets
     df = conn.read(worksheet="Appointments", ttl=0)
     
     t1, t2 = st.tabs(["Appointments", "Patient Health Records"])
+    
     with t1:
-        st.dataframe(df[df['Type'] == "Appointment"])
+        # This block MUST be indented
+        st.subheader("Upcoming Appointments")
+        if not df.empty:
+            st.dataframe(df[df['Type'] == "Appointment"], use_container_width=True)
+        else:
+            st.info("No appointments found.")
+
     with t2:
+        # This was likely your error line. It MUST have code indented below it.
+        st.subheader("All Patient Vitals & Labs")
+        if not df.empty:
+            records = df[df['Type'].isin(["Vitals", "Lab Report"])]
+            st.dataframe(records, use_container_width=True)
+        else:
+            st.info("No health records found.")

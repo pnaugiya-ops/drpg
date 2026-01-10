@@ -244,7 +244,7 @@ elif st.session_state.role == "P":
                 save_to_clinic_sheets(st.session_state.name, "Lab Report", details)
                 st.success("Sent to Doctor!")
 
-    elif m == "Vitals":
+elif m == "Vitals":
         st.header("📈 Vitals Tracker")
         with st.form("vital_form"):
             p, bp = st.number_input("Pulse Rate", 40, 150, 72), st.text_input("Blood Pressure", "120/80")
@@ -254,7 +254,8 @@ elif st.session_state.role == "P":
                 details = f"Pulse: {p}, BP: {bp}, Wt: {wt}, BMI: {bmi}"
                 save_to_clinic_sheets(st.session_state.name, "Vitals", details)
                 st.success("Vitals Updated!")
-  elif m == "Social":
+
+    elif m == "Social":
         st.header("📲 Clinic Feed & Updates")
         
         # Fetch live links from the Google Sheet (ClinicConfig tab)
@@ -285,8 +286,7 @@ elif st.session_state.role == "P":
             else:
                 save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}")
                 st.success("Booking Request Sent!")
-    
-# --- 5. ADMIN PORTAL ---
+                # --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master")
     if st.button("🔄 Refresh Data from Cloud"): 

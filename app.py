@@ -82,3 +82,120 @@ elif st.session_state.role == "P":
     if st.button("Log Out"):
         st.session_state.logged_in = False
         st.rerun()
+
+    m = st.segmented_control("SELECT VIEW", options=["Health Tracker", "Cycle Tracker","Diet Plans", "Exercise", "Lab Reports", "Vitals", "Social", "Book Slot"], default="Health Tracker")
+    st.divider()
+
+    if m == "Health Tracker":
+        if st.session_state.stat == "Pregnant":
+            st.header("🤰 Pregnancy Milestone Tracker")
+            lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
+            wks = (date.today()-lmp).days // 7
+            edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
+            st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
+        elif st.session_state.stat == "Lactating Mother":
+            st.header("📋 Postpartum Health")
+            st.write("Contraception: OCPs, Copper T, Barrier Methods.")
+        else:
+            st.header("📋 PCOS Health Progress")
+
+    elif m == "Cycle Tracker":
+        st.header("📅 Menstrual Cycle & PCOS Tracker")
+        col1, col2 = st.columns(2)
+        with col1:
+            last_period = st.date_input("When did your last period start?", value=date.today() - timedelta(days=28))
+            prev_period = st.date_input("When did the period before THAT start?", value=date.today() - timedelta(days=56))
+        cycle_length = (last_period - prev_period).days
+        with col2:
+            st.metric("Your Cycle Length", f"{cycle_length} Days")
+            if cycle_length > 35:
+                st.warning("PCOS Alert: Your cycle is longer than the typical 28-35 day range.")
+            elif cycle_length < 21:
+                st.warning("Alert: Your cycle is shorter than 21 days.")
+            else:
+                st.success("Your cycle length is within the typical range.")
+        prediction_days = cycle_length if 21 <= cycle_length <= 45 else 28
+        next_period = last_period + timedelta(days=prediction_days)
+        st.divider()
+        st.subheader(f"Next Expected Period: {next_period.strftime('%d %b %Y')}")
+        with st.expander("Why do PCOS cycles vary?"):
+            st.write("In PCOS, hormonal imbalances can prevent regular ovulation.")
+        if st.button("Log Cycle Data"):
+            details = f"Cycle Length: {cycle_length} days, Last Period: {last_period}"
+            save_to_clinic_sheets(st.session_state.name, "Cycle Log", details)
+            st.success("Cycle data saved for your doctor to review!")
+
+    elif m == "Diet Plans":
+        st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
+        if st.session_state.stat == "Pregnant":
+            t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
+            with t1:
+                st.markdown("<div class='diet-card'><b>Focus: Folic Acid</b></div>", unsafe_allow_html=True)
+            with t2:
+                st.markdown("<div class='diet-card'><b>Focus: Calcium & Iron</b></div>", unsafe_allow_html=True)
+            with t3:
+                st.markdown("<div class='diet-card'><b>Focus: High Fiber</b></div>", unsafe_allow_html=True)
+        elif st.session_state.stat == "PCOS/Gynae":
+            st.markdown("Balanced Low-GI Diet recommended.")
+        elif st.session_state.stat == "Lactating Mother":
+            st.markdown("High calorie and hydration focus.")
+
+    elif m == "Exercise":
+        st.header("🧘 Therapeutic Movement")
+        st.write("Guided exercises based on your status.")
+
+    elif m == "Lab Reports":
+        st.header("📊 Lab Tracking")
+        with st.form("lab_form"):
+            hb = st.number_input("Hemoglobin (g/dL)", 5.0, 18.0, 12.0)
+            if st.form_submit_button("Save Report"):
+                save_to_clinic_sheets(st.session_state.name, "Lab Report", f"Hb: {hb}")
+                st.success("Sent to Doctor!")
+
+    elif m == "Vitals":
+        st.header("📈 Vitals Tracker")
+        with st.form("vital_form"):
+            bp = st.text_input("Blood Pressure", "120/80")
+            if st.form_submit_button("Update Vitals"):
+                save_to_clinic_sheets(st.session_state.name, "Vitals", f"BP: {bp}")
+                st.success("Vitals Updated!")
+
+    elif m == "Social":
+        st.header("📲 Clinic Feed & Updates")
+        try:
+            config_df = conn.read(worksheet="ClinicConfig", ttl=0)
+            yt_live = config_df.loc[config_df['Key'] == 'youtube', 'Value'].values[0]
+            ig_live = config_df.loc[config_df['Key'] == 'instagram', 'Value'].values[0]
+            if yt_live:
+                st.subheader("Latest Health Update")
+                st.video(yt_live)
+            if ig_live:
+                st.divider()
+                st.info(f"📸 **Follow us on Instagram:** [View Profile]({ig_live})")
+        except Exception as e:
+            st.info("Visit our clinic for the latest social updates!")
+
+    elif m == "Book Slot":
+        st.header("📅 Select Time Slot")
+        d = st.date_input("Date", min_value=date.today())
+        if st.button("Request Booking"):
+            save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}")
+            st.success("Booking Request Sent!")
+
+# --- 5. ADMIN PORTAL ---
+elif st.session_state.role == "D":
+    st.title("👩‍⚕️ Admin Master")
+    if st.button("🔄 Refresh Data"): st.rerun()
+    
+    t1, t2 = st.tabs(["Appointments", "Social Media"])
+    with t1:
+        df_global = conn.read(worksheet="Appointments", ttl=0)
+        st.dataframe(df_global)
+    with t2:
+        with st.form("social_form"):
+            yt = st.text_input("YouTube Link")
+            ig = st.text_input("Instagram Link")
+            if st.form_submit_button("Update Socials"):
+                config_data = pd.DataFrame([{"Key": "youtube", "Value": yt}, {"Key": "instagram", "Value": ig}])
+                conn.update(worksheet="ClinicConfig", data=config_data)
+                st.success("Links updated!")

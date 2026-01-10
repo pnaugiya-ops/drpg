@@ -305,9 +305,16 @@ elif st.session_state.role == "D":
         st.write("Current Blocked Dates (This Session):", st.session_state.blocked)
 
     with t4:
+        st.subheader("Update Patient Social Feed")
         with st.form("social_form"):
-            yt = st.text_input("YouTube Link", value=st.session_state.social["yt"])
-            ig = st.text_input("Instagram Link", value=st.session_state.social["ig"])
-            if st.form_submit_button("Update Feed"):
-                st.session_state.social.update({"yt": yt, "ig": ig})
-                st.success("Social Media Updated!")
+            yt_link = st.text_input("YouTube Video URL")
+            ig_link = st.text_input("Instagram Profile URL")
+            
+            if st.form_submit_button("Update All Patient Apps"):
+                # Create a dataframe to overwrite the config sheet
+                config_data = pd.DataFrame([
+                    {"Key": "youtube", "Value": yt_link},
+                    {"Key": "instagram", "Value": ig_link}
+                ])
+                conn.update(worksheet="ClinicConfig", data=config_data)
+                st.success("Social links updated for all patients!")

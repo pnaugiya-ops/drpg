@@ -83,7 +83,7 @@ elif st.session_state.role == "P":
         st.session_state.logged_in = False
         st.rerun()
 
-    m = st.segmented_control("SELECT VIEW", options=["Health Tracker", "Diet Plans", "Exercise", "Cylce Tracker", "Lab Reports", "Vitals", "Social", "Book Slot"], default="Health Tracker")
+    m = st.segmented_control("SELECT VIEW", options=["Health Tracker", "Cyle Tracker","Diet Plans", "Exercise", "Lab Reports", "Vitals", "Social", "Book Slot"], default="Health Tracker")
     st.divider()
 
     if m == "Health Tracker":

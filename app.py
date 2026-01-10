@@ -254,19 +254,6 @@ elif st.session_state.role == "P":
                 details = f"Pulse: {p}, BP: {bp}, Wt: {wt}, BMI: {bmi}"
                 save_to_clinic_sheets(st.session_state.name, "Vitals", details)
                 st.success("Vitals Updated!")
-
-    elif m == "Book Slot":
-        st.header("📅 Select Time Slot")
-        slots = [f"{h}:{m:02d} AM" for h in [11] for m in [15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [12, 1, 6, 7] for m in [0, 15, 30, 45]]
-        d = st.date_input("Date", min_value=date.today())
-        t = st.selectbox("Slot", slots)
-        if st.button("Request Booking"):
-            if str(d) in [str(bd) for bd in st.session_state.blocked]:
-                st.error("Clinic is closed on this date.")
-            else:
-                save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}")
-                st.success("Booking Request Sent!")
-    
   elif m == "Social":
         st.header("📲 Clinic Feed & Updates")
         
@@ -286,6 +273,19 @@ elif st.session_state.role == "P":
                 st.info(f"📸 **Follow Dr. Priyanka Gupta on Instagram:** [View Profile]({ig_live})")
         except Exception as e:
             st.info("Visit our clinic for the latest social updates!")
+
+    elif m == "Book Slot":
+        st.header("📅 Select Time Slot")
+        slots = [f"{h}:{m:02d} AM" for h in [11] for m in [15, 30, 45]] + [f"{h}:{m:02d} PM" for h in [12, 1, 6, 7] for m in [0, 15, 30, 45]]
+        d = st.date_input("Date", min_value=date.today())
+        t = st.selectbox("Slot", slots)
+        if st.button("Request Booking"):
+            if str(d) in [str(bd) for bd in st.session_state.blocked]:
+                st.error("Clinic is closed on this date.")
+            else:
+                save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}")
+                st.success("Booking Request Sent!")
+    
 # --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master")

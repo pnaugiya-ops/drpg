@@ -101,20 +101,94 @@ elif st.session_state.role == "P":
 
     elif m == "Diet Plans":
         st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
+        
         if st.session_state.stat == "Pregnant":
             t1, t2, t3 = st.tabs(["Trimester 1", "Trimester 2", "Trimester 3"])
-            with t1: st.markdown("<div class='diet-card'><b>T1 Focus: Folic Acid.</b><br>• Early Morning: 5 Almonds + 2 Walnuts.<br>• Breakfast: Poha/Oats/Dal Chilla.</div>", unsafe_allow_html=True)
-            with t2: st.markdown("<div class='diet-card'><b>T2 Focus: Iron & Calcium.</b><br>• Coconut Water & Fresh Fruits daily.</div>", unsafe_allow_html=True)
-            with t3: st.markdown("<div class='diet-card'><b>T3 Focus: Energy.</b><br>• 6 small meals. Bedtime Milk with 2 Dates.</div>", unsafe_allow_html=True)
+            with t1:
+                st.markdown("""<div class='diet-card'>
+                <b>Focus: Folic Acid & Vitamin B6 (Weeks 1-12)</b><br>
+                • <b>Early Morning:</b> 4-5 soaked almonds + warm water.<br>
+                • <b>Breakfast:</b> Veggie Poha/Upma or Whole grain toast + 2 boiled eggs + milk.<br>
+                • <b>Lunch:</b> 2 Rotis + Spinach Dal + Sautéed Veggies + Curd.<br>
+                • <b>Evening:</b> Roasted Makhana or Sprout salad.<br>
+                • <b>Dinner:</b> Veg Khichdi + Curd or Grilled Fish/Chicken + Greens.
+                </div>""", unsafe_allow_html=True)
+            with t2:
+                st.markdown("""<div class='diet-card'>
+                <b>Focus: Calcium & Iron (Weeks 13-26)</b><br>
+                • <b>Early Morning:</b> Soaked walnuts/almonds + water.<br>
+                • <b>Breakfast:</b> Vegetable Paratha with curd or Oats porridge.<br>
+                • <b>Lunch:</b> Brown rice + Dal + Mixed Veggies + Salad.<br>
+                • <b>Evening:</b> Banana smoothie with flaxseeds or Buttermilk.<br>
+                • <b>Dinner:</b> Whole wheat chapati + Paneer or Chicken curry.
+                </div>""", unsafe_allow_html=True)
+            with t3:
+                st.markdown("""<div class='diet-card'>
+                <b>Focus: High Fiber & Healthy Fats (Weeks 27-40)</b><br>
+                • <b>Early Morning:</b> Warm water + soaked fenugreek seeds.<br>
+                • <b>Breakfast:</b> Besan Chilla or Oats porridge with nuts + 2 eggs.<br>
+                • <b>Lunch:</b> Millet khichdi with veggies + Dal + Salad.<br>
+                • <b>Evening:</b> Yogurt with flaxseeds or Sprout chaat.<br>
+                • <b>Dinner:</b> Chapati + Rajma/Chole + Vegetable sabzi + Curd.
+                </div>""", unsafe_allow_html=True)
+
         elif st.session_state.stat == "PCOS/Gynae":
             vt, nvt = st.tabs(["Vegetarian Plan", "Non-Vegetarian Plan"])
-            with vt: st.markdown("""| Meal | Item | \n| :--- | :--- | \n| Morning | Lemon water + Almonds | \n| Breakfast | Moong dal chilla | \n| Lunch | Jowar rotis + Dal |""", unsafe_allow_html=True)
-            with nvt: st.markdown("""| Meal | Item | \n| :--- | :--- | \n| Breakfast | 2 Boiled egg whites | \n| Lunch | Grilled chicken/Fish |""", unsafe_allow_html=True)
+            with vt:
+                st.markdown("""
+                | Time | Item | Note |
+                | :--- | :--- | :--- |
+                | **Early Morning** | Lemon water + 5 soaked almonds | Improves metabolism |
+                | **Breakfast** | Moong dal chilla + Mint chutney | High protein & fiber |
+                | **Lunch** | 2 Jowar/Bajra rotis + Mixed veg + Dal | Prevents sugar spikes |
+                | **Snack** | Roasted makhana + Green tea | Avoid sugary tea |
+                | **Dinner** | Tofu/Paneer stir-fry with veggies | Keep it light |
+                """, unsafe_allow_html=True)
+            with nvt:
+                st.markdown("""
+                | Time | Item | Note |
+                | :--- | :--- | :--- |
+                | **Early Morning** | Lemon water + Soaked chia seeds | Stabilizes blood sugar |
+                | **Breakfast** | 2 Boiled egg whites + Whole grain toast | Protein stability |
+                | **Lunch** | Grilled chicken/Fish + Brown rice + Salad | Rich in Omega-3 |
+                | **Snack** | 1 Boiled egg or Roasted chana | Reduces cravings |
+                | **Dinner** | Grilled fish/chicken + Sautéed veggies | Avoid heavy curries |
+                """, unsafe_allow_html=True)
+
+        elif st.session_state.stat == "Lactating Mother":
+            st.info("Additional 300–500 calories required per day.")
+            st.markdown("""<div class='diet-card'>
+            <b>Lactation Support Plan (Galactagogues)</b><br>
+            • <b>Morning:</b> Warm water with soaked fenugreek (Methi) or Cumin (Jeera) water.<br>
+            • <b>Diet Focus:</b> Oats, Ragi, Papaya, and Methi/Gond Ladoos.<br>
+            • <b>Hydration:</b> Drink 8-12 glasses of water. Have a glass during every nursing session.
+            </div>""", unsafe_allow_html=True)
 
     elif m == "Exercise":
         st.header("🧘 Therapeutic Movement")
-        st.write("1. Butterfly Pose | 2. Cat-Cow Stretch | 3. 30-min Walking")
+        
+        if st.session_state.stat == "Pregnant":
+            exp = st.expander("Trimester-Wise Guide", expanded=True)
+            exp.markdown("""
+            - **T1:** Walking, Prenatal Yoga, Kegels, Cat-Cow Stretch.
+            - **T2:** Swimming, Stationary Cycling, Wall Squats, Side-Lying Leg Lifts.
+            - **T3:** Butterfly Stretch, Deep Supported Squats, Pelvic Tilts, Birthing Ball.
+            """)
+            st.warning("Talk Test: You should be able to hold a conversation while exercising.")
 
+        elif st.session_state.stat == "PCOS/Gynae":
+            st.write("### PCOS Strength & Insulin Sensitivity")
+            st.write("- **Strength Training:** 3-4x/week (Squats, Lunges, Push-ups).")
+            st.write("- **LISS Cardio:** 30-45 mins of Brisk Walking.")
+            st.write("- **Habit Stack:** Walk for 10-15 minutes after every meal to lower blood sugar.")
+            st.info("Limit HIIT to 2 sessions per week to avoid overstressing cortisol.")
+
+        elif st.session_state.stat == "Lactating Mother":
+            st.write("### Postpartum Recovery")
+            st.write("- **Weeks 0-6:** Walking, Kegels, and Diaphragmatic 'Belly' Breathing.")
+            st.write("- **Weeks 6-12:** Low-impact cardio (Swimming, Elliptical) + Bodyweight Squats.")
+            st.write("- **After Week 12:** Gradually reintroduce jogging or light weights.")
+            st.success("Tip: Exercise immediately AFTER breastfeeding to ensure comfort.")
     elif m == "Lab Reports":
         st.header("📊 Lab Tracking")
         with st.form("lab_form"):

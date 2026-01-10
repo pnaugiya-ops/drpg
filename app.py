@@ -98,6 +98,49 @@ elif st.session_state.role == "P":
             st.write("Contraception: OCPs, Copper T, Barrier Methods.")
         else:
             st.header("📋 PCOS Health Progress")
+elif m == "Cycle Tracker":
+        st.header("📅 Menstrual Cycle & PCOS Tracker")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            last_period = st.date_input("When did your last period start?", value=date.today() - timedelta(days=28))
+            prev_period = st.date_input("When did the period before THAT start?", value=date.today() - timedelta(days=56))
+        
+        # Calculate Cycle Length
+        cycle_length = (last_period - prev_period).days
+        
+        with col2:
+            st.metric("Your Cycle Length", f"{cycle_length} Days")
+            if cycle_length > 35:
+                st.warning("PCOS Alert: Your cycle is longer than the typical 28-35 day range.")
+            elif cycle_length < 21:
+                st.warning("Alert: Your cycle is shorter than 21 days.")
+            else:
+                st.success("Your cycle length is within the typical range.")
+
+        # Prediction Logic
+        # For PCOS, we use the user's actual cycle length for prediction if it's within 21-45 days.
+        # Otherwise, we default to 28 for "Normal" comparison.
+        prediction_days = cycle_length if 21 <= cycle_length <= 45 else 28
+        next_period = last_period + timedelta(days=prediction_days)
+        
+        st.divider()
+        st.subheader(f"Next Expected Period: {next_period.strftime('%d %b %Y')}")
+        
+        # PCOS Specific Educational Content
+        with st.expander("Why do PCOS cycles vary?"):
+            st.write("""
+            In PCOS, hormonal imbalances (higher androgens) can prevent regular ovulation. 
+            This leads to:
+            * **Oligomenorrhea:** Fewer than 9 periods a year.
+            * **Anovulation:** The body doesn't release an egg, causing the cycle to stretch.
+            * **Tip:** Tracking 'Basal Body Temperature' or 'Cervical Mucus' can be more accurate than calendar dates for PCOS.
+            """)
+            
+        if st.button("Log Cycle Data"):
+            details = f"Cycle Length: {cycle_length} days, Last Period: {last_period}"
+            save_to_clinic_sheets(st.session_state.name, "Cycle Log", details)
+            st.success("Cycle data saved for your doctor to review!")
 
     elif m == "Diet Plans":
         st.header(f"🥗 Clinical Diet Chart: {st.session_state.stat}")
@@ -154,49 +197,6 @@ elif st.session_state.role == "P":
                 | **Snack** | 1 Boiled egg or Roasted chana | Reduces cravings |
                 | **Dinner** | Grilled fish/chicken + Sautéed veggies | Avoid heavy curries |
                 """, unsafe_allow_html=True)
-elif m == "Cycle Tracker":
-        st.header("📅 Menstrual Cycle & PCOS Tracker")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            last_period = st.date_input("When did your last period start?", value=date.today() - timedelta(days=28))
-            prev_period = st.date_input("When did the period before THAT start?", value=date.today() - timedelta(days=56))
-        
-        # Calculate Cycle Length
-        cycle_length = (last_period - prev_period).days
-        
-        with col2:
-            st.metric("Your Cycle Length", f"{cycle_length} Days")
-            if cycle_length > 35:
-                st.warning("PCOS Alert: Your cycle is longer than the typical 28-35 day range.")
-            elif cycle_length < 21:
-                st.warning("Alert: Your cycle is shorter than 21 days.")
-            else:
-                st.success("Your cycle length is within the typical range.")
-
-        # Prediction Logic
-        # For PCOS, we use the user's actual cycle length for prediction if it's within 21-45 days.
-        # Otherwise, we default to 28 for "Normal" comparison.
-        prediction_days = cycle_length if 21 <= cycle_length <= 45 else 28
-        next_period = last_period + timedelta(days=prediction_days)
-        
-        st.divider()
-        st.subheader(f"Next Expected Period: {next_period.strftime('%d %b %Y')}")
-        
-        # PCOS Specific Educational Content
-        with st.expander("Why do PCOS cycles vary?"):
-            st.write("""
-            In PCOS, hormonal imbalances (higher androgens) can prevent regular ovulation. 
-            This leads to:
-            * **Oligomenorrhea:** Fewer than 9 periods a year.
-            * **Anovulation:** The body doesn't release an egg, causing the cycle to stretch.
-            * **Tip:** Tracking 'Basal Body Temperature' or 'Cervical Mucus' can be more accurate than calendar dates for PCOS.
-            """)
-            
-        if st.button("Log Cycle Data"):
-            details = f"Cycle Length: {cycle_length} days, Last Period: {last_period}"
-            save_to_clinic_sheets(st.session_state.name, "Cycle Log", details)
-            st.success("Cycle data saved for your doctor to review!")
         elif st.session_state.stat == "Lactating Mother":
             st.info("Additional 300–500 calories required per day.")
             st.markdown("""<div class='diet-card'>

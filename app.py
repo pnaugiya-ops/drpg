@@ -270,22 +270,22 @@ elif st.session_state.role == "P":
   elif m == "Social":
         st.header("📲 Clinic Feed & Updates")
         
-        # Fetch live links from the Google Sheet
+        # Fetch live links from the Google Sheet (ClinicConfig tab)
         try:
             config_df = conn.read(worksheet="ClinicConfig", ttl=0)
-            # Pull values where Key is youtube or instagram
-            yt_live = config_df[config_df['Key'] == 'youtube']['Value'].values[0]
-            ig_live = config_df[config_df['Key'] == 'instagram']['Value'].values[0]
+            # Find the rows where Key is 'youtube' and 'instagram'
+            yt_live = config_df.loc[config_df['Key'] == 'youtube', 'Value'].values[0]
+            ig_live = config_df.loc[config_df['Key'] == 'instagram', 'Value'].values[0]
             
             if yt_live:
-                st.subheader("Watch Latest Health Tips")
+                st.subheader("Latest Health Update")
                 st.video(yt_live)
             
             if ig_live:
                 st.divider()
-                st.write(f"📸 **Follow us on Instagram for daily updates:** [Click Here]({ig_live})")
-        except:
-            st.info("No social updates available at the moment.")
+                st.info(f"📸 **Follow Dr. Priyanka Gupta on Instagram:** [View Profile]({ig_live})")
+        except Exception as e:
+            st.info("Visit our clinic for the latest social updates!")
 # --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master")

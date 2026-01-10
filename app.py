@@ -66,4 +66,32 @@ if not st.session_state.logged_in:
             s = st.radio("Clinical Status", ["Pregnant", "PCOS/Gynae", "Lactating Mother"])
             if st.form_submit_button("Enter My Dashboard"):
                 if n:
-                    st.session_state.update({"logged_in":True,"name":n,"age":age,"
+                    # FIXED LINE 69: Closed the string and dictionary properly
+                    st.session_state.update({"logged_in":True,"name":n,"age":age,"stat":s,"role":"P"})
+                    st.rerun()
+    with t2:
+        with st.form("d_login"):
+            p = st.text_input("Clinic Admin Password", type="password")
+            if st.form_submit_button("Login to Clinic Master"):
+                if p == "clinicadmin786":
+                    st.session_state.update({"logged_in":True,"role":"D"})
+                    st.rerun()
+
+# --- 4. PATIENT PORTAL ---
+elif st.session_state.role == "P":
+    st.markdown(f"### 📋 Patient: {st.session_state.name} ({st.session_state.age} yrs)")
+    if st.button("Log Out"):
+        st.session_state.logged_in = False
+        st.rerun()
+
+    m = st.segmented_control("SELECT VIEW", options=["Health Tracker", "Cycle Tracker","Diet Plans", "Exercise", "Lab Reports", "Vitals", "Social", "Book Slot"], default="Health Tracker")
+    st.divider()
+
+    if m == "Health Tracker":
+        if st.session_state.stat == "Pregnant":
+            st.header("🤰 Pregnancy Milestone Tracker")
+            lmp = st.date_input("LMP Date", value=date.today()-timedelta(days=70))
+            wks = (date.today()-lmp).days // 7
+            edd = (lmp + timedelta(days=280)).strftime('%d %b %Y')
+            st.success(f"🗓️ Estimated Due Date: {edd} | Current Week: {wks}")
+        elif st.session_state.stat == "Lactating Mother

@@ -267,11 +267,25 @@ elif st.session_state.role == "P":
                 save_to_clinic_sheets(st.session_state.name, "Appointment", f"Date: {d}, Time: {t}")
                 st.success("Booking Request Sent!")
     
-    elif m == "Social":
-        st.header("📲 Social Feed")
-        if st.session_state.social["yt"]: st.video(st.session_state.social["yt"])
-        if st.session_state.social["ig"]: st.write(f"Follow us on Instagram: {st.session_state.social['ig']}")
-
+  elif m == "Social":
+        st.header("📲 Clinic Feed & Updates")
+        
+        # Fetch live links from the Google Sheet
+        try:
+            config_df = conn.read(worksheet="ClinicConfig", ttl=0)
+            # Pull values where Key is youtube or instagram
+            yt_live = config_df[config_df['Key'] == 'youtube']['Value'].values[0]
+            ig_live = config_df[config_df['Key'] == 'instagram']['Value'].values[0]
+            
+            if yt_live:
+                st.subheader("Watch Latest Health Tips")
+                st.video(yt_live)
+            
+            if ig_live:
+                st.divider()
+                st.write(f"📸 **Follow us on Instagram for daily updates:** [Click Here]({ig_live})")
+        except:
+            st.info("No social updates available at the moment.")
 # --- 5. ADMIN PORTAL ---
 elif st.session_state.role == "D":
     st.title("👩‍⚕️ Admin Master")
